@@ -29,6 +29,7 @@ let playerTimer = null;
 let playerStartedAt = 0;
 let isPlaying = false;
 let draftAnnotation = null;
+let showRemoveHandles = false;
 
 const defaultAudio = {
     enabled: true,

@@ -39,6 +39,7 @@ document.addEventListener('click', event => {
             if (!story.steps.some(step => step.id === story.activeStepId)) story.activeStepId = story.steps[0]?.id || '';
         });
         project.activeScreenshotId = project.screenshots[0]?.id || '';
+        forgetAnnotationHistory(screen.id);
         persist(true);
         toast('Screen and linked steps deleted.');
     }
@@ -46,8 +47,23 @@ document.addEventListener('click', event => {
     else if (action === 'select-tool') { selectedTool = target.dataset.tool; renderApp(); }
     else if (action === 'select-color') { selectedColor = target.dataset.color; renderApp(); }
     else if (action === 'inspector-tab') { inspectorTab = target.dataset.tab; renderApp(); }
-    else if (action === 'delete-annotation') { const screen = activeScreen(); screen.annotations = screen.annotations.filter(item => item.id !== target.dataset.id); persist(true); }
-    else if (action === 'clear-annotations') { const screen = activeScreen(); screen.annotations = []; persist(true); }
+    else if (action === 'undo-annotation') undoAnnotations();
+    else if (action === 'redo-annotation') redoAnnotations();
+    else if (action === 'toggle-remove-handles') { showRemoveHandles = !showRemoveHandles; renderApp(); }
+    else if (action === 'delete-annotation') {
+        const screen = activeScreen();
+        if (!screen?.annotations?.some(item => item.id === target.dataset.id)) return;
+        rememberAnnotations(screen);
+        screen.annotations = screen.annotations.filter(item => item.id !== target.dataset.id);
+        persist(true);
+    }
+    else if (action === 'clear-annotations') {
+        const screen = activeScreen();
+        if (!screen?.annotations?.length) return;
+        rememberAnnotations(screen);
+        screen.annotations = [];
+        persist(true);
+    }
     else if (action === 'save-snapshot') { persist(); toast('Snapshot and analytical notes saved.'); }
     else if (action === 'new-story') {
         const name = prompt('Walkthrough name:');

@@ -43,7 +43,7 @@
     .screen-preview { height: 190px; }
     .card-actions { opacity: 1; transform: none; }
     .studio-layout, .story-layout { grid-template-rows: auto minmax(480px,70vh) auto; }
-    .stage-toolbar { overflow-x: auto; }
+    .stage-toolbar { row-gap: 6px; }
     .player-main { grid-template-rows: 470px auto; }
     .player-stage { padding: 12px; }
     .narrative { padding: 17px 14px; }

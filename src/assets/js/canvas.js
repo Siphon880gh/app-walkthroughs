@@ -24,10 +24,11 @@ function bindAnnotationCanvas(canvas) {
     screen.annotations ||= [];
 
     canvas.addEventListener('pointerdown', event => {
-        if (event.button !== 0) return;
+        if (event.button !== 0 || event.target.closest('.ann-remove')) return;
         event.preventDefault();
         const point = canvasPoint(event, canvas);
         if (selectedTool === 'callout-pin' || selectedTool === 'text-box') {
+            rememberAnnotations(screen);
             screen.annotations.push({
                 id: uid('ann'), type:selectedTool, x:point.x, y:point.y, width:0, height:0,
                 color:selectedColor, strokeWidth:3, numberBadge:screen.annotations.length+1,
@@ -56,6 +57,7 @@ function bindAnnotationCanvas(canvas) {
     canvas.addEventListener('pointerup', event => {
         if (!start || !draftAnnotation) return;
         if (selectedTool === 'arrow' || Math.abs(draftAnnotation.width) > 1 || Math.abs(draftAnnotation.height) > 1) {
+            rememberAnnotations(screen);
             screen.annotations.push({...draftAnnotation, id:uid('ann')});
             persist();
         }
