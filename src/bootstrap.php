@@ -16,7 +16,7 @@ function storyflow_env(string $key): string
         if (is_array($lines)) {
             foreach ($lines as $line) {
                 $line = trim($line);
-                if ($line === '' || str_starts_with($line, '#')) {
+                if ($line === '' || (isset($line[0]) && $line[0] === '#')) {
                     continue;
                 }
                 $eq = strpos($line, '=');
@@ -26,7 +26,7 @@ function storyflow_env(string $key): string
                 $name = trim(substr($line, 0, $eq));
                 $value = trim(substr($line, $eq + 1));
                 $quote = $value[0] ?? '';
-                if (($quote === '"' || $quote === "'") && str_ends_with($value, $quote) && strlen($value) >= 2) {
+                if (($quote === '"' || $quote === "'") && strlen($value) >= 2 && substr($value, -1) === $quote) {
                     $value = substr($value, 1, -1);
                 }
                 if ($name !== '') {
