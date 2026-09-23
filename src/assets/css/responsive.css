@@ -10,7 +10,7 @@
     body { overflow: auto; }
     .app-shell { height: auto; min-height: 100dvh; overflow: visible; }
     .topbar { position: sticky; top: 0; grid-template-columns: 1fr auto; gap: 8px; }
-    .brand-build, .top-actions .button:first-child { display: none; }
+    .brand-build { display: none; }
     #workspace { min-height: calc(100dvh - 95px); overflow: visible; }
     .workspace-grid { grid-template-columns: 1fr; height: auto; min-height: calc(100dvh - 95px); }
     .sidebar { display: none; }
@@ -32,7 +32,7 @@
 }
 @media (max-width: 620px) {
     .topbar { padding: 0 10px; }
-    .project-control { display: none; }
+    .project-select { max-width: 112px; }
     .nav-button { padding: 0 8px; font-size: 0; }
     .nav-icon { font-size: 11px; }
     .view-head { align-items: flex-start; padding: 14px; flex-direction: column; }

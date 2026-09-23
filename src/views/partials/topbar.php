@@ -11,9 +11,6 @@ require dirname(__DIR__, 2) . '/guard.php';
                 <span class="brand-name">StoryFlow Studio</span>
                 <span class="brand-build">build <?= htmlspecialchars($build, ENT_QUOTES, 'UTF-8') ?></span>
             </div>
-            <div class="project-control">
-                <select class="project-select" id="projectSelect" aria-label="Current project"></select>
-            </div>
         </div>
         <nav class="nav-tabs" aria-label="Workspace views" id="primaryNav">
             <button class="nav-button active" data-view="screenshots"><span class="nav-icon">▦</span>Library</button>
@@ -23,7 +20,9 @@ require dirname(__DIR__, 2) . '/guard.php';
             <button class="nav-button" data-view="export"><span class="nav-icon">↗</span>Export</button>
         </nav>
         <div class="top-actions">
-            <button class="button ghost" data-action="open-audio"><span aria-hidden="true">◖</span> Narration</button>
+            <div class="project-control">
+                <select class="project-select" id="projectSelect" aria-label="Current project"></select>
+            </div>
             <button class="button primary" data-action="new-project"><span aria-hidden="true">＋</span> New project</button>
         </div>
     </header>
