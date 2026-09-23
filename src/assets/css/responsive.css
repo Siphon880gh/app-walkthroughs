@@ -1,0 +1,57 @@
+@media (max-width: 1120px) {
+    .topbar { grid-template-columns: minmax(230px,1fr) auto; }
+    .nav-tabs { order: 3; position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; justify-content: center; border-width: 1px 0 0; border-radius: 0; background: rgba(7,13,24,.98); padding-bottom: max(3px, env(safe-area-inset-bottom)); }
+    .top-actions { grid-column: 2; }
+    .app-shell { padding-bottom: 39px; }
+    .studio-layout { grid-template-columns: 160px minmax(330px,1fr) 300px; }
+    .story-layout { grid-template-columns: 225px minmax(330px,1fr) 290px; }
+}
+@media (max-width: 860px) {
+    body { overflow: auto; }
+    .app-shell { height: auto; min-height: 100dvh; overflow: visible; }
+    .topbar { position: sticky; top: 0; grid-template-columns: 1fr auto; gap: 8px; }
+    .brand-build, .top-actions .button:first-child { display: none; }
+    #workspace { min-height: calc(100dvh - 95px); overflow: visible; }
+    .workspace-grid { grid-template-columns: 1fr; height: auto; min-height: calc(100dvh - 95px); }
+    .sidebar { display: none; }
+    .main-pane { min-height: calc(100dvh - 95px); overflow: visible; }
+    .library-scroll { overflow: visible; }
+    .studio-layout, .story-layout { grid-template-columns: 1fr; grid-template-rows: auto minmax(520px,75vh) auto; }
+    .filmstrip, .story-rail { border-right: 0; border-bottom: 1px solid var(--border); max-height: 180px; }
+    .panel-scroll, .step-list { display: flex; overflow-x: auto; gap: 7px; }
+    .film-item { min-width: 135px; }
+    .step-item { min-width: 220px; }
+    .inspector { border-left: 0; border-top: 1px solid var(--border); max-height: none; }
+    .player-view { min-height: calc(100dvh - 95px); grid-template-rows: auto minmax(650px,1fr) auto; }
+    .player-top { grid-template-columns: 1fr auto; padding: 10px 12px; }
+    .player-top .cluster { display: none; }
+    .player-main { grid-template-columns: 1fr; grid-template-rows: 540px auto; }
+    .narrative { border-left: 0; border-top: 1px solid var(--border); }
+    .player-bottom { grid-template-columns: auto 1fr auto; padding: 10px 12px; }
+    .export-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 620px) {
+    .topbar { padding: 0 10px; }
+    .project-control { display: none; }
+    .nav-button { padding: 0 8px; font-size: 0; }
+    .nav-icon { font-size: 11px; }
+    .view-head { align-items: flex-start; padding: 14px; flex-direction: column; }
+    .view-actions { width: 100%; }
+    .search { flex: 1; width: auto; }
+    .library-scroll { padding: 14px; }
+    .screen-grid { grid-template-columns: 1fr 1fr; gap: 9px; }
+    .screen-preview { height: 190px; }
+    .card-actions { opacity: 1; transform: none; }
+    .studio-layout, .story-layout { grid-template-rows: auto minmax(480px,70vh) auto; }
+    .stage-toolbar { overflow-x: auto; }
+    .player-main { grid-template-rows: 470px auto; }
+    .player-stage { padding: 12px; }
+    .narrative { padding: 17px 14px; }
+    .player-bottom { grid-template-columns: 1fr auto; }
+    .timeline { grid-column: 1 / -1; grid-row: 1; }
+    .player-time { display: none; }
+    .export-scroll { padding: 20px 14px 50px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
