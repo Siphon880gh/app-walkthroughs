@@ -32,6 +32,7 @@ let draftAnnotation = null;
 
 const defaultAudio = {
     enabled: true,
+    muted: false,
     rate: 1,
     pitch: 1,
     volume: .9,

@@ -35,8 +35,26 @@ function startStepTimer() {
     playerTimer = requestAnimationFrame(tick);
 }
 
+function toggleNarrationMute(button) {
+    audioSettings.muted = !audioSettings.muted;
+    saveJson(APP.audioKey, audioSettings);
+    if ('speechSynthesis' in window) {
+        if (audioSettings.muted) window.speechSynthesis.cancel();
+        else if (isPlaying && currentView === 'player') {
+            const step = activeStory()?.steps[playerIndex];
+            if (step) speakStep(step);
+        }
+    }
+    if (!button) return;
+    const muted = !!audioSettings.muted;
+    button.classList.toggle('is-muted', muted);
+    button.setAttribute('aria-pressed', String(muted));
+    button.setAttribute('aria-label', muted ? 'Unmute narration' : 'Mute narration');
+    button.innerHTML = narrationMuteIcon(muted);
+}
+
 function speakStep(step) {
-    if (!audioSettings.enabled || !('speechSynthesis' in window)) return;
+    if (!audioSettings.enabled || audioSettings.muted || !('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
     const parts = [];
     if (audioSettings.readTitle && step.title) parts.push(step.title);
@@ -51,7 +69,7 @@ function speakStep(step) {
     const voices = window.speechSynthesis.getVoices();
     utterance.voice = voices.find(voice => voice.voiceURI === audioSettings.voiceURI) || voices.find(voice => /Google US English/i.test(voice.name)) || voices.find(voice => /^en-US/i.test(voice.lang)) || null;
     if (audioSettings.advanceOnSpeechEnd) utterance.onend = () => {
-        if (!isPlaying) return;
+        if (!isPlaying || audioSettings.muted) return;
         const story = activeStory();
         if (playerIndex < story.steps.length - 1) setPlayerIndex(playerIndex + 1, true);
     };

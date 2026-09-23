@@ -3,6 +3,8 @@
 .player-title { font-size: 12px; font-weight: 750; }
 .player-caption { color: var(--dim); font: 9px/1 var(--mono); margin-top: 4px; }
 .player-top .view-actions:last-child { justify-self: end; }
+.player-top .button.icon-only svg { width: 14px; height: 14px; display: block; }
+.player-top .button.is-muted { color: var(--amber); border-color: rgba(245, 158, 11, .55); background: rgba(245, 158, 11, .12); }
 .player-main { min-height: 0; display: grid; grid-template-columns: minmax(0,1fr) 330px; }
 .player-stage { min-height: 0; position: relative; display: grid; place-items: center; padding: 22px; overflow: hidden; background-color: #030711; background-image: radial-gradient(circle at 50% 45%, #111d31 0, #050a14 42%, #02040a 74%); }
 .player-device-wrap { height: 100%; width: 100%; min-height: 0; display: grid; place-items: center; transition: opacity .25s ease, transform .25s ease; }

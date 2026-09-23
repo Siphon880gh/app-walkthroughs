@@ -74,6 +74,7 @@ document.addEventListener('click', event => {
         if (isPlaying) { stopPlayback(); renderApp(); }
         else { isPlaying = true; renderApp(); startStepTimer(); }
     }
+    else if (action === 'toggle-mute') toggleNarrationMute(target);
     else if (action === 'fullscreen') { const element = $('.player-view'); if (element?.requestFullscreen) element.requestFullscreen(); }
     else if (action === 'export-scope') { exportScope = target.dataset.scope; renderApp(); }
     else if (action === 'copy-share') {
