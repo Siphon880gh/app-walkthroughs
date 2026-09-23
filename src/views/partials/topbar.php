@@ -17,6 +17,7 @@ require dirname(__DIR__, 2) . '/guard.php';
             <button class="nav-button" data-view="editor"><span class="nav-icon">⌖</span>Annotate</button>
             <button class="nav-button" data-view="stories"><span class="nav-icon">⇥</span>Stories</button>
             <button class="nav-button" data-view="player"><span class="nav-icon">▶</span>Player</button>
+            <span class="nav-divider" role="separator" aria-orientation="vertical"></span>
             <button class="nav-button" data-view="export"><span class="nav-icon">↗</span>Export</button>
             <div class="sync-menu">
                 <button type="button" class="nav-button" id="syncMenuButton" data-action="toggle-sync-menu" aria-haspopup="menu" aria-expanded="false" aria-controls="syncMenu"><span class="nav-icon">⟳</span>Sync</button>
