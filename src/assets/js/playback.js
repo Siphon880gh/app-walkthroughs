@@ -1,6 +1,26 @@
 let narrationToken = 0;
 let narrationBusy = false;
 let narrationHold = false;
+let narrationStartedAt = 0;
+let narrationEstimateMs = 0;
+
+function estimateSpeechMs(text) {
+    const rate = Math.max(0.5, Number(audioSettings.rate) || 1);
+    const charsPerSecond = 13 * rate;
+    return Math.max(600, (String(text).length / charsPerSecond) * 1000);
+}
+
+function syncSpeechCountdown(active, now) {
+    if (!active) return;
+    const badge = active.querySelector('.speech-countdown');
+    if (!narrationHold) {
+        badge?.remove();
+        return;
+    }
+    const node = badge || active.appendChild(Object.assign(document.createElement('span'), {className: 'speech-countdown'}));
+    const remaining = Math.max(0, narrationEstimateMs - (now - narrationStartedAt));
+    node.textContent = `${Math.ceil(remaining / 1000)}s`;
+}
 
 function invalidateNarration() {
     narrationToken += 1;
@@ -54,12 +74,16 @@ function startStepTimer() {
             if (narrationBusy) {
                 narrationHold = true;
                 if (active) active.style.setProperty('--progress', '100%');
+                syncSpeechCountdown(active, now);
+                playerTimer = requestAnimationFrame(tick);
                 return;
             }
+            syncSpeechCountdown(active, now);
             if (playerIndex < story.steps.length - 1) setPlayerIndex(playerIndex + 1, true);
             else { stopPlayback(); renderApp(); }
             return;
         }
+        syncSpeechCountdown(active, now);
         playerTimer = requestAnimationFrame(tick);
     };
     playerTimer = requestAnimationFrame(tick);
@@ -104,7 +128,10 @@ function speakStep(step) {
     if (audioSettings.readScreenContent && step.screenContent) parts.push(step.screenContent);
     if (audioSettings.readNextAction && step.nextAction) parts.push(step.nextAction);
     if (!parts.length) return;
-    const utterance = new SpeechSynthesisUtterance(parts.join('. '));
+    const script = parts.join('. ');
+    narrationEstimateMs = estimateSpeechMs(script);
+    narrationStartedAt = performance.now();
+    const utterance = new SpeechSynthesisUtterance(script);
     utterance.rate = Number(audioSettings.rate);
     utterance.pitch = Number(audioSettings.pitch);
     utterance.volume = Number(audioSettings.volume);

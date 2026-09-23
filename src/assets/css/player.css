@@ -28,4 +28,6 @@
 .timeline-step::before { content: ""; position: absolute; left: 0; right: 0; top: 11px; height: 3px; border-radius: 999px; background: #26344a; }
 .timeline-step.done::before { background: var(--blue-strong); }
 .timeline-step.active::before { background: linear-gradient(90deg, var(--blue) var(--progress), #26344a var(--progress)); }
+.timeline { overflow: visible; }
+.speech-countdown { position: absolute; right: 0; top: 0; transform: translateY(calc(-100% - 2px)); color: #93c5fd; font: 700 9px/1 var(--mono); letter-spacing: .04em; pointer-events: none; white-space: nowrap; }
 .player-time { justify-self: end; color: var(--dim); font: 10px/1 var(--mono); }
