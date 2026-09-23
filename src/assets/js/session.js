@@ -79,11 +79,13 @@ function stopPlayback() {
     else if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 }
 
-function setView(view) {
+function setView(view, historyMode = 'push') {
+    if (!VIEW_SLUG[view]) view = 'screenshots';
     stopPlayback();
     if (view !== 'export') storyPickerOpen = false;
     currentView = view;
     if (view !== 'player') playerIndex = 0;
+    if (historyMode !== 'none') rememberViewUrl(historyMode === 'replace');
     renderApp();
 }
 

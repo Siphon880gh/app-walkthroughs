@@ -78,7 +78,6 @@ function ingestSharedHash() {
         projects.unshift(project);
         activeProjectId = project.id;
         currentView = 'player';
-        history.replaceState(null,'',location.pathname + location.search);
         persist();
         toast('Shared walkthrough loaded locally.');
         return true;

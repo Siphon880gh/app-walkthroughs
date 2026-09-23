@@ -1,4 +1,4 @@
 if ('speechSynthesis' in window) window.speechSynthesis.getVoices();
-ingestSharedHash();
+const sharedWalkthrough = ingestSharedHash();
 watchSharedDemo();
-renderApp();
+setView(sharedWalkthrough ? 'player' : (viewFromHash() || 'screenshots'), 'replace');
