@@ -7,6 +7,52 @@ function bindDynamicUI() {
     }
     const canvas = $('#annotationCanvas');
     if (canvas) bindAnnotationCanvas(canvas);
+    bindHotspotDrag();
+}
+
+function paintStoryHotspot(step) {
+    const hotspot = $('.step-canvas .hotspot-edit');
+    if (!hotspot || !step?.interaction) return;
+    hotspot.style.setProperty('--x', `${Number(step.interaction.xPercent)}%`);
+    hotspot.style.setProperty('--y', `${Number(step.interaction.yPercent)}%`);
+    const label = $('.hotspot-label', hotspot);
+    if (label) label.textContent = step.interaction.label || 'Hotspot';
+}
+
+function placeHotspot(event, screen, hotspot) {
+    const step = activeStep();
+    if (!step?.interaction) return;
+    const rect = screen.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    step.interaction.xPercent = Math.round(clamp(((event.clientX - rect.left) / rect.width) * 100, 0, 100) * 10) / 10;
+    step.interaction.yPercent = Math.round(clamp(((event.clientY - rect.top) / rect.height) * 100, 0, 100) * 10) / 10;
+    paintStoryHotspot(step);
+    const xInput = $('[data-interaction-field="xPercent"]');
+    const yInput = $('[data-interaction-field="yPercent"]');
+    if (xInput) xInput.value = step.interaction.xPercent;
+    if (yInput) yInput.value = step.interaction.yPercent;
+}
+
+function bindHotspotDrag() {
+    const hotspot = $('.step-canvas .hotspot-edit');
+    const screen = hotspot?.closest('.device-screen');
+    if (!hotspot || !screen) return;
+    hotspot.addEventListener('click', event => event.stopPropagation());
+    hotspot.addEventListener('pointerdown', event => {
+        if (event.button !== 0) return;
+        event.preventDefault();
+        event.stopPropagation();
+        try { hotspot.setPointerCapture(event.pointerId); } catch { /* Pointer capture is optional. */ }
+        const move = ev => placeHotspot(ev, screen, hotspot);
+        const up = ev => {
+            hotspot.removeEventListener('pointermove', move);
+            hotspot.removeEventListener('pointerup', up);
+            placeHotspot(ev, screen, hotspot);
+            persist();
+        };
+        hotspot.addEventListener('pointermove', move);
+        hotspot.addEventListener('pointerup', up);
+    });
 }
 
 function canvasPoint(event, canvas) {

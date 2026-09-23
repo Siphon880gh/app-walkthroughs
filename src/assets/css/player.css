@@ -20,6 +20,8 @@
 .motion-slide-down .pane-in { box-shadow: 0 28px 42px rgba(0,0,0,.55); }
 .motion-modal-pop .pane-in, .motion-modal-dismiss .pane-out { box-shadow: 0 22px 48px rgba(0,0,0,.5); }
 .hotspot { position: absolute; left: var(--x); top: var(--y); transform: translate(-50%,-50%); width: 42px; height: 42px; border: 0; border-radius: 50%; background: transparent; z-index: 7; }
+.hotspot-edit { cursor: grab; touch-action: none; }
+.hotspot-edit:active { cursor: grabbing; }
 .hotspot::before, .hotspot::after { content: ""; position: absolute; inset: 7px; border-radius: 50%; background: rgba(59,130,246,.72); box-shadow: 0 0 0 1px #bfdbfe; }
 .hotspot::after { animation: ping 1.55s cubic-bezier(0,0,.2,1) infinite; background: rgba(59,130,246,.44); }
 .hotspot-label { position: absolute; left: 50%; top: calc(100% + 4px); transform: translateX(-50%); color: #dbeafe; background: rgba(8,14,25,.9); border: 1px solid rgba(59,130,246,.35); border-radius: 4px; padding: 4px 6px; font: 8px/1 var(--mono); white-space: nowrap; }

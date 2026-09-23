@@ -85,7 +85,7 @@ document.addEventListener('input', event => {
     else if (target.dataset.screenField && screen) { screen[target.dataset.screenField] = target.value; persist(); }
     else if (target.dataset.stepField && step) { step[target.dataset.stepField] = target.type === 'range' ? Number(target.value) : target.value; persist(); }
     else if (target.dataset.transitionField && step) { step.transition[target.dataset.transitionField] = target.type === 'number' ? Number(target.value) : target.value; persist(); }
-    else if (target.dataset.interactionField && step) { step.interaction[target.dataset.interactionField] = target.type === 'number' ? Number(target.value) : target.value; persist(); }
+    else if (target.dataset.interactionField && step) { step.interaction[target.dataset.interactionField] = target.type === 'number' ? Number(target.value) : target.value; paintStoryHotspot(step); persist(); }
     else if (target.dataset.audioField) { audioSettings[target.dataset.audioField] = target.type === 'range' ? Number(target.value) : target.value; saveJson(APP.audioKey,audioSettings); if (target.type === 'range') renderAudioSettings(); }
 });
 
