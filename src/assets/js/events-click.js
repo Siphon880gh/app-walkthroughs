@@ -44,6 +44,14 @@ document.addEventListener('click', event => {
         toast('Screen and linked steps deleted.');
     }
     else if (action === 'add-to-story') { addScreenToStory(target.dataset.id); setView('stories'); }
+    else if (action === 'open-photo-picker') { pickerShowAnnotated = true; renderPhotoPicker(); $('#photoDialog').showModal(); }
+    else if (action === 'close-photo-picker') $('#photoDialog').close();
+    else if (action === 'toggle-picker-annotated') { pickerShowAnnotated = !pickerShowAnnotated; renderPhotoPicker(); }
+    else if (action === 'pick-photo') {
+        addScreenToStory(target.dataset.id);
+        $('#photoDialog').close();
+        renderApp();
+    }
     else if (action === 'select-tool') { selectedTool = target.dataset.tool; renderApp(); }
     else if (action === 'select-annotation') {
         selectedAnnotationId = target.dataset.id;

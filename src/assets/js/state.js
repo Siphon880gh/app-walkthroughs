@@ -32,6 +32,7 @@ let draftAnnotation = null;
 let showRemoveHandles = false;
 let selectedAnnotationId = null;
 let showAnnotatedScreens = true;
+let pickerShowAnnotated = true;
 
 const defaultAudio = {
     enabled: true,
