@@ -34,12 +34,20 @@ function renderPhotoPicker() {
     body.innerHTML = `<div class="photo-picker-bar"><span>${screens.length} photo${screens.length === 1 ? '' : 's'}</span><button type="button" class="button ${pickerShowAnnotated ? 'active' : ''}" data-action="toggle-picker-annotated" aria-pressed="${pickerShowAnnotated ? 'true' : 'false'}" title="Show or hide annotated pictures">Annotated <span class="count-pill">${annotated.length}</span></button></div>${cards ? `<div class="photo-picker-grid">${cards}</div>` : '<p class="photo-picker-empty">No photos match this filter.</p>'}`;
 }
 
+function deviceFrameName(screen) {
+    const story = activeStory();
+    if (story?.settings?.showDeviceMockup === false) return 'none';
+    return story?.settings?.deviceType || screen?.deviceFrame || 'none';
+}
+
+function screenInnerMarkup(screen, step, player = false) {
+    const annotations = step?.annotations?.length ? step.annotations : (screen?.annotations || []);
+    const hotspot = player && step?.interaction?.enabled ? `<button class="hotspot" data-action="hotspot-next" style="--x:${Number(step.interaction.xPercent)}%;--y:${Number(step.interaction.yPercent)}%" aria-label="${esc(step.interaction.label || 'Advance to next step')}"><span class="hotspot-label">${esc(step.interaction.label || 'Tap')}</span></button>` : '';
+    return `<img src="${safeImage(screen.dataUrl)}" alt="${esc(screen.name)}"><div class="annotation-layer">${annotationMarkup(annotations)}</div>${hotspot}`;
+}
+
 function deviceMarkup(screen, step, player = false) {
     if (!screen) return '<div class="empty"><p>Source screenshot unavailable.</p></div>';
-    const story = activeStory();
-    const frame = story?.settings?.showDeviceMockup === false ? 'none' : (story?.settings?.deviceType || screen.deviceFrame || 'none');
-    const annotations = step?.annotations?.length ? step.annotations : (screen.annotations || []);
-    const hotspot = player && step?.interaction?.enabled ? `<button class="hotspot" data-action="hotspot-next" style="--x:${Number(step.interaction.xPercent)}%;--y:${Number(step.interaction.yPercent)}%" aria-label="${esc(step.interaction.label || 'Advance to next step')}"><span class="hotspot-label">${esc(step.interaction.label || 'Tap')}</span></button>` : '';
-    return `<div class="device ${esc(frame)}"><div class="device-screen"><img src="${safeImage(screen.dataUrl)}" alt="${esc(screen.name)}"><div class="annotation-layer">${annotationMarkup(annotations)}</div>${hotspot}</div></div>`;
+    return `<div class="device ${esc(deviceFrameName(screen))}"><div class="device-screen">${screenInnerMarkup(screen, step, player)}</div></div>`;
 }
 

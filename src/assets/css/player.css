@@ -7,8 +7,18 @@
 .player-top .button.is-muted { color: var(--amber); border-color: rgba(245, 158, 11, .55); background: rgba(245, 158, 11, .12); }
 .player-main { min-height: 0; display: grid; grid-template-columns: minmax(0,1fr) 330px; }
 .player-stage { min-height: 0; position: relative; display: grid; place-items: center; padding: 22px; overflow: hidden; background-color: #030711; background-image: radial-gradient(circle at 50% 45%, #111d31 0, #050a14 42%, #02040a 74%); }
-.player-device-wrap { height: 100%; width: 100%; min-height: 0; display: grid; place-items: center; transition: opacity .25s ease, transform .25s ease; }
-.player-device-wrap.fade-out { opacity: .15; transform: scale(.985); }
+.player-device-wrap { height: 100%; width: 100%; min-height: 0; display: grid; place-items: center; }
+.player-device-wrap.is-transitioning { pointer-events: none; }
+.device:has(.motion-viewport) { place-items: stretch; }
+.motion-viewport { position: relative; width: 100%; height: 100%; overflow: hidden; background: #05070c; }
+.motion-track { position: absolute; inset: 0; }
+.motion-viewport .motion-pane { position: absolute; width: 100%; height: 100%; overflow: hidden; background: #05070c; }
+.motion-viewport .motion-pane img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.motion-slide-left .pane-in { box-shadow: -28px 0 42px rgba(0,0,0,.55); }
+.motion-slide-right .pane-in { box-shadow: 28px 0 42px rgba(0,0,0,.55); }
+.motion-slide-up .pane-in { box-shadow: 0 -28px 42px rgba(0,0,0,.55); }
+.motion-slide-down .pane-in { box-shadow: 0 28px 42px rgba(0,0,0,.55); }
+.motion-modal-pop .pane-in, .motion-modal-dismiss .pane-out { box-shadow: 0 22px 48px rgba(0,0,0,.5); }
 .hotspot { position: absolute; left: var(--x); top: var(--y); transform: translate(-50%,-50%); width: 42px; height: 42px; border: 0; border-radius: 50%; background: transparent; z-index: 7; }
 .hotspot::before, .hotspot::after { content: ""; position: absolute; inset: 7px; border-radius: 50%; background: rgba(59,130,246,.72); box-shadow: 0 0 0 1px #bfdbfe; }
 .hotspot::after { animation: ping 1.55s cubic-bezier(0,0,.2,1) infinite; background: rgba(59,130,246,.44); }
