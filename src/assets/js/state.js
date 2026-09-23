@@ -33,6 +33,7 @@ let showRemoveHandles = false;
 let selectedAnnotationId = null;
 let showAnnotatedScreens = true;
 let pickerShowAnnotated = true;
+let storyPickerOpen = false;
 
 const defaultAudio = {
     enabled: true,

@@ -1,5 +1,9 @@
 document.addEventListener('click', event => {
     const target = event.target.closest('[data-action], [data-view]');
+    if (storyPickerOpen && !event.target.closest('.scope-switcher')) {
+        storyPickerOpen = false;
+        if (!target) { renderApp(); return; }
+    }
     if (!target) return;
     if (target.dataset.view) { setView(target.dataset.view); return; }
     const action = target.dataset.action;
@@ -119,7 +123,16 @@ document.addEventListener('click', event => {
     }
     else if (action === 'toggle-mute') toggleNarrationMute(target);
     else if (action === 'fullscreen') { const element = $('.player-view'); if (element?.requestFullscreen) element.requestFullscreen(); }
-    else if (action === 'export-scope') { exportScope = target.dataset.scope; renderApp(); }
+    else if (action === 'export-scope') { exportScope = target.dataset.scope; storyPickerOpen = false; renderApp(); }
+    else if (action === 'toggle-story-picker') { storyPickerOpen = !storyPickerOpen; renderApp(); }
+    else if (action === 'pick-export-story') {
+        const chosen = project.stories.find(item => item.id === target.dataset.id);
+        if (!chosen) return;
+        project.activeStoryId = chosen.id;
+        exportScope = 'story';
+        storyPickerOpen = false;
+        persist(true);
+    }
     else if (action === 'copy-share') {
         const hashKey = exportScope === 'project' ? 'player':'flow';
         const url = `${location.origin}${location.pathname}#${hashKey}=${encodePayload(projectPayload())}`;

@@ -79,6 +79,7 @@ function stopPlayback() {
 
 function setView(view) {
     stopPlayback();
+    if (view !== 'export') storyPickerOpen = false;
     currentView = view;
     if (view !== 'player') playerIndex = 0;
     renderApp();
