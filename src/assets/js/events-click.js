@@ -1,5 +1,16 @@
+function setSyncMenu(open) {
+    syncMenuOpen = open;
+    const panel = $('#syncMenu');
+    const button = $('#syncMenuButton');
+    if (!panel || !button) return;
+    panel.hidden = !open;
+    button.setAttribute('aria-expanded', String(open));
+    button.classList.toggle('active', open);
+}
+
 document.addEventListener('click', event => {
     const target = event.target.closest('[data-action], [data-view]');
+    if (syncMenuOpen && !event.target.closest('.sync-menu')) setSyncMenu(false);
     if (storyPickerOpen && !event.target.closest('.scope-switcher')) {
         storyPickerOpen = false;
         if (!target) { renderApp(); return; }
@@ -143,6 +154,10 @@ document.addEventListener('click', event => {
     else if (action === 'download-markdown') download(generateMarkdown(),`${slug(project.name)}-spec.md`,'text/markdown;charset=utf-8');
     else if (action === 'download-json') download(JSON.stringify(projectPayload('project'),null,2),`${slug(project.name)}-backup.json`,'application/json;charset=utf-8');
     else if (action === 'download-html') download(standaloneHtml(),`${slug(project.name)}-walkthrough.html`,'text/html;charset=utf-8');
+    else if (action === 'toggle-sync-menu') setSyncMenu(!syncMenuOpen);
+    else if (action === 'sync-demo') { setSyncMenu(false); $('#syncDemoDialog').showModal(); }
+    else if (action === 'close-sync-demo') $('#syncDemoDialog').close();
+    else if (action === 'confirm-sync-demo') confirmSyncDemo();
     else if (action === 'import-json') $('#jsonInput').click();
     else if (action === 'audio-toggle') { audioSettings[target.dataset.key] = !audioSettings[target.dataset.key]; saveJson(APP.audioKey,audioSettings); renderAudioSettings(); }
 });

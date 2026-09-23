@@ -34,6 +34,7 @@ let selectedAnnotationId = null;
 let showAnnotatedScreens = true;
 let pickerShowAnnotated = true;
 let storyPickerOpen = false;
+let syncMenuOpen = false;
 
 const defaultAudio = {
     enabled: true,

@@ -89,3 +89,73 @@ function ingestSharedHash() {
     }
 }
 
+const SHARED_DEMO_ID = 'proj-shared-demo';
+
+function refreshProjectSelect() {
+    const select = $('#projectSelect');
+    if (!select) return;
+    select.innerHTML = projects.map(project => `<option value="${esc(project.id)}" ${project.id === activeProjectId ? 'selected':''}>${esc(project.name)}</option>`).join('');
+}
+
+function applySharedDemo(payload) {
+    const source = payload?.project;
+    if (!isValidProject(source)) return false;
+    const incoming = structuredClone(source);
+    incoming.id = SHARED_DEMO_ID;
+    incoming.syncedAt = Number(payload.syncedAt || incoming.syncedAt || 0);
+    if (!incoming.name.endsWith(' (Demo)')) incoming.name = `${incoming.name} (Demo)`;
+    const index = projects.findIndex(project => project.id === SHARED_DEMO_ID);
+    if (index >= 0 && Number(projects[index].syncedAt || 0) >= incoming.syncedAt) return false;
+    const viewing = activeProjectId === SHARED_DEMO_ID;
+    if (viewing) stopPlayback();
+    if (index >= 0) projects[index] = incoming;
+    else projects.unshift(incoming);
+    saveJson(APP.storageKey, projects);
+    if (viewing) renderApp();
+    else refreshProjectSelect();
+    return true;
+}
+
+async function pullSharedDemo() {
+    try {
+        const response = await fetch('?action=sync-demo', {cache: 'no-store'});
+        if (response.status === 204 || !response.ok) return false;
+        return applySharedDemo(await response.json());
+    } catch (error) {
+        console.warn('Unable to load the shared demo', error);
+        return false;
+    }
+}
+
+function watchSharedDemo() {
+    pullSharedDemo();
+    setInterval(() => {
+        if (document.visibilityState === 'visible') pullSharedDemo();
+    }, 5000);
+}
+
+async function confirmSyncDemo() {
+    const dialog = $('#syncDemoDialog');
+    const button = $('[data-action="confirm-sync-demo"]', dialog);
+    if (button) button.disabled = true;
+    try {
+        const project = structuredClone(activeProject());
+        if (!isValidProject(project)) throw new Error('This project cannot be synced.');
+        const response = await fetch('?action=sync-demo', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({version: 2, project})
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || !result.ok) throw new Error(result.error || 'Could not sync to Demo.');
+        project.syncedAt = result.syncedAt;
+        applySharedDemo({syncedAt: result.syncedAt, project});
+        dialog?.close();
+        toast('Synced to Demo. Current users can see this project.');
+    } catch (error) {
+        toast(error.message || 'Could not sync to Demo.', 'warn');
+    } finally {
+        if (button) button.disabled = false;
+    }
+}
+
