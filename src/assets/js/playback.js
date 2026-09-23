@@ -137,6 +137,14 @@ function toggleNarrationMute(button) {
     button.innerHTML = narrationMuteIcon(muted);
 }
 
+function spokenSlipName(value) {
+    return String(value)
+        .replace(/\.(?:png|jpe?g|webp|gif|svg)$/i, '')
+        .replace(/[_‐‑‒–—―−\-./\\|+#~*]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
 function speakStep(step) {
     const token = ++narrationToken;
     speechCancelGeneration += 1;
@@ -145,7 +153,10 @@ function speakStep(step) {
     if (!audioSettings.enabled || audioSettings.muted || !('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
     const parts = [];
-    if (audioSettings.readTitle && step.title) parts.push(step.title);
+    if (audioSettings.readTitle && step.title) {
+        const name = spokenSlipName(step.title);
+        if (name) parts.push(name);
+    }
     if (audioSettings.readUserAction && step.userAction) parts.push(step.userAction);
     if (audioSettings.readScreenContent && step.screenContent) parts.push(step.screenContent);
     if (audioSettings.readNextAction && step.nextAction) parts.push(step.nextAction);
