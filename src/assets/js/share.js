@@ -133,29 +133,59 @@ function watchSharedDemo() {
     }, 5000);
 }
 
+function projectSyncIssue(project) {
+    if (!project || typeof project.name !== 'string' || !project.name.trim()) return 'The project needs a name before it can be synced.';
+    if (project.name.length > 120) return 'The project name is longer than 120 characters.';
+    if (!Array.isArray(project.screenshots)) return 'The project is missing its screens.';
+    if (!Array.isArray(project.stories)) return 'The project is missing its walkthroughs.';
+    const screen = project.screenshots.find(item => typeof item?.id !== 'string' || !/^data:image\/(?:png|jpeg|webp|gif|svg\+xml)(?:;|,)/i.test(String(item.dataUrl || '')));
+    if (screen) return `“${screen.name || 'A screen'}” does not have an image that can be synced.`;
+    const story = project.stories.find(item => typeof item?.id !== 'string' || !Array.isArray(item.steps));
+    if (story) return `“${story.name || 'A walkthrough'}” is missing its steps.`;
+    return '';
+}
+
+function reportSyncFailure(message, detail = {}) {
+    console.error('Sync to Demo failed:', message, detail);
+    const error = $('#syncDemoError');
+    if (error) {
+        error.hidden = false;
+        error.textContent = message;
+    }
+    toast(message, 'warn');
+}
+
 async function confirmSyncDemo() {
     const dialog = $('#syncDemoDialog');
     const button = $('#syncDemoForm button[type="submit"]');
     const input = $('#syncDemoPassword');
+    const error = $('#syncDemoError');
     const password = input?.value || '';
+    if (error) { error.hidden = true; error.textContent = ''; }
     if (!password) {
-        toast('Enter the sync password.', 'warn');
+        reportSyncFailure('Enter the sync password.');
         input?.focus();
         return;
     }
     if (button) button.disabled = true;
+    let bytes = 0;
     try {
         const project = structuredClone(activeProject());
-        if (!isValidProject(project)) throw new Error('This project cannot be synced.');
+        const issue = projectSyncIssue(project);
+        if (issue) throw new Error(issue);
+        const body = JSON.stringify({version: 2, password, project});
+        bytes = body.length;
         const response = await fetch('?action=sync-demo', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({version: 2, password, project})
+            body
         });
         const result = await response.json().catch(() => ({}));
         if (!response.ok || !result.ok) {
             if (response.status === 401) input?.select();
-            throw new Error(result.error || 'Could not sync to Demo.');
+            const failure = new Error(result.error || `Could not sync to Demo (HTTP ${response.status}).`);
+            failure.status = response.status;
+            throw failure;
         }
         if (input) input.value = '';
         project.syncedAt = result.syncedAt;
@@ -163,7 +193,7 @@ async function confirmSyncDemo() {
         dialog?.close();
         toast('Synced to Demo. Current users can see this project.');
     } catch (error) {
-        toast(error.message || 'Could not sync to Demo.', 'warn');
+        reportSyncFailure(error.message || 'Could not sync to Demo.', {status: error.status || 0, bytes});
     } finally {
         if (button) button.disabled = false;
     }

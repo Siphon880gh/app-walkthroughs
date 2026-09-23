@@ -39,6 +39,35 @@ function storyflow_env(string $key): string
     return $vars[$key] ?? '';
 }
 
+function storyflow_ini_bytes(string $value): int
+{
+    $value = trim($value);
+    if ($value === '' || $value === '-1') {
+        return 0;
+    }
+    $unit = strtolower(substr($value, -1));
+    $number = (float) $value;
+    switch ($unit) {
+        case 'g':
+            return (int) round($number * 1073741824);
+        case 'm':
+            return (int) round($number * 1048576);
+        case 'k':
+            return (int) round($number * 1024);
+        default:
+            return (int) round($number);
+    }
+}
+
+function storyflow_sync_fail(int $status, string $error): void
+{
+    error_log('Sync to Demo failed: ' . $error);
+    http_response_code($status);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['ok' => false, 'error' => $error]);
+    exit;
+}
+
 if (($_GET['action'] ?? '') === 'manifest') {
     header('Content-Type: application/manifest+json; charset=utf-8');
     echo json_encode([
@@ -76,46 +105,55 @@ if (($_GET['action'] ?? '') === 'sync-demo') {
         header('Allow: GET, POST');
         exit;
     }
+    $contentLength = (int) ($_SERVER['CONTENT_LENGTH'] ?? 0);
+    $postMax = storyflow_ini_bytes((string) ini_get('post_max_size'));
+    if ($postMax > 0 && $contentLength > $postMax) {
+        storyflow_sync_fail(413, 'Project is too large to sync. The request is ' . $contentLength . ' bytes and the server limit is ' . $postMax . ' bytes.');
+    }
     $raw = file_get_contents('php://input');
+    if ((!is_string($raw) || $raw === '') && $contentLength > 0) {
+        storyflow_sync_fail(413, 'The sync request arrived empty. The server limit is ' . ($postMax > 0 ? $postMax . ' bytes.' : 'unknown.'));
+    }
     $parsed = is_string($raw) ? json_decode($raw, true) : null;
     $password = is_array($parsed) && is_string($parsed['password'] ?? null) ? $parsed['password'] : '';
     $expected = storyflow_env('SYNC_DEMO_PASSWORD');
     $authorized = $expected !== '' && hash_equals(hash('sha256', $expected), hash('sha256', $password));
     if (!$authorized) {
-        http_response_code($expected === '' ? 503 : 401);
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode(['ok' => false, 'error' => $expected === '' ? 'Sync to Demo is not configured.' : 'Incorrect sync password.']);
-        exit;
+        storyflow_sync_fail($expected === '' ? 503 : 401, $expected === '' ? 'Sync to Demo is not configured.' : 'Incorrect sync password.');
     }
     $project = is_array($parsed) ? ($parsed['project'] ?? null) : null;
-    $valid = is_array($project)
-        && is_string($project['name'] ?? null)
-        && trim($project['name']) !== ''
-        && strlen($project['name']) <= 120
-        && is_array($project['screenshots'] ?? null)
-        && is_array($project['stories'] ?? null);
-    if (!$valid || !is_string($raw) || strlen($raw) > 20000000) {
-        http_response_code($valid ? 413 : 422);
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode(['ok' => false, 'error' => $valid ? 'Project is too large to sync.' : 'That project cannot be synced.']);
-        exit;
+    if (!is_array($project)) {
+        storyflow_sync_fail(422, 'That project cannot be synced because the project payload is missing.');
+    }
+    if (!is_string($project['name'] ?? null) || trim($project['name']) === '') {
+        storyflow_sync_fail(422, 'That project cannot be synced because it has no name.');
+    }
+    if (strlen($project['name']) > 120) {
+        storyflow_sync_fail(422, 'That project cannot be synced because the name is longer than 120 characters.');
+    }
+    if (!is_array($project['screenshots'] ?? null)) {
+        storyflow_sync_fail(422, 'That project cannot be synced because its screens are missing.');
+    }
+    if (!is_array($project['stories'] ?? null)) {
+        storyflow_sync_fail(422, 'That project cannot be synced because its walkthroughs are missing.');
+    }
+    if (!is_string($raw) || strlen($raw) > 20000000) {
+        storyflow_sync_fail(413, 'Project is too large to sync. It is ' . (is_string($raw) ? strlen($raw) : 0) . ' bytes and the limit is 20000000 bytes.');
     }
     $project['id'] = 'proj-shared-demo';
     $project['syncedAt'] = (int) round(microtime(true) * 1000);
     $directory = dirname($demoPath);
     if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
-        http_response_code(500);
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode(['ok' => false, 'error' => 'The demo could not be saved.']);
-        exit;
+        storyflow_sync_fail(500, 'The demo could not be saved because the data folder could not be created.');
     }
     $payload = json_encode(['version' => 2, 'syncedAt' => $project['syncedAt'], 'project' => $project], JSON_UNESCAPED_SLASHES);
+    if ($payload === false) {
+        storyflow_sync_fail(500, 'The demo could not be saved because the project could not be encoded (' . json_last_error_msg() . ').');
+    }
     $temporary = $demoPath . '.tmp';
-    if ($payload === false || file_put_contents($temporary, $payload, LOCK_EX) === false || !rename($temporary, $demoPath)) {
-        http_response_code(500);
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode(['ok' => false, 'error' => 'The demo could not be saved.']);
-        exit;
+    if (file_put_contents($temporary, $payload, LOCK_EX) === false || !rename($temporary, $demoPath)) {
+        $reason = error_get_last()['message'] ?? 'the file could not be written';
+        storyflow_sync_fail(500, 'The demo could not be saved. ' . $reason);
     }
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode(['ok' => true, 'syncedAt' => $project['syncedAt']]);

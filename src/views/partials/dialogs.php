@@ -51,6 +51,7 @@ require dirname(__DIR__, 2) . '/guard.php';
         </div>
         <div class="dialog-body">
             <label class="field"><span class="field-label">PASSWORD</span><input class="input" id="syncDemoPassword" name="password" type="password" autocomplete="current-password" required maxlength="200"></label>
+            <p class="sync-dialog-error" id="syncDemoError" hidden></p>
         </div>
         <div class="dialog-foot">
             <button type="button" class="button" data-action="close-sync-demo">Cancel</button>

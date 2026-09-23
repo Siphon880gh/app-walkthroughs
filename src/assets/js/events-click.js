@@ -160,7 +160,9 @@ document.addEventListener('click', event => {
     else if (action === 'sync-demo') {
         setSyncMenu(false);
         const input = $('#syncDemoPassword');
+        const error = $('#syncDemoError');
         if (input) input.value = '';
+        if (error) { error.hidden = true; error.textContent = ''; }
         $('#syncDemoDialog').showModal();
         input?.focus();
     }
