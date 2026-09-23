@@ -8,7 +8,11 @@
 .screen-card:hover { border-color: #3b4b63; transform: translateY(-1px); }
 .screen-card.selected { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(59,130,246,.14); }
 .screen-preview { height: 250px; display: grid; place-items: center; padding: 15px; background-color: #080e19; background-image: linear-gradient(#111a2a 1px, transparent 1px), linear-gradient(90deg,#111a2a 1px,transparent 1px); background-size: 24px 24px; overflow: hidden; }
-.screen-preview img { width: auto; max-width: 100%; height: 100%; object-fit: contain; border-radius: 5px; box-shadow: 0 12px 30px rgba(0,0,0,.45); }
+.screen-preview-frame { position: relative; height: 100%; max-width: 100%; display: inline-block; }
+.screen-preview-frame img { width: auto; max-width: 100%; height: 100%; object-fit: contain; border-radius: 5px; box-shadow: 0 12px 30px rgba(0,0,0,.45); }
+.screen-preview-frame .annotation-layer { border-radius: 5px; pointer-events: none; }
+.count-pill { min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px; display: inline-grid; place-items: center; background: #10203a; color: #bfdbfe; font: 9px/1 var(--mono); }
+.button.active { color: #bfdbfe; border-color: rgba(59,130,246,.45); background: var(--blue-soft); }
 .screen-card-meta { padding: 11px 12px 12px; border-top: 1px solid var(--border); }
 .screen-card-title { font-weight: 700; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .screen-card-sub { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; color: var(--dim); font: 9px/1 var(--mono); }

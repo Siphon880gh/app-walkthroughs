@@ -82,7 +82,8 @@ document.addEventListener('click', event => {
         selectedAnnotationId = null;
         persist(true);
     }
-    else if (action === 'save-snapshot') { persist(); toast('Snapshot and analytical notes saved.'); }
+    else if (action === 'toggle-annotated') { showAnnotatedScreens = !showAnnotatedScreens; renderApp(); }
+    else if (action === 'save-snapshot') saveAnnotatedScreen();
     else if (action === 'new-story') {
         const name = prompt('Walkthrough name:');
         if (!name?.trim()) return;

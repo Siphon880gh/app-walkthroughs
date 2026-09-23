@@ -1,6 +1,6 @@
 function renderFilmstrip() {
     const project = activeProject();
-    const items = project.screenshots.map((screen, index) => `<button class="film-item ${project.activeScreenshotId === screen.id ? 'active':''}" data-action="select-screen" data-id="${esc(screen.id)}"><div class="film-thumb"><img src="${safeImage(screen.dataUrl)}" alt=""></div><div class="film-name"><span style="font-family:var(--mono);color:var(--dim);margin-right:4px">${String(index+1).padStart(2,'0')}</span>${esc(screen.name)}</div></button>`).join('');
+    const items = project.screenshots.map((screen, index) => `<button class="film-item ${project.activeScreenshotId === screen.id ? 'active':''}" data-action="select-screen" data-id="${esc(screen.id)}"><div class="film-thumb"><img src="${safeImage(screen.dataUrl)}" alt=""></div><div class="film-name"><span style="font-family:var(--mono);color:var(--dim);margin-right:4px">${String(index+1).padStart(2,'0')}</span>${esc(screen.name)}${screen.annotated ? ' <span class="tag">Annotated</span>' : ''}</div></button>`).join('');
     return `<aside class="filmstrip"><div class="panel-head"><h2>Screen source</h2><span class="eyebrow">${project.screenshots.length}</span></div><div class="panel-scroll">${items}</div></aside>`;
 }
 
