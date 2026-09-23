@@ -24,6 +24,8 @@ require dirname(__DIR__, 2) . '/guard.php';
                 <div class="sync-menu-panel" id="syncMenu" role="menu" hidden>
                     <button type="button" class="sync-option" role="menuitem" data-action="sync-demo">Sync to Demo</button>
                     <p class="sync-warning">This will make it appear to all current users.</p>
+                    <button type="button" class="sync-option danger" role="menuitem" data-action="reset-profile">Reset Profile</button>
+                    <p class="sync-warning">This removes all your data and resets back to Demo.</p>
                 </div>
             </div>
         </nav>

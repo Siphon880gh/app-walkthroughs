@@ -165,6 +165,8 @@ document.addEventListener('click', event => {
         input?.focus();
     }
     else if (action === 'close-sync-demo') $('#syncDemoDialog').close();
+    else if (action === 'reset-profile') { setSyncMenu(false); $('#resetProfileDialog').showModal(); }
+    else if (action === 'close-reset-profile') $('#resetProfileDialog').close();
     else if (action === 'import-json') $('#jsonInput').click();
     else if (action === 'audio-toggle') { audioSettings[target.dataset.key] = !audioSettings[target.dataset.key]; saveJson(APP.audioKey,audioSettings); renderAudioSettings(); }
 });

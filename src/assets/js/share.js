@@ -169,9 +169,59 @@ async function confirmSyncDemo() {
     }
 }
 
+async function confirmResetProfile() {
+    const dialog = $('#resetProfileDialog');
+    const button = $('#resetProfileForm button[type="submit"]');
+    if (button) button.disabled = true;
+    try {
+        const response = await fetch('?action=sync-demo', {cache: 'no-store'});
+        if (response.status === 204 || !response.ok) throw new Error('The Demo is not available, so nothing was reset.');
+        const payload = await response.json();
+        const source = payload?.project;
+        if (!isValidProject(source)) throw new Error('The Demo is not available, so nothing was reset.');
+        const demo = structuredClone(source);
+        demo.id = SHARED_DEMO_ID;
+        demo.syncedAt = Number(payload.syncedAt || demo.syncedAt || 0);
+        if (!demo.name.endsWith(' (Demo)')) demo.name = `${demo.name} (Demo)`;
+        stopPlayback();
+        localStorage.removeItem(APP.storageKey);
+        localStorage.removeItem(APP.activeKey);
+        localStorage.removeItem(APP.audioKey);
+        projects = [demo];
+        activeProjectId = demo.id;
+        audioSettings = structuredClone(defaultAudio);
+        selectedFolder = null;
+        searchTerm = '';
+        selectedTool = 'callout-pin';
+        selectedColor = PALETTE[0];
+        inspectorTab = 'analysis';
+        exportScope = 'project';
+        playerIndex = 0;
+        draftAnnotation = null;
+        showRemoveHandles = false;
+        selectedAnnotationId = null;
+        showAnnotatedScreens = true;
+        pickerShowAnnotated = true;
+        storyPickerOpen = false;
+        saveJson(APP.storageKey, projects);
+        localStorage.setItem(APP.activeKey, activeProjectId);
+        dialog?.close();
+        setView('screenshots', 'replace');
+        toast('Profile reset. You are back on the Demo.');
+    } catch (error) {
+        toast(error.message || 'Could not reset the profile.', 'warn');
+    } finally {
+        if (button) button.disabled = false;
+    }
+}
+
 $('#syncDemoForm').addEventListener('submit', event => {
     event.preventDefault();
     confirmSyncDemo();
+});
+$('#resetProfileForm').addEventListener('submit', event => {
+    event.preventDefault();
+    confirmResetProfile();
 });
 $('#syncDemoDialog').addEventListener('close', () => {
     const input = $('#syncDemoPassword');
