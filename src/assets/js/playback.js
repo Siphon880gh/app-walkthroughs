@@ -1,7 +1,32 @@
+let narrationToken = 0;
+let narrationBusy = false;
+let narrationHold = false;
+
+function invalidateNarration() {
+    narrationToken += 1;
+    narrationBusy = false;
+    narrationHold = false;
+}
+
+function releaseNarration(token) {
+    if (token !== narrationToken) return;
+    const holding = narrationHold;
+    narrationBusy = false;
+    narrationHold = false;
+    if (!isPlaying || audioSettings.muted) return;
+    const story = activeStory();
+    if (!story) return;
+    if (!(audioSettings.advanceOnSpeechEnd || holding)) return;
+    if (playerIndex < story.steps.length - 1) setPlayerIndex(playerIndex + 1, true);
+    else if (holding) { stopPlayback(); renderApp(); }
+}
+
 function setPlayerIndex(index, resume = isPlaying) {
     const story = activeStory();
     if (!story?.steps.length) return;
     const next = clamp(Number(index), 0, story.steps.length - 1);
+    invalidateNarration();
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     const device = $('#playerDevice');
     if (device) device.classList.add('fade-out');
     if (playerTimer) cancelAnimationFrame(playerTimer);
@@ -26,6 +51,11 @@ function startStepTimer() {
         const active = $('.timeline-step.active');
         if (active) active.style.setProperty('--progress', `${progress}%`);
         if (progress >= 100) {
+            if (narrationBusy) {
+                narrationHold = true;
+                if (active) active.style.setProperty('--progress', '100%');
+                return;
+            }
             if (playerIndex < story.steps.length - 1) setPlayerIndex(playerIndex + 1, true);
             else { stopPlayback(); renderApp(); }
             return;
@@ -39,7 +69,16 @@ function toggleNarrationMute(button) {
     audioSettings.muted = !audioSettings.muted;
     saveJson(APP.audioKey, audioSettings);
     if ('speechSynthesis' in window) {
-        if (audioSettings.muted) window.speechSynthesis.cancel();
+        if (audioSettings.muted) {
+            const holding = narrationHold;
+            invalidateNarration();
+            window.speechSynthesis.cancel();
+            if (holding && isPlaying) {
+                const story = activeStory();
+                if (story && playerIndex < story.steps.length - 1) setPlayerIndex(playerIndex + 1, true);
+                else { stopPlayback(); renderApp(); }
+            }
+        }
         else if (isPlaying && currentView === 'player') {
             const step = activeStory()?.steps[playerIndex];
             if (step) speakStep(step);
@@ -54,6 +93,9 @@ function toggleNarrationMute(button) {
 }
 
 function speakStep(step) {
+    const token = ++narrationToken;
+    narrationBusy = false;
+    narrationHold = false;
     if (!audioSettings.enabled || audioSettings.muted || !('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
     const parts = [];
@@ -68,11 +110,9 @@ function speakStep(step) {
     utterance.volume = Number(audioSettings.volume);
     const voices = window.speechSynthesis.getVoices();
     utterance.voice = voices.find(voice => voice.voiceURI === audioSettings.voiceURI) || voices.find(voice => /Google US English/i.test(voice.name)) || voices.find(voice => /^en-US/i.test(voice.lang)) || null;
-    if (audioSettings.advanceOnSpeechEnd) utterance.onend = () => {
-        if (!isPlaying || audioSettings.muted) return;
-        const story = activeStory();
-        if (playerIndex < story.steps.length - 1) setPlayerIndex(playerIndex + 1, true);
-    };
+    utterance.onend = () => releaseNarration(token);
+    utterance.onerror = () => releaseNarration(token);
+    narrationBusy = true;
     window.speechSynthesis.speak(utterance);
 }
 

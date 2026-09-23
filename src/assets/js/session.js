@@ -73,6 +73,7 @@ function stopPlayback() {
     isPlaying = false;
     if (playerTimer) cancelAnimationFrame(playerTimer);
     playerTimer = null;
+    if (typeof invalidateNarration === 'function') invalidateNarration();
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 }
 
