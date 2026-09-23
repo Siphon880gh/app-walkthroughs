@@ -52,6 +52,15 @@ function bindAnnotationCanvas(canvas) {
             return;
         }
         event.preventDefault();
+        if (selectedTool === 'select') {
+            const hit = event.target.closest('[data-ann-id]');
+            const id = hit?.dataset.annId;
+            const ann = id && id !== 'draft' ? screen.annotations.find(item => item.id === id) : null;
+            selectedAnnotationId = ann?.id || null;
+            renderApp();
+            if (ann?.type === 'text-box') focusNoteLabel();
+            return;
+        }
         const point = canvasPoint(event, canvas);
         if (selectedTool === 'callout-pin' || selectedTool === 'text-box') {
             rememberAnnotations(screen);

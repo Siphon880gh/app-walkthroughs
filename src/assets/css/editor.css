@@ -19,6 +19,7 @@
 }
 .tool-group { display: flex; align-items: center; gap: 4px; }
 .tool-button { min-width: 31px; height: 30px; border: 1px solid transparent; border-radius: 5px; color: var(--muted); background: transparent; font: 11px/1 var(--mono); display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 0 8px; }
+.tool-icon { width: 13px; height: 13px; display: block; }
 .tool-button:hover { color: var(--text); background: var(--raised); }
 .tool-button.active { color: #bfdbfe; border-color: rgba(59,130,246,.34); background: var(--blue-soft); }
 .tool-button[disabled] { opacity: .42; cursor: not-allowed; }
@@ -36,11 +37,17 @@
 .ann.rect, .ann.highlight, .ann.spotlight { border: var(--ann-stroke, 3px) solid var(--ann-color); }
 .ann.highlight { background: color-mix(in srgb, var(--ann-color) 22%, transparent); }
 .ann.spotlight { border-radius: 999px; box-shadow: 0 0 0 200vmax rgba(2,6,23,.62); }
-.ann.pin { width: 28px; height: 28px; margin: -14px 0 0 -14px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: grid; place-items: center; color: #fff; background: var(--ann-color); border: 2px solid rgba(255,255,255,.8); box-shadow: 0 4px 12px rgba(0,0,0,.4); }
+.ann.pin { width: var(--ann-size, 28px); height: var(--ann-size, 28px); margin-left: calc(var(--ann-size, 28px) / -2); margin-top: calc(var(--ann-size, 28px) / -2); border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: grid; place-items: center; color: #fff; background: var(--ann-color); border: 2px solid rgba(255,255,255,.8); box-shadow: 0 4px 12px rgba(0,0,0,.4); }
 .ann.pin span { transform: rotate(45deg); font: 800 10px/1 var(--mono); }
 .ann.text { color: #fff; background: color-mix(in srgb, var(--ann-color) 82%, #020617); border: 1px solid rgba(255,255,255,.3); border-radius: 4px; padding: 6px 8px; min-width: 88px; min-height: 32px; font-size: var(--ann-font, 13px); font-weight: 700; line-height: 1.35; box-sizing: border-box; opacity: var(--ann-opacity, 1); box-shadow: 0 4px 12px rgba(0,0,0,.35); overflow: hidden; }
 .ann.text .ann-text-body { white-space: pre-wrap; overflow-wrap: anywhere; }
 .ann.text.has-glow { box-shadow: 0 0 var(--ann-glow, 0px) var(--ann-color), 0 0 calc(var(--ann-glow, 0px) * 2.1) color-mix(in srgb, var(--ann-color) 55%, transparent), 0 4px 12px rgba(0,0,0,.35); }
+#annotationCanvas.tool-select { cursor: default; }
+#annotationCanvas.tool-select .ann,
+#annotationCanvas.tool-select .ann-arrow { pointer-events: auto; cursor: pointer; }
+#annotationCanvas.tool-select .ann-arrow::before { content: ""; position: absolute; left: 0; right: 10px; top: -8px; height: 16px; }
+#annotationCanvas .ann.selected:not(.text),
+#annotationCanvas .ann-arrow.selected { z-index: 5; outline: 1px solid #e2e8f0; outline-offset: 3px; }
 #annotationCanvas .ann.text { pointer-events: auto; cursor: pointer; }
 #annotationCanvas .ann.text.selected { z-index: 6; cursor: grab; box-shadow: inset 0 0 0 1px rgba(226,232,240,.85), 0 4px 12px rgba(0,0,0,.35); }
 #annotationCanvas .ann.text.selected.has-glow { box-shadow: inset 0 0 0 1px rgba(226,232,240,.85), 0 0 var(--ann-glow, 0px) var(--ann-color), 0 0 calc(var(--ann-glow, 0px) * 2.1) color-mix(in srgb, var(--ann-color) 55%, transparent), 0 4px 12px rgba(0,0,0,.35); }

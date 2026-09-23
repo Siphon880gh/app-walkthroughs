@@ -53,7 +53,7 @@ document.addEventListener('click', event => {
     else if (action === 'select-color') {
         selectedColor = target.dataset.color;
         const screen = activeScreen();
-        const ann = target.closest('.note-editor') ? selectedTextAnnotation(screen) : null;
+        const ann = target.closest('.note-editor, .mark-editor') ? selectedAnnotation(screen) : null;
         if (ann) {
             rememberAnnotations(screen);
             ann.color = selectedColor;

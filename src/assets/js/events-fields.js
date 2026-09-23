@@ -15,12 +15,21 @@ function applyNoteField(ann, field, raw) {
     else if (field === 'glow') ann.glow = clamp(Number(raw), 0, 28);
 }
 
+function applyMarkField(ann, field, raw) {
+    if (field === 'strokeWidth') ann.strokeWidth = clamp(Number(raw), 1, 12);
+    else if (field === 'size') ann.size = clamp(Number(raw), 16, 48);
+    else if (field === 'width') ann.width = clamp(Number(raw), 1, 100);
+    else if (field === 'height') ann.height = clamp(Number(raw), 1, 100);
+}
+
 function noteReadout(field, ann) {
     if (field === 'opacity') return String(noteOpacityPercent(ann));
     if (field === 'fontSize') return String(Math.round(ann.fontSize));
     if (field === 'width') return String(Math.round(ann.width));
     if (field === 'height') return String(Math.round(ann.height));
     if (field === 'glow') return String(Math.round(ann.glow));
+    if (field === 'strokeWidth') return String(Math.round(ann.strokeWidth));
+    if (field === 'size') return String(Math.round(ann.size));
     return '';
 }
 
@@ -47,6 +56,18 @@ document.addEventListener('input', event => {
                 pick.textContent = `${prefix}${ann.label || 'Interface note'}`;
             }
         }
+        persist();
+        return;
+    }
+    if (target.dataset.markField) {
+        const screen = activeScreen();
+        const ann = selectedAnnotation(screen);
+        if (!ann || ann.type === 'text-box') return;
+        armNoteHistory(screen);
+        applyMarkField(ann, target.dataset.markField, target.value);
+        paintMark(ann);
+        const readout = target.closest('.range-row')?.querySelector('.range-value');
+        if (readout) readout.textContent = noteReadout(target.dataset.markField, ann);
         persist();
         return;
     }
