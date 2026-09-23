@@ -40,7 +40,7 @@
 .ann.pin { width: var(--ann-size, 28px); height: var(--ann-size, 28px); margin-left: calc(var(--ann-size, 28px) / -2); margin-top: calc(var(--ann-size, 28px) / -2); border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: grid; place-items: center; color: #fff; background: var(--ann-color); border: 2px solid rgba(255,255,255,.8); box-shadow: 0 4px 12px rgba(0,0,0,.4); }
 .ann.pin span { transform: rotate(45deg); font: 800 10px/1 var(--mono); }
 .ann.text { color: #fff; background: color-mix(in srgb, var(--ann-color) 82%, #020617); border: 1px solid rgba(255,255,255,.3); border-radius: 4px; padding: 6px 8px; min-width: 88px; min-height: 32px; font-size: var(--ann-font, 13px); font-weight: 700; line-height: 1.35; box-sizing: border-box; opacity: var(--ann-opacity, 1); box-shadow: 0 4px 12px rgba(0,0,0,.35); overflow: hidden; }
-.ann.text .ann-text-body { white-space: pre-wrap; overflow-wrap: anywhere; }
+.ann.text .ann-text-body, .ann.text .ann-text-weight { white-space: pre-wrap; overflow-wrap: anywhere; }
 .ann.text.has-glow { box-shadow: 0 0 var(--ann-glow, 0px) var(--ann-color), 0 0 calc(var(--ann-glow, 0px) * 2.1) color-mix(in srgb, var(--ann-color) 55%, transparent), 0 4px 12px rgba(0,0,0,.35); }
 #annotationCanvas.tool-select { cursor: default; }
 #annotationCanvas.tool-select .ann,

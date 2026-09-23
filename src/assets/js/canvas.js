@@ -75,7 +75,7 @@ function bindAnnotationCanvas(canvas) {
                 width, height,
                 color: selectedColor, strokeWidth: 3, numberBadge: screen.annotations.length + 1,
                 label: isText ? 'Interface note' : 'Callout',
-                opacity: 1, glow: 0, fontSize: isText ? 13 : undefined
+                opacity: 1, glow: 0, fontSize: isText ? 13 : undefined, fontWeight: isText ? 700 : undefined
             });
             selectedAnnotationId = isText ? id : null;
             persist();

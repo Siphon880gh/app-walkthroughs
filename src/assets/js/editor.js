@@ -72,6 +72,11 @@ function noteOpacityPercent(ann) {
     return Math.round(clamp(value, 0.15, 1) * 100);
 }
 
+function noteFontWeight(ann) {
+    const value = Number(ann?.fontWeight || 700);
+    return clamp(Math.round(value / 100) * 100, 400, 800);
+}
+
 function textNoteStyle(ann) {
     const width = Number(ann.width) || 0;
     const height = Number(ann.height) || 0;
@@ -83,6 +88,8 @@ function textNoteStyle(ann) {
         `--ann-opacity:${opacity}`,
         `--ann-glow:${glow}px`,
         `--ann-font:${font}px`,
+        `--ann-weight:${noteFontWeight(ann)}`,
+        `font-weight:${noteFontWeight(ann)}`,
         `left:${Number(ann.x) || 0}%`,
         `top:${Number(ann.y) || 0}%`
     ];
@@ -91,13 +98,27 @@ function textNoteStyle(ann) {
     return parts.join(';');
 }
 
+function paintNoteWeight(body, ann) {
+    if (!body) return;
+    const weight = String(noteFontWeight(ann));
+    const current = $('.ann-text-weight', body);
+    if (current && current.style.fontWeight === weight) {
+        current.textContent = ann.label || 'Note';
+        return;
+    }
+    const text = document.createElement('span');
+    text.className = 'ann-text-weight';
+    text.style.fontWeight = weight;
+    text.textContent = ann.label || 'Note';
+    body.replaceChildren(text);
+}
+
 function paintTextNote(ann) {
     const node = $(`.ann.text[data-ann-id="${CSS.escape(ann.id)}"]`);
     if (!node) return;
     node.setAttribute('style', textNoteStyle(ann));
     node.classList.toggle('has-glow', Number(ann.glow) > 0);
-    const body = $('.ann-text-body', node);
-    if (body) body.textContent = ann.label || 'Note';
+    paintNoteWeight($('.ann-text-body', node), ann);
     const remove = $(`.ann-remove[data-id="${CSS.escape(ann.id)}"]`);
     if (remove) {
         const point = removeHandlePoint(ann);
@@ -130,7 +151,7 @@ function textNoteMarkup(ann, interactive) {
     const selected = interactive && ann.id === selectedAnnotationId;
     const glow = Number(ann.glow || 0) > 0;
     const handle = selected ? `<button type="button" class="ann-resize" data-resize-note="${esc(ann.id)}" aria-label="Resize note" title="Drag to resize"></button>` : '';
-    return `<div class="ann text${selected ? ' selected' : ''}${glow ? ' has-glow' : ''}${ann.id === 'draft' ? ' draft-ann' : ''}" data-ann-id="${esc(ann.id)}" style="${textNoteStyle(ann)}"><div class="ann-text-body">${esc(ann.label || 'Note')}</div>${handle}</div>`;
+    return `<div class="ann text${selected ? ' selected' : ''}${glow ? ' has-glow' : ''}${ann.id === 'draft' ? ' draft-ann' : ''}" data-ann-id="${esc(ann.id)}" style="${textNoteStyle(ann)}"><div class="ann-text-body"><span class="ann-text-weight" style="font-weight:${noteFontWeight(ann)}">${esc(ann.label || 'Note')}</span></div>${handle}</div>`;
 }
 
 function paintMark(ann) {
@@ -172,10 +193,11 @@ function renderNoteEditor(ann) {
     const opacity = noteOpacityPercent(ann);
     const glow = Math.round(clamp(Number(ann.glow || 0), 0, 28));
     const font = Math.round(clamp(Number(ann.fontSize || 13), 10, 32));
+    const weight = noteFontWeight(ann);
     const width = Math.round(clamp(Number(ann.width) || 28, 8, 92));
     const height = Math.round(clamp(Number(ann.height) || 14, 4, 70));
     const colors = PALETTE.map(color => `<button type="button" class="tool-button" data-action="select-color" data-color="${color}" aria-label="Note color ${color}"><span class="color-dot ${ann.color === color ? 'active' : ''}" style="background:${color}"></span></button>`).join('');
-    return `<div class="section note-editor"><div class="section-title"><span>INTERFACE NOTE</span><button type="button" class="button ghost small danger" data-action="delete-annotation" data-id="${esc(ann.id)}">Remove</button></div><label class="field"><span class="field-label">NOTE</span><textarea class="textarea" id="noteLabel" data-note-field="label" rows="3">${esc(ann.label || '')}</textarea></label><label class="range-row"><span>TYPE</span><input type="range" min="10" max="32" step="1" data-note-field="fontSize" value="${font}" aria-label="Type size"><span class="range-value">${font}</span></label><label class="range-row"><span>WIDTH</span><input type="range" min="8" max="92" step="1" data-note-field="width" value="${width}" aria-label="Note width"><span class="range-value">${width}</span></label><label class="range-row"><span>HEIGHT</span><input type="range" min="4" max="70" step="1" data-note-field="height" value="${height}" aria-label="Note height"><span class="range-value">${height}</span></label><div class="field"><span class="field-label">COLOR</span><div class="tool-group note-colors">${colors}</div></div><label class="range-row"><span>OPACITY</span><input type="range" min="15" max="100" step="1" data-note-field="opacity" value="${opacity}" aria-label="Note opacity"><span class="range-value">${opacity}</span></label><label class="range-row"><span>GLOW</span><input type="range" min="0" max="28" step="1" data-note-field="glow" value="${glow}" aria-label="Note glow"><span class="range-value">${glow}</span></label><p class="note-hint">Drag the note to move it. Drag the corner to resize the box. Glow at 0 is off.</p></div>`;
+    return `<div class="section note-editor"><div class="section-title"><span>INTERFACE NOTE</span><button type="button" class="button ghost small danger" data-action="delete-annotation" data-id="${esc(ann.id)}">Remove</button></div><label class="field"><span class="field-label">NOTE</span><textarea class="textarea" id="noteLabel" data-note-field="label" rows="3">${esc(ann.label || '')}</textarea></label><label class="range-row"><span>TYPE</span><input type="range" min="10" max="32" step="1" data-note-field="fontSize" value="${font}" aria-label="Type size"><span class="range-value">${font}</span></label><label class="range-row"><span>WEIGHT</span><input type="range" min="400" max="800" step="100" data-note-field="fontWeight" value="${weight}" aria-label="Font weight"><span class="range-value">${weight}</span></label><label class="range-row"><span>WIDTH</span><input type="range" min="8" max="92" step="1" data-note-field="width" value="${width}" aria-label="Note width"><span class="range-value">${width}</span></label><label class="range-row"><span>HEIGHT</span><input type="range" min="4" max="70" step="1" data-note-field="height" value="${height}" aria-label="Note height"><span class="range-value">${height}</span></label><div class="field"><span class="field-label">COLOR</span><div class="tool-group note-colors">${colors}</div></div><label class="range-row"><span>OPACITY</span><input type="range" min="15" max="100" step="1" data-note-field="opacity" value="${opacity}" aria-label="Note opacity"><span class="range-value">${opacity}</span></label><label class="range-row"><span>GLOW</span><input type="range" min="0" max="28" step="1" data-note-field="glow" value="${glow}" aria-label="Note glow"><span class="range-value">${glow}</span></label><p class="note-hint">Drag the note to move it. Drag the corner to resize the box. Glow at 0 is off.</p></div>`;
 }
 
 function removeHandleMarkup(ann) {
