@@ -157,9 +157,14 @@ document.addEventListener('click', event => {
     else if (action === 'download-json') download(JSON.stringify(projectPayload('project'),null,2),`${slug(project.name)}-backup.json`,'application/json;charset=utf-8');
     else if (action === 'download-html') download(standaloneHtml(),`${slug(project.name)}-walkthrough.html`,'text/html;charset=utf-8');
     else if (action === 'toggle-sync-menu') setSyncMenu(!syncMenuOpen);
-    else if (action === 'sync-demo') { setSyncMenu(false); $('#syncDemoDialog').showModal(); }
+    else if (action === 'sync-demo') {
+        setSyncMenu(false);
+        const input = $('#syncDemoPassword');
+        if (input) input.value = '';
+        $('#syncDemoDialog').showModal();
+        input?.focus();
+    }
     else if (action === 'close-sync-demo') $('#syncDemoDialog').close();
-    else if (action === 'confirm-sync-demo') confirmSyncDemo();
     else if (action === 'import-json') $('#jsonInput').click();
     else if (action === 'audio-toggle') { audioSettings[target.dataset.key] = !audioSettings[target.dataset.key]; saveJson(APP.audioKey,audioSettings); renderAudioSettings(); }
 });

@@ -135,7 +135,14 @@ function watchSharedDemo() {
 
 async function confirmSyncDemo() {
     const dialog = $('#syncDemoDialog');
-    const button = $('[data-action="confirm-sync-demo"]', dialog);
+    const button = $('#syncDemoForm button[type="submit"]');
+    const input = $('#syncDemoPassword');
+    const password = input?.value || '';
+    if (!password) {
+        toast('Enter the sync password.', 'warn');
+        input?.focus();
+        return;
+    }
     if (button) button.disabled = true;
     try {
         const project = structuredClone(activeProject());
@@ -143,10 +150,14 @@ async function confirmSyncDemo() {
         const response = await fetch('?action=sync-demo', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({version: 2, project})
+            body: JSON.stringify({version: 2, password, project})
         });
         const result = await response.json().catch(() => ({}));
-        if (!response.ok || !result.ok) throw new Error(result.error || 'Could not sync to Demo.');
+        if (!response.ok || !result.ok) {
+            if (response.status === 401) input?.select();
+            throw new Error(result.error || 'Could not sync to Demo.');
+        }
+        if (input) input.value = '';
         project.syncedAt = result.syncedAt;
         applySharedDemo({syncedAt: result.syncedAt, project});
         dialog?.close();
@@ -157,4 +168,13 @@ async function confirmSyncDemo() {
         if (button) button.disabled = false;
     }
 }
+
+$('#syncDemoForm').addEventListener('submit', event => {
+    event.preventDefault();
+    confirmSyncDemo();
+});
+$('#syncDemoDialog').addEventListener('close', () => {
+    const input = $('#syncDemoPassword');
+    if (input) input.value = '';
+});
 

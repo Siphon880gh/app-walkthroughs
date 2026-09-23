@@ -6,6 +6,39 @@ require __DIR__ . '/guard.php';
 $appName = 'StoryFlow Studio';
 $build = '2026.09';
 
+function storyflow_env(string $key): string
+{
+    static $vars = null;
+    if ($vars === null) {
+        $vars = [];
+        $path = dirname(__DIR__) . '/.env';
+        $lines = is_readable($path) ? file($path, FILE_IGNORE_NEW_LINES) : false;
+        if (is_array($lines)) {
+            foreach ($lines as $line) {
+                $line = trim($line);
+                if ($line === '' || str_starts_with($line, '#')) {
+                    continue;
+                }
+                $eq = strpos($line, '=');
+                if ($eq === false) {
+                    continue;
+                }
+                $name = trim(substr($line, 0, $eq));
+                $value = trim(substr($line, $eq + 1));
+                $quote = $value[0] ?? '';
+                if (($quote === '"' || $quote === "'") && str_ends_with($value, $quote) && strlen($value) >= 2) {
+                    $value = substr($value, 1, -1);
+                }
+                if ($name !== '') {
+                    $vars[$name] = $value;
+                }
+            }
+        }
+    }
+
+    return $vars[$key] ?? '';
+}
+
 if (($_GET['action'] ?? '') === 'manifest') {
     header('Content-Type: application/manifest+json; charset=utf-8');
     echo json_encode([
@@ -45,6 +78,15 @@ if (($_GET['action'] ?? '') === 'sync-demo') {
     }
     $raw = file_get_contents('php://input');
     $parsed = is_string($raw) ? json_decode($raw, true) : null;
+    $password = is_array($parsed) && is_string($parsed['password'] ?? null) ? $parsed['password'] : '';
+    $expected = storyflow_env('SYNC_DEMO_PASSWORD');
+    $authorized = $expected !== '' && hash_equals(hash('sha256', $expected), hash('sha256', $password));
+    if (!$authorized) {
+        http_response_code($expected === '' ? 503 : 401);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['ok' => false, 'error' => $expected === '' ? 'Sync to Demo is not configured.' : 'Incorrect sync password.']);
+        exit;
+    }
     $project = is_array($parsed) ? ($parsed['project'] ?? null) : null;
     $valid = is_array($project)
         && is_string($project['name'] ?? null)

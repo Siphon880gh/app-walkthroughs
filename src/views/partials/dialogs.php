@@ -44,12 +44,17 @@ require dirname(__DIR__, 2) . '/guard.php';
 <div class="toast-region" id="toastRegion" role="status" aria-live="polite"></div>
 
 <dialog id="syncDemoDialog">
-    <div class="dialog-head">
-        <div><h2>Sync to Demo</h2><p>This will make it appear to all current users.</p></div>
-        <button type="button" class="button ghost icon-only" data-action="close-sync-demo" aria-label="Close">×</button>
-    </div>
-    <div class="dialog-foot">
-        <button type="button" class="button" data-action="close-sync-demo">Cancel</button>
-        <button type="button" class="button primary" data-action="confirm-sync-demo">Sync to Demo</button>
-    </div>
+    <form id="syncDemoForm">
+        <div class="dialog-head">
+            <div><h2>Sync to Demo</h2><p>Enter the sync password. This will make it appear to all current users.</p></div>
+            <button type="button" class="button ghost icon-only" data-action="close-sync-demo" aria-label="Close">×</button>
+        </div>
+        <div class="dialog-body">
+            <label class="field"><span class="field-label">PASSWORD</span><input class="input" id="syncDemoPassword" name="password" type="password" autocomplete="current-password" required maxlength="200"></label>
+        </div>
+        <div class="dialog-foot">
+            <button type="button" class="button" data-action="close-sync-demo">Cancel</button>
+            <button type="submit" class="button primary">Sync to Demo</button>
+        </div>
+    </form>
 </dialog>
