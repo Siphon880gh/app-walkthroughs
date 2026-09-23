@@ -128,6 +128,7 @@ document.addEventListener('click', event => {
     else if (action === 'pick-export-story') {
         const chosen = project.stories.find(item => item.id === target.dataset.id);
         if (!chosen) return;
+        stopPlayback();
         project.activeStoryId = chosen.id;
         exportScope = 'story';
         storyPickerOpen = false;

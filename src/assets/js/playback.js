@@ -3,6 +3,27 @@ let narrationBusy = false;
 let narrationHold = false;
 let narrationStartedAt = 0;
 let narrationEstimateMs = 0;
+let activeUtterance = null;
+let speechCancelGeneration = 0;
+
+function cancelSpeech() {
+    if (!('speechSynthesis' in window)) return;
+    const generation = ++speechCancelGeneration;
+    if (activeUtterance) {
+        activeUtterance.onend = null;
+        activeUtterance.onerror = null;
+        activeUtterance.volume = 0;
+        activeUtterance = null;
+    }
+    const synth = window.speechSynthesis;
+    const silence = () => {
+        if (generation !== speechCancelGeneration) return;
+        synth.pause();
+        synth.cancel();
+    };
+    silence();
+    requestAnimationFrame(silence);
+}
 
 function estimateSpeechMs(text) {
     const rate = Math.max(0.5, Number(audioSettings.rate) || 1);
@@ -46,7 +67,7 @@ function setPlayerIndex(index, resume = isPlaying) {
     if (!story?.steps.length) return;
     const next = clamp(Number(index), 0, story.steps.length - 1);
     invalidateNarration();
-    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    cancelSpeech();
     const device = $('#playerDevice');
     if (device) device.classList.add('fade-out');
     if (playerTimer) cancelAnimationFrame(playerTimer);
@@ -96,7 +117,7 @@ function toggleNarrationMute(button) {
         if (audioSettings.muted) {
             const holding = narrationHold;
             invalidateNarration();
-            window.speechSynthesis.cancel();
+            cancelSpeech();
             if (holding && isPlaying) {
                 const story = activeStory();
                 if (story && playerIndex < story.steps.length - 1) setPlayerIndex(playerIndex + 1, true);
@@ -118,6 +139,7 @@ function toggleNarrationMute(button) {
 
 function speakStep(step) {
     const token = ++narrationToken;
+    speechCancelGeneration += 1;
     narrationBusy = false;
     narrationHold = false;
     if (!audioSettings.enabled || audioSettings.muted || !('speechSynthesis' in window)) return;
@@ -139,6 +161,7 @@ function speakStep(step) {
     utterance.voice = voices.find(voice => voice.voiceURI === audioSettings.voiceURI) || voices.find(voice => /Google US English/i.test(voice.name)) || voices.find(voice => /^en-US/i.test(voice.lang)) || null;
     utterance.onend = () => releaseNarration(token);
     utterance.onerror = () => releaseNarration(token);
+    activeUtterance = utterance;
     narrationBusy = true;
     window.speechSynthesis.speak(utterance);
 }

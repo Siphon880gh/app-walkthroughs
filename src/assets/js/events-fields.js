@@ -92,12 +92,14 @@ document.addEventListener('input', event => {
 document.addEventListener('change', event => {
     const target = event.target;
     if (target.id === 'projectSelect') {
+        stopPlayback();
         activeProjectId = target.value; selectedFolder = null; playerIndex = 0; persist(true);
     } else if (target.id === 'fileInput') {
         handleFiles([...target.files]); target.value = '';
     } else if (target.id === 'jsonInput') {
         if (target.files[0]) importProjectData(target.files[0]); target.value = '';
     } else if (target.dataset.action === 'change-story') {
+        stopPlayback();
         activeProject().activeStoryId = target.value; playerIndex = 0; persist(true);
     } else if (target.dataset.transitionField) {
         const step = activeStep(); step.transition[target.dataset.transitionField] = target.type === 'number' ? Number(target.value) : target.value; persist(true);

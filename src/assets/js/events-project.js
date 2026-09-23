@@ -6,6 +6,7 @@ $('#projectForm').addEventListener('submit', event => {
     const now = Date.now();
     const story = newStory('Primary walkthrough');
     const project = {id:uid('proj'),name,description:String(data.get('description')||''),activeScreenshotId:'',activeStoryId:story.id,screenshots:[],folders:[{id:uid('folder'),app:name,platform:'Web',fullPath:`${name} / Web`},{id:uid('folder'),app:name,platform:'Mobile',fullPath:`${name} / Mobile`}],stories:[story],createdAt:now,updatedAt:now};
+    stopPlayback();
     projects.push(project); activeProjectId = project.id; selectedFolder = null; currentView = 'screenshots'; persist();
     $('#projectDialog').close(); event.currentTarget.reset(); renderApp(); toast(`Project “${name}” created.`);
 });
