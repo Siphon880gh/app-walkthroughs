@@ -8,6 +8,11 @@ document.addEventListener('keydown', event => {
         else undoAnnotations();
         return;
     }
+    if (currentView === 'editor' && !typing && event.key === 'Escape' && selectedAnnotationId) {
+        selectedAnnotationId = null;
+        renderApp();
+        return;
+    }
     if (currentView !== 'player' || typing) return;
     if (event.key === 'ArrowRight') { event.preventDefault(); setPlayerIndex(playerIndex+1,isPlaying); }
     else if (event.key === 'ArrowLeft') { event.preventDefault(); setPlayerIndex(playerIndex-1,isPlaying); }

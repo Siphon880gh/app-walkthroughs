@@ -1,5 +1,55 @@
+let noteHistoryOpen = false;
+
+function armNoteHistory(screen) {
+    if (noteHistoryOpen || !screen) return;
+    rememberAnnotations(screen);
+    noteHistoryOpen = true;
+}
+
+function applyNoteField(ann, field, raw) {
+    if (field === 'label') ann.label = raw;
+    else if (field === 'opacity') ann.opacity = clamp(Number(raw) / 100, .15, 1);
+    else if (field === 'fontSize') ann.fontSize = clamp(Number(raw), 10, 32);
+    else if (field === 'width') ann.width = clamp(Number(raw), 8, 92);
+    else if (field === 'height') ann.height = clamp(Number(raw), 4, 70);
+    else if (field === 'glow') ann.glow = clamp(Number(raw), 0, 28);
+}
+
+function noteReadout(field, ann) {
+    if (field === 'opacity') return String(noteOpacityPercent(ann));
+    if (field === 'fontSize') return String(Math.round(ann.fontSize));
+    if (field === 'width') return String(Math.round(ann.width));
+    if (field === 'height') return String(Math.round(ann.height));
+    if (field === 'glow') return String(Math.round(ann.glow));
+    return '';
+}
+
+document.addEventListener('pointerup', () => { noteHistoryOpen = false; });
+document.addEventListener('focusout', event => {
+    if (event.target?.dataset?.noteField) noteHistoryOpen = false;
+});
+
 document.addEventListener('input', event => {
     const target = event.target;
+    if (target.dataset.noteField) {
+        const screen = activeScreen();
+        const ann = selectedTextAnnotation(screen);
+        if (!ann) return;
+        armNoteHistory(screen);
+        applyNoteField(ann, target.dataset.noteField, target.value);
+        paintTextNote(ann);
+        const readout = target.closest('.range-row')?.querySelector('.range-value');
+        if (readout) readout.textContent = noteReadout(target.dataset.noteField, ann);
+        if (target.dataset.noteField === 'label') {
+            const pick = $(`.annotation-pick[data-id="${CSS.escape(ann.id)}"]`);
+            if (pick) {
+                const prefix = pick.textContent.match(/^\d+\. /)?.[0] || '';
+                pick.textContent = `${prefix}${ann.label || 'Interface note'}`;
+            }
+        }
+        persist();
+        return;
+    }
     if (target.id === 'screenSearch') {
         searchTerm = target.value;
         renderApp();

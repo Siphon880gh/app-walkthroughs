@@ -23,7 +23,7 @@ document.addEventListener('click', event => {
         persist(true);
     }
     else if (action === 'edit-screen') { project.activeScreenshotId = target.dataset.id; persist(); setView('editor'); }
-    else if (action === 'select-screen') { project.activeScreenshotId = target.dataset.id; persist(true); }
+    else if (action === 'select-screen') { selectedAnnotationId = null; project.activeScreenshotId = target.dataset.id; persist(true); }
     else if (action === 'duplicate-screen') {
         const original = screenById(target.dataset.id);
         if (!original) return;
@@ -45,7 +45,23 @@ document.addEventListener('click', event => {
     }
     else if (action === 'add-to-story') { addScreenToStory(target.dataset.id); setView('stories'); }
     else if (action === 'select-tool') { selectedTool = target.dataset.tool; renderApp(); }
-    else if (action === 'select-color') { selectedColor = target.dataset.color; renderApp(); }
+    else if (action === 'select-annotation') {
+        selectedAnnotationId = target.dataset.id;
+        renderApp();
+        if (target.dataset.focus === 'note') focusNoteLabel();
+    }
+    else if (action === 'select-color') {
+        selectedColor = target.dataset.color;
+        const screen = activeScreen();
+        const ann = target.closest('.note-editor') ? selectedTextAnnotation(screen) : null;
+        if (ann) {
+            rememberAnnotations(screen);
+            ann.color = selectedColor;
+            persist(true);
+            return;
+        }
+        renderApp();
+    }
     else if (action === 'inspector-tab') { inspectorTab = target.dataset.tab; renderApp(); }
     else if (action === 'undo-annotation') undoAnnotations();
     else if (action === 'redo-annotation') redoAnnotations();
@@ -55,6 +71,7 @@ document.addEventListener('click', event => {
         if (!screen?.annotations?.some(item => item.id === target.dataset.id)) return;
         rememberAnnotations(screen);
         screen.annotations = screen.annotations.filter(item => item.id !== target.dataset.id);
+        if (selectedAnnotationId === target.dataset.id) selectedAnnotationId = null;
         persist(true);
     }
     else if (action === 'clear-annotations') {
@@ -62,6 +79,7 @@ document.addEventListener('click', event => {
         if (!screen?.annotations?.length) return;
         rememberAnnotations(screen);
         screen.annotations = [];
+        selectedAnnotationId = null;
         persist(true);
     }
     else if (action === 'save-snapshot') { persist(); toast('Snapshot and analytical notes saved.'); }

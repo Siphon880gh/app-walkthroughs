@@ -30,6 +30,7 @@ let playerStartedAt = 0;
 let isPlaying = false;
 let draftAnnotation = null;
 let showRemoveHandles = false;
+let selectedAnnotationId = null;
 
 const defaultAudio = {
     enabled: true,
