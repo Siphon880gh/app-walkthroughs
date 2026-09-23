@@ -1,4 +1,8 @@
 document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && $('#transitionInfo') && !$('#transitionInfo').hidden) {
+        setTransitionInfo(false);
+        return;
+    }
     const typing = ['INPUT','TEXTAREA','SELECT'].includes(event.target.tagName);
     const undoKey = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'z';
     const redoKey = (event.metaKey || event.ctrlKey) && (event.key.toLowerCase() === 'y' || (event.shiftKey && event.key.toLowerCase() === 'z'));

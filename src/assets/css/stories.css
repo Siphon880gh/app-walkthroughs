@@ -26,6 +26,13 @@
 .step-canvas { min-height: 0; overflow: auto; display: grid; place-items: center; padding: 24px; background-image: radial-gradient(#1b2739 1px, transparent 1px); background-size: 22px 22px; }
 .device-mini { max-height: 100%; max-width: 100%; display: grid; place-items: center; }
 .story-bottom { border-top: 1px solid var(--border); background: var(--panel); display: flex; align-items: center; justify-content: space-between; padding: 0 13px; }
+.title-with-info { position: relative; display: inline-flex; align-items: center; gap: 6px; }
+.info-dot { width: 15px; height: 15px; margin: 0; padding: 0; border-radius: 50%; border: 1px solid #475569; background: transparent; color: var(--muted); font: italic 700 10px/1 var(--font); letter-spacing: 0; display: inline-grid; place-items: center; flex: 0 0 auto; cursor: pointer; }
+.info-dot:hover, .info-dot.active { color: #bfdbfe; border-color: rgba(59,130,246,.55); background: var(--blue-soft); }
+.info-popover { position: absolute; z-index: 6; top: calc(100% + 8px); left: 0; width: 210px; padding: 9px 10px; border: 1px solid var(--border-strong); border-radius: 7px; background: #111b2c; color: #dbe6f4; box-shadow: 0 16px 36px rgba(0,0,0,.45); font: 500 11px/1.45 var(--font); font-style: normal; letter-spacing: 0; text-align: left; }
+.info-popover[hidden] { display: none; }
+.transition-fields { margin: 0; padding: 0; border: 0; min-inline-size: 0; }
+.transition-fields:disabled .input, .transition-fields:disabled .select { opacity: .48; cursor: not-allowed; }
 .step-reorder { display: flex; gap: 5px; }
 .meter { height: 3px; width: 100%; background: #1e293b; overflow: hidden; border-radius: 999px; }
 .meter > span { display: block; height: 100%; width: var(--value, 0%); background: var(--blue); }

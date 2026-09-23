@@ -11,6 +11,7 @@ function setSyncMenu(open) {
 document.addEventListener('click', event => {
     const target = event.target.closest('[data-action], [data-view]');
     if (syncMenuOpen && !event.target.closest('.sync-menu')) setSyncMenu(false);
+    if (!event.target.closest('.title-with-info')) setTransitionInfo(false);
     if (storyPickerOpen && !event.target.closest('.scope-switcher')) {
         storyPickerOpen = false;
         if (!target) { renderApp(); return; }
@@ -123,6 +124,7 @@ document.addEventListener('click', event => {
         if (story.steps.length <= 1) { toast('A walkthrough must contain at least one step.', 'warn'); return; }
         const step = activeStep(), index = story.steps.findIndex(item => item.id === step.id); story.steps.splice(index,1); story.activeStepId = story.steps[Math.max(0,index-1)].id; persist(true);
     }
+    else if (action === 'toggle-transition-info') setTransitionInfo($('#transitionInfo')?.hidden !== false);
     else if (action === 'toggle-hotspot') { const step = activeStep(); step.interaction.enabled = !step.interaction.enabled; persist(true); }
     else if (action === 'preview-story') setView('player');
     else if (action === 'player-prev') setPlayerIndex(playerIndex-1, false);
