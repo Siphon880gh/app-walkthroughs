@@ -34,8 +34,9 @@
 .canvas-wrap img { max-height: 100%; max-width: 100%; object-fit: contain; pointer-events: none; }
 .annotation-layer { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .ann { position: absolute; pointer-events: none; }
-.ann.rect, .ann.highlight, .ann.spotlight { border: var(--ann-stroke, 3px) solid var(--ann-color); }
+.ann.rect, .ann.circle, .ann.highlight, .ann.spotlight { border: var(--ann-stroke, 3px) solid var(--ann-color); }
 .ann.highlight { background: color-mix(in srgb, var(--ann-color) 22%, transparent); }
+.ann.circle { border-radius: 50%; }
 .ann.spotlight { border-radius: 999px; box-shadow: 0 0 0 200vmax rgba(2,6,23,.62); }
 .ann.pin { width: var(--ann-size, 28px); height: var(--ann-size, 28px); margin-left: calc(var(--ann-size, 28px) / -2); margin-top: calc(var(--ann-size, 28px) / -2); border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: grid; place-items: center; color: #fff; background: var(--ann-color); border: 2px solid rgba(255,255,255,.8); box-shadow: 0 4px 12px rgba(0,0,0,.4); }
 .ann.pin span { transform: rotate(45deg); font: 800 10px/1 var(--mono); }
