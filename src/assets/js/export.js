@@ -7,7 +7,8 @@ function generateMarkdown() {
         lines.push(`## ${flow.name}`, '', flow.description || '', '', `**Device:** ${flow.settings.deviceType} · **Default speed:** ${flow.settings.defaultSpeed}x`, '');
         flow.steps.forEach((step,index) => {
             const screen = project.screenshots.find(item => item.id === step.screenId);
-            lines.push(`### ${index+1}. ${step.title}`, '', `- **Source:** ${screen?.name || 'Missing source'}`, `- **User action:** ${step.userAction || 'Not documented'}`, `- **Visible state:** ${step.screenContent || 'Not documented'}`, `- **Next action:** ${step.nextAction || 'Not documented'}`, `- **Transition:** ${step.transition.type}, ${step.transition.duration}s, ${step.transition.easing}`, `- **Dwell:** ${step.dwellSeconds}s`, `- **Hotspot:** ${step.interaction.enabled ? `${step.interaction.label || step.interaction.type} at (${step.interaction.xPercent}%, ${step.interaction.yPercent}%)` : 'None'}`, '');
+            const noted = value => String(value || '').trim() || 'Not available';
+            lines.push(`### ${index+1}. ${step.title}`, '', `- **Source:** ${screen?.name || 'Missing source'}`, `- **Narrate before:** ${noted(step.narrateBefore)}`, `- **User action:** ${noted(step.userAction)}`, `- **Visible state:** ${noted(step.screenContent)}`, `- **Next action:** ${noted(step.nextAction)}`, `- **Narrate after:** ${noted(step.narrateAfter)}`, `- **Comment:** ${noted(step.comment)}`, `- **Transition:** ${step.transition.type}, ${step.transition.duration}s, ${step.transition.easing}`, `- **Dwell:** ${step.dwellSeconds}s`, `- **Hotspot:** ${step.interaction.enabled ? `${step.interaction.label || step.interaction.type} at (${step.interaction.xPercent}%, ${step.interaction.yPercent}%)` : 'None'}`, '');
         });
     });
     return lines.join('\n');

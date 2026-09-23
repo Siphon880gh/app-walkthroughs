@@ -43,11 +43,13 @@ const defaultAudio = {
     pitch: 1,
     volume: .9,
     readTitle: true,
+    readNarrateBefore: true,
     readUserAction: true,
     readScreenContent: true,
     readNextAction: false,
+    readNarrateAfter: true,
     advanceOnSpeechEnd: false,
     voiceURI: ''
 };
 
-let audioSettings = loadJson(APP.audioKey, defaultAudio);
+let audioSettings = Object.assign(structuredClone(defaultAudio), loadJson(APP.audioKey, {}));

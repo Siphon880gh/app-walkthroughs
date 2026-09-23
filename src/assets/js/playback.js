@@ -131,8 +131,7 @@ function syncPlayerChrome() {
     if (label) label.textContent = `Step ${playerIndex + 1} of ${story.steps.length}`;
     const title = $('h2', root);
     if (title) title.textContent = step.title;
-    const copies = $$('.narrative-copy', root);
-    [step.userAction || 'No action documented.', step.screenContent || 'No visible state documented.', step.nextAction || 'End of documented flow.'].forEach((text, index) => { if (copies[index]) copies[index].textContent = text; });
+    syncNarrativeBlocks(root, step);
     const tags = $$('.tag', root);
     if (tags[0]) tags[0].textContent = step.transition?.type || 'none';
     if (tags[1]) tags[1].textContent = `${Number(step.transition?.duration || 0).toFixed(1)}s ${step.transition?.easing || ''}`.trim();
@@ -304,9 +303,16 @@ function speakStep(step) {
         const name = spokenSlipName(step.title);
         if (name) parts.push(name);
     }
-    if (audioSettings.readUserAction && step.userAction) parts.push(step.userAction);
-    if (audioSettings.readScreenContent && step.screenContent) parts.push(step.screenContent);
-    if (audioSettings.readNextAction && step.nextAction) parts.push(step.nextAction);
+    const speak = (enabled, key) => {
+        if (!enabled) return;
+        const text = narrativeValue(step, key);
+        if (text) parts.push(text);
+    };
+    speak(audioSettings.readNarrateBefore, 'narrateBefore');
+    speak(audioSettings.readUserAction, 'userAction');
+    speak(audioSettings.readScreenContent, 'screenContent');
+    speak(audioSettings.readNextAction, 'nextAction');
+    speak(audioSettings.readNarrateAfter, 'narrateAfter');
     if (!parts.length) return;
     const script = parts.join('. ');
     narrationEstimateMs = estimateSpeechMs(script);
@@ -327,7 +333,7 @@ function speakStep(step) {
 function renderAudioSettings() {
     const voices = 'speechSynthesis' in window ? window.speechSynthesis.getVoices().filter(voice => voice.lang.startsWith('en')) : [];
     const voiceOptions = [`<option value="">Automatic English voice</option>`, ...voices.map(voice => `<option value="${esc(voice.voiceURI)}" ${voice.voiceURI === audioSettings.voiceURI ? 'selected':''}>${esc(voice.name)} (${esc(voice.lang)})</option>`)].join('');
-    $('#audioSettingsBody').innerHTML = `<div class="toggle-row"><span>Enable spoken narration</span><button class="switch ${audioSettings.enabled ? 'on':''}" data-action="audio-toggle" data-key="enabled" aria-label="Toggle narration"></button></div><label class="field" style="margin-top:12px"><span class="field-label">VOICE</span><select class="select" data-audio-field="voiceURI">${voiceOptions}</select></label><div style="margin-top:16px"><label class="range-row"><span>Rate</span><input type="range" data-audio-field="rate" min=".5" max="2" step=".1" value="${audioSettings.rate}"><span>${Number(audioSettings.rate).toFixed(1)}×</span></label><label class="range-row"><span>Pitch</span><input type="range" data-audio-field="pitch" min=".5" max="1.5" step=".1" value="${audioSettings.pitch}"><span>${Number(audioSettings.pitch).toFixed(1)}</span></label><label class="range-row"><span>Volume</span><input type="range" data-audio-field="volume" min="0" max="1" step=".1" value="${audioSettings.volume}"><span>${Math.round(audioSettings.volume*100)}%</span></label></div><div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px">${[['readTitle','Read step title'],['readUserAction','Read user action'],['readScreenContent','Read visible state'],['readNextAction','Read next action'],['advanceOnSpeechEnd','Advance when speech ends']].map(([key,label]) => `<div class="toggle-row"><span>${label}</span><button class="switch ${audioSettings[key] ? 'on':''}" data-action="audio-toggle" data-key="${key}" aria-label="Toggle ${label}"></button></div>`).join('')}</div>`;
+    $('#audioSettingsBody').innerHTML = `<div class="toggle-row"><span>Enable spoken narration</span><button class="switch ${audioSettings.enabled ? 'on':''}" data-action="audio-toggle" data-key="enabled" aria-label="Toggle narration"></button></div><label class="field" style="margin-top:12px"><span class="field-label">VOICE</span><select class="select" data-audio-field="voiceURI">${voiceOptions}</select></label><div style="margin-top:16px"><label class="range-row"><span>Rate</span><input type="range" data-audio-field="rate" min=".5" max="2" step=".1" value="${audioSettings.rate}"><span>${Number(audioSettings.rate).toFixed(1)}×</span></label><label class="range-row"><span>Pitch</span><input type="range" data-audio-field="pitch" min=".5" max="1.5" step=".1" value="${audioSettings.pitch}"><span>${Number(audioSettings.pitch).toFixed(1)}</span></label><label class="range-row"><span>Volume</span><input type="range" data-audio-field="volume" min="0" max="1" step=".1" value="${audioSettings.volume}"><span>${Math.round(audioSettings.volume*100)}%</span></label></div><div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px">${[['readTitle','Read step title'],['readNarrateBefore','Read narrate before'],['readUserAction','Read user action'],['readScreenContent','Read visible state'],['readNextAction','Read next action'],['readNarrateAfter','Read narrate after'],['advanceOnSpeechEnd','Advance when speech ends']].map(([key,label]) => `<div class="toggle-row"><span>${label}</span><button class="switch ${audioSettings[key] ? 'on':''}" data-action="audio-toggle" data-key="${key}" aria-label="Toggle ${label}"></button></div>`).join('')}</div>`;
 }
 
 function openAudioDialog() {

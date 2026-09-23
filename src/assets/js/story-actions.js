@@ -10,9 +10,10 @@ function addScreenToStory(screenId) {
     }
     const step = {
         id:uid('step'), screenId:screen.id, title:screen.name.replace(/\.[^.]+$/,''),
-        userAction:screen.analysis?.userAction || 'The user interacts with this screen.',
-        screenContent:screen.analysis?.screenContent || 'The documented interface state is visible.',
-        nextAction:screen.analysis?.nextAction || 'Continue to the next step.',
+        userAction:screen.analysis?.userAction || '',
+        screenContent:screen.analysis?.screenContent || '',
+        nextAction:screen.analysis?.nextAction || '',
+        narrateBefore:'', narrateAfter:'', comment:'',
         annotations:structuredClone(screen.annotations || []),
         transition:{type:'slide-left',duration:.6,easing:'ease-in-out',scrollDistancePx:300},
         interaction:{enabled:true,type:'tap',xPercent:50,yPercent:50,label:'Continue'}, dwellSeconds:3.5
