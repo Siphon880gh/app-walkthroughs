@@ -68,6 +68,137 @@ function storyflow_sync_fail(int $status, string $error): void
     exit;
 }
 
+function storyflow_image_fail(int $status, string $error): void
+{
+    http_response_code($status);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['ok' => false, 'error' => $error]);
+    exit;
+}
+
+/** @return string[] Every address the host resolves to, or none if any of them is private or reserved. */
+function storyflow_public_ips(string $host): array
+{
+    $ips = filter_var($host, FILTER_VALIDATE_IP) ? [$host] : (gethostbynamel($host) ?: []);
+    if (!filter_var($host, FILTER_VALIDATE_IP) && function_exists('dns_get_record')) {
+        foreach (@dns_get_record($host, DNS_AAAA) ?: [] as $record) {
+            if (!empty($record['ipv6'])) {
+                $ips[] = $record['ipv6'];
+            }
+        }
+    }
+    foreach ($ips as $ip) {
+        if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+            return [];
+        }
+        $long = ip2long($ip);
+        if ($long !== false && ($long & 0xFFC00000) === (100 << 24 | 64 << 16)) {
+            return [];
+        }
+    }
+
+    return $ips;
+}
+
+if (($_GET['action'] ?? '') === 'fetch-image') {
+    header('Cache-Control: no-store');
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        header('Allow: POST');
+        exit;
+    }
+    $site = $_SERVER['HTTP_SEC_FETCH_SITE'] ?? 'same-origin';
+    if ($site !== 'same-origin' && $site !== 'none') {
+        storyflow_image_fail(403, 'Images can only be fetched from StoryFlow itself.');
+    }
+    if (!function_exists('curl_init')) {
+        storyflow_image_fail(501, 'This server cannot fetch images from other sites.');
+    }
+    $parsed = json_decode((string) file_get_contents('php://input'), true);
+    $url = is_array($parsed) && is_string($parsed['url'] ?? null) ? trim($parsed['url']) : '';
+    if ($url === '' || strlen($url) > 2048) {
+        storyflow_image_fail(422, 'Enter an image URL.');
+    }
+    $maxBytes = 10 * 1048576;
+    $body = '';
+    $contentType = '';
+    for ($hop = 0; ; $hop++) {
+        $parts = parse_url($url);
+        $scheme = strtolower((string) ($parts['scheme'] ?? ''));
+        $host = trim((string) ($parts['host'] ?? ''), '[]');
+        if (($scheme !== 'http' && $scheme !== 'https') || $host === '') {
+            storyflow_image_fail(422, 'Enter a full http or https address.');
+        }
+        $port = (int) ($parts['port'] ?? ($scheme === 'https' ? 443 : 80));
+        $ips = storyflow_public_ips($host);
+        if ($ips === []) {
+            storyflow_image_fail(422, 'That address is not reachable from the public web.');
+        }
+        $pinned = strpos($ips[0], ':') !== false ? '[' . $ips[0] . ']' : $ips[0];
+        $body = '';
+        $tooLarge = false;
+        $curl = curl_init($url);
+        curl_setopt_array($curl, [
+            CURLOPT_FOLLOWLOCATION => false,
+            CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+            CURLOPT_RESOLVE => [$host . ':' . $port . ':' . $pinned],
+            CURLOPT_PROXY => '',
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_TIMEOUT => 20,
+            CURLOPT_USERAGENT => 'StoryFlow/' . $build,
+            CURLOPT_HTTPHEADER => ['Accept: image/png,image/jpeg,image/webp,image/gif,image/svg+xml;q=0.9,*/*;q=0.1'],
+            CURLOPT_WRITEFUNCTION => static function ($handle, string $chunk) use (&$body, &$tooLarge, $maxBytes): int {
+                if (strlen($body) + strlen($chunk) > $maxBytes) {
+                    $tooLarge = true;
+                    return 0;
+                }
+                $body .= $chunk;
+                return strlen($chunk);
+            },
+        ]);
+        $ok = curl_exec($curl);
+        $status = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+        $redirect = (string) curl_getinfo($curl, CURLINFO_REDIRECT_URL);
+        $contentType = strtolower((string) curl_getinfo($curl, CURLINFO_CONTENT_TYPE));
+        $curlError = curl_error($curl);
+        curl_close($curl);
+        if ($tooLarge) {
+            storyflow_image_fail(413, 'That image is larger than 10 MB.');
+        }
+        if ($ok === false) {
+            storyflow_image_fail(502, 'The image could not be downloaded. ' . $curlError);
+        }
+        if ($status >= 300 && $status < 400 && $redirect !== '') {
+            if ($hop >= 3) {
+                storyflow_image_fail(502, 'That address redirects too many times.');
+            }
+            $url = $redirect;
+            continue;
+        }
+        if ($status < 200 || $status >= 300) {
+            storyflow_image_fail(502, 'The site answered with HTTP ' . $status . '.');
+        }
+        break;
+    }
+    $info = @getimagesizefromstring($body);
+    $mime = is_array($info) ? (string) $info['mime'] : '';
+    if (!in_array($mime, ['image/png', 'image/jpeg', 'image/webp', 'image/gif'], true)) {
+        $mime = (strpos($contentType, 'image/svg+xml') === 0 || stripos(substr($body, 0, 2048), '<svg') !== false) ? 'image/svg+xml' : '';
+    }
+    if ($mime === '') {
+        storyflow_image_fail(415, 'That address is not a PNG, JPEG, WebP, GIF, or SVG image.');
+    }
+    $name = rawurldecode(basename((string) parse_url($url, PHP_URL_PATH)));
+    $name = trim(preg_replace('/[\x00-\x1f]/', '', $name) ?? '');
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([
+        'ok' => true,
+        'name' => $name === '' ? 'Linked screen' : substr($name, 0, 120),
+        'dataUrl' => 'data:' . $mime . ';base64,' . base64_encode($body),
+    ], JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
 if (($_GET['action'] ?? '') === 'manifest') {
     header('Content-Type: application/manifest+json; charset=utf-8');
     echo json_encode([

@@ -58,5 +58,15 @@
 .view-title { font-size: 18px; line-height: 1.2; letter-spacing: -.025em; }
 .view-subtitle { margin-top: 5px; color: var(--muted); font-size: 11px; }
 .view-actions { display: flex; align-items: center; gap: 8px; }
+.split-button { position: relative; display: inline-flex; align-items: stretch; border: 1px solid #3b82f6; border-radius: 6px; background: var(--blue-strong); }
+.split-button > .button { min-height: 29px; border: 0; }
+.split-button .split-main { border-radius: 5px 0 0 5px; }
+.split-button .split-toggle { width: 28px; padding: 0; border-radius: 0 5px 5px 0; }
+.split-button .split-toggle svg { transition: transform .15s ease; }
+.split-button .split-toggle.active { background: var(--blue); }
+.split-button .split-toggle.active svg { transform: rotate(180deg); }
+.split-separator { width: 1px; margin: 7px 0; background: rgba(239,246,255,.35); }
+.split-button .button:active { transform: none; }
+.split-button .upload-menu-panel { top: calc(100% + 6px); bottom: auto; width: 168px; }
 .search { width: 218px; height: 32px; background: #070d18; color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 0 10px; font-size: 11px; }
 .search::placeholder, textarea::placeholder, input::placeholder { color: #526079; }

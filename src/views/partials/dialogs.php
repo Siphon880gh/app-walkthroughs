@@ -23,6 +23,23 @@ require dirname(__DIR__, 2) . '/guard.php';
     </form>
 </dialog>
 
+<dialog id="urlDialog">
+    <form id="urlForm" novalidate>
+        <div class="dialog-head">
+            <div><h2>Upload from URL</h2><p>Paste the address of a PNG, JPEG, WebP, GIF, or SVG image.</p></div>
+            <button type="button" class="button ghost icon-only" data-action="close-url-dialog" aria-label="Close">×</button>
+        </div>
+        <div class="dialog-body">
+            <label class="field"><span class="field-label">IMAGE URL</span><input class="input" id="urlInput" name="url" type="url" inputmode="url" autocomplete="url" required maxlength="2048" placeholder="https://example.com/screen.png"></label>
+            <p class="sync-dialog-error" id="urlError" role="alert" hidden></p>
+        </div>
+        <div class="dialog-foot">
+            <button type="button" class="button" data-action="close-url-dialog">Cancel</button>
+            <button type="submit" class="button primary">Add screen</button>
+        </div>
+    </form>
+</dialog>
+
 <dialog id="photoDialog">
     <div class="dialog-head">
         <div><h2>Add a photo</h2><p>Append a screen to the current walkthrough. Annotated pictures stay visible until you hide them.</p></div>

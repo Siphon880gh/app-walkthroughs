@@ -36,6 +36,7 @@ let pickerShowAnnotated = true;
 let storyPickerOpen = false;
 const expandedNarration = new Set();
 let syncMenuOpen = false;
+let uploadMenuOpen = false;
 
 const defaultAudio = {
     enabled: true,

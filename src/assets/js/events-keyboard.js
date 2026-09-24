@@ -1,4 +1,9 @@
 document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && uploadMenuOpen) {
+        setUploadMenu(false);
+        $('#uploadMenuButton')?.focus();
+        return;
+    }
     if (event.key === 'Escape' && (['transitionInfo', 'dwellInfo'].some(id => { const note = document.getElementById(id); return note && !note.hidden; }))) {
         closeInfoNotes();
         return;

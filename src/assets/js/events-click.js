@@ -8,9 +8,20 @@ function setSyncMenu(open) {
     button.classList.toggle('active', open);
 }
 
+function setUploadMenu(open) {
+    uploadMenuOpen = open;
+    const panel = $('#uploadMenu');
+    const button = $('#uploadMenuButton');
+    if (!panel || !button) return;
+    panel.hidden = !open;
+    button.setAttribute('aria-expanded', String(open));
+    button.classList.toggle('active', open);
+}
+
 document.addEventListener('click', event => {
     const target = event.target.closest('[data-action], [data-view]');
     if (syncMenuOpen && !event.target.closest('.sync-menu')) setSyncMenu(false);
+    if (uploadMenuOpen && !event.target.closest('.upload-menu')) setUploadMenu(false);
     if (!event.target.closest('.title-with-info')) closeInfoNotes();
     if (storyPickerOpen && !event.target.closest('.scope-switcher')) {
         storyPickerOpen = false;
@@ -28,6 +39,9 @@ document.addEventListener('click', event => {
     else if (action === 'open-audio') openAudioDialog();
     else if (action === 'close-audio') $('#audioDialog').close();
     else if (action === 'upload') $('#fileInput').click();
+    else if (action === 'toggle-upload-menu') setUploadMenu(!uploadMenuOpen);
+    else if (action === 'enter-url') { setUploadMenu(false); openUrlDialog(); }
+    else if (action === 'close-url-dialog') $('#urlDialog').close();
     else if (action === 'select-folder') { selectedFolder = target.dataset.folder || null; renderApp(); }
     else if (action === 'add-folder') {
         const platform = prompt('Platform folder name (for example, Android or Web):');
