@@ -220,9 +220,15 @@ document.addEventListener('click', event => {
         const copy = structuredClone(step); copy.id = uid('step'); copy.title += ' copy'; story.steps.splice(index+1,0,copy); story.activeStepId = copy.id; persist(true);
     }
     else if (action === 'delete-step') {
-        const story = activeStory();
-        if (story.steps.length <= 1) { toast('A walkthrough must contain at least one step.', 'warn'); return; }
-        const step = activeStep(), index = story.steps.findIndex(item => item.id === step.id); story.steps.splice(index,1); story.activeStepId = story.steps[Math.max(0,index-1)].id; persist(true);
+        const story = activeStory(), step = activeStep();
+        if (!story || !step) return;
+        const index = story.steps.findIndex(item => item.id === step.id);
+        if (index < 0) return;
+        story.steps.splice(index, 1);
+        story.activeStepId = (story.steps[index] || story.steps[index - 1])?.id || '';
+        [...expandedNarration].forEach(key => { if (key.startsWith(`${step.id}:`)) expandedNarration.delete(key); });
+        persist(true);
+        toast(`Slide “${step.title}” deleted.`);
     }
     else if (action === 'toggle-info') {
         const id = target.dataset.info;
