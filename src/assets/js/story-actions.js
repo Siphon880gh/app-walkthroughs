@@ -41,3 +41,16 @@ function moveStep(direction) {
     persist(true);
 }
 
+function reorderStoryStep(stepId, targetId, placeAfter = false) {
+    const story = activeStory();
+    if (!story || !stepId || !targetId || stepId === targetId) return false;
+    const sourceIndex = story.steps.findIndex(step => step.id === stepId);
+    const targetIndex = story.steps.findIndex(step => step.id === targetId);
+    if (sourceIndex < 0 || targetIndex < 0) return false;
+    const [step] = story.steps.splice(sourceIndex, 1);
+    const adjustedTarget = story.steps.findIndex(item => item.id === targetId);
+    story.steps.splice(adjustedTarget + (placeAfter ? 1 : 0), 0, step);
+    story.activeStepId = step.id;
+    persist(true);
+    return true;
+}

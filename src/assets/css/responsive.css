@@ -26,6 +26,9 @@
     .panel-scroll, .step-list { display: flex; overflow-x: auto; gap: 7px; }
     .film-item { min-width: 135px; }
     .step-item { min-width: 220px; }
+    .step-item.drop-before::before, .step-item.drop-after::before { top: 5px; bottom: 5px; width: 2px; height: auto; }
+    .step-item.drop-before::before { left: -4px; right: auto; }
+    .step-item.drop-after::before { right: -4px; left: auto; }
     .inspector { border-left: 0; border-top: 1px solid var(--border); max-height: none; }
     .player-view { min-height: calc(100dvh - 95px); grid-template-rows: auto minmax(650px,1fr) auto; }
     .player-top { grid-template-columns: 1fr auto; padding: 10px 12px; }

@@ -8,6 +8,83 @@ function bindDynamicUI() {
     const canvas = $('#annotationCanvas');
     if (canvas) bindAnnotationCanvas(canvas);
     bindHotspotDrag();
+    bindStoryStepReorder();
+}
+
+function bindStoryStepReorder() {
+    const list = $('.step-list');
+    const items = list ? $$('.step-item', list) : [];
+    if (!list || items.length < 2) return;
+    let draggedId = '';
+    const clearTargets = () => items.forEach(item => item.classList.remove('drop-before', 'drop-after'));
+    const placement = (event, item) => {
+        const rect = item.getBoundingClientRect();
+        const horizontal = getComputedStyle(list).display === 'flex';
+        return horizontal ? event.clientX >= rect.left + rect.width / 2 : event.clientY >= rect.top + rect.height / 2;
+    };
+    items.forEach(item => {
+        const grip = $('.step-grip', item);
+        grip?.addEventListener('pointerdown', event => {
+            if (event.button !== 0) return;
+            event.preventDefault();
+            const origin = {x:event.clientX, y:event.clientY};
+            let moved = false;
+            let targetItem = null;
+            let placeAfter = false;
+            try { grip.setPointerCapture(event.pointerId); } catch { /* Pointer capture is optional. */ }
+            const move = pointerEvent => {
+                if (!moved && Math.hypot(pointerEvent.clientX - origin.x, pointerEvent.clientY - origin.y) < 6) return;
+                moved = true;
+                item.classList.add('dragging');
+                const hit = document.elementFromPoint(pointerEvent.clientX, pointerEvent.clientY)?.closest('.step-item');
+                targetItem = hit && hit.closest('.step-list') === list && hit !== item ? hit : null;
+                clearTargets();
+                if (!targetItem) return;
+                placeAfter = placement(pointerEvent, targetItem);
+                targetItem.classList.add(placeAfter ? 'drop-after' : 'drop-before');
+            };
+            const finish = () => {
+                grip.removeEventListener('pointermove', move);
+                grip.removeEventListener('pointerup', finish);
+                grip.removeEventListener('pointercancel', cancel);
+                item.classList.remove('dragging');
+                clearTargets();
+                if (moved && targetItem && reorderStoryStep(item.dataset.id, targetItem.dataset.id, placeAfter)) toast('Walkthrough order updated.');
+            };
+            const cancel = () => {
+                targetItem = null;
+                finish();
+            };
+            grip.addEventListener('pointermove', move);
+            grip.addEventListener('pointerup', finish);
+            grip.addEventListener('pointercancel', cancel);
+        });
+        item.addEventListener('dragstart', event => {
+            draggedId = item.dataset.id || '';
+            item.classList.add('dragging');
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', draggedId);
+        });
+        item.addEventListener('dragover', event => {
+            if (!draggedId || item.dataset.id === draggedId) return;
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'move';
+            clearTargets();
+            item.classList.add(placement(event, item) ? 'drop-after' : 'drop-before');
+        });
+        item.addEventListener('drop', event => {
+            event.preventDefault();
+            const sourceId = draggedId || event.dataTransfer.getData('text/plain');
+            const placeAfter = placement(event, item);
+            clearTargets();
+            if (reorderStoryStep(sourceId, item.dataset.id, placeAfter)) toast('Walkthrough order updated.');
+        });
+        item.addEventListener('dragend', () => {
+            item.classList.remove('dragging');
+            clearTargets();
+            draggedId = '';
+        });
+    });
 }
 
 function paintStoryHotspot(step) {
