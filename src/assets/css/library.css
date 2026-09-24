@@ -23,7 +23,9 @@
 .count-pill { min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px; display: inline-grid; place-items: center; background: #10203a; color: #bfdbfe; font: 9px/1 var(--mono); }
 .button.active { color: #bfdbfe; border-color: rgba(59,130,246,.45); background: var(--blue-soft); }
 .screen-card-meta { padding: 11px 12px 12px; border-top: 1px solid var(--border); }
-.screen-card-title { font-weight: 700; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.screen-card-title { display: block; width: 100%; min-width: 0; margin: -3px -4px; padding: 3px 4px; border: 1px solid transparent; border-radius: 4px; background: transparent; color: var(--text); font: 700 11px/1.3 var(--font); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.screen-card-title:hover, .screen-card-title:focus { border-color: #334155; background: #080e19; }
+.screen-card-title:focus { outline: 2px solid rgba(59,130,246,.42); outline-offset: 1px; }
 .screen-card-sub { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; color: var(--dim); font: 9px/1 var(--mono); }
 .tag { display: inline-flex; align-items: center; min-height: 19px; border-radius: 999px; padding: 0 7px; color: #93c5fd; background: rgba(59,130,246,.11); border: 1px solid rgba(59,130,246,.2); font: 8px/1 var(--mono); text-transform: uppercase; letter-spacing: .07em; }
 .card-actions { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; opacity: 0; transform: translateY(-3px); transition: opacity .15s ease, transform .15s ease; }
@@ -35,8 +37,9 @@
 .url-row.selected { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(59,130,246,.14); }
 .url-thumb { width: 42px; height: 42px; object-fit: contain; border-radius: 4px; background: #080e19; }
 .url-copy { min-width: 0; }
-.url-name { display: block; max-width: 100%; padding: 0; border: 0; background: transparent; color: var(--text); font: 700 11px/1.3 var(--font); text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.url-name:hover { color: #bfdbfe; }
+.url-name { display: block; width: 100%; min-width: 0; max-width: 100%; margin: -3px -4px; padding: 3px 4px; border: 1px solid transparent; border-radius: 4px; background: transparent; color: var(--text); font: 700 11px/1.3 var(--font); text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.url-name:hover, .url-name:focus { color: #bfdbfe; border-color: #334155; background: #080e19; }
+.url-name:focus { outline: 2px solid rgba(59,130,246,.42); outline-offset: 1px; }
 .url-value { margin-top: 3px; color: var(--dim); font: 10px/1.35 var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .url-actions { display: inline-flex; align-items: center; gap: 8px; }
 .url-actions-sep { width: 1px; align-self: stretch; margin: 6px 0; background: rgba(226,232,240,.35); }

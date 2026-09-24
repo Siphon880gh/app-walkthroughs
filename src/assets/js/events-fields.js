@@ -99,6 +99,22 @@ document.addEventListener('change', event => {
         stopPlayback();
         activeProjectId = target.value; selectedFolder = null; playerIndex = 0;
         selectedPhotoIds.clear(); selectedPickerScreenIds.clear(); persist(true);
+    } else if (target.dataset.screenName) {
+        const screen = screenById(target.dataset.screenName);
+        if (!screen) return;
+        const name = target.value.trim();
+        if (!name) {
+            target.value = screen.name;
+            toast('File name cannot be empty.', 'warn');
+            return;
+        }
+        if (name === screen.name) {
+            target.value = name;
+            return;
+        }
+        screen.name = name;
+        persist(true);
+        toast(`File renamed to “${name}”.`);
     } else if (target.id === 'fileInput') {
         handleFiles([...target.files]); target.value = '';
     } else if (target.id === 'jsonInput') {

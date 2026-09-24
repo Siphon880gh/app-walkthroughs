@@ -1,4 +1,13 @@
 document.addEventListener('keydown', event => {
+    if (event.target?.dataset?.screenName && (event.key === 'Enter' || event.key === 'Escape')) {
+        event.preventDefault();
+        if (event.key === 'Escape') {
+            const screen = screenById(event.target.dataset.screenName);
+            if (screen) event.target.value = screen.name;
+        }
+        event.target.blur();
+        return;
+    }
     if (event.key === 'Escape' && uploadMenuOpen) {
         setUploadMenu(false);
         $('#uploadMenuButton')?.focus();
