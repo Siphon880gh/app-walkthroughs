@@ -39,7 +39,7 @@ Play the walkthrough inside a device frame. Narration reads the step aloud. Mute
 
 ![Export screen with share, download, and package details](docs/screenshots/export.png)
 
-Copy a share link, or download a standalone HTML player, a Markdown spec, or a JSON backup. Sync sits beside Export, set off by a divider. Its only action is Sync to Demo, which warns that the project will appear to all current users of this server.
+Copy a share link, or download a standalone HTML player, a Markdown spec, or a JSON backup. Sync sits beside Export, set off by a divider. Its Sync to Demo action publishes every project in the profile to all current users of this server.
 
 ## Run it
 
@@ -51,4 +51,4 @@ php -S 127.0.0.1:8080
 
 Open http://127.0.0.1:8080. Library, Annotate, Stories, Player, and Export keep their place in the address after a hash: `#library`, `#annotate`, `#stories`, `#player`, and `#export`.
 
-Projects and narration settings stay in the browser. Uploaded screenshots are saved on this server in `data/screenshots`, named with a hash of the file. Sync to Demo is the shared copy: it saves one demo on the machine running PHP so other open sessions can load it.
+Projects and narration settings stay in the browser. Uploaded screenshots are saved on this server in `data/screenshots`, named with a hash of the file. Sync to Demo is the shared collection: it saves all projects in the profile on the machine running PHP so other open sessions can load them.

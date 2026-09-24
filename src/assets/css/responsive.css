@@ -9,6 +9,7 @@
     body.has-upload-icon .library-scroll { padding-bottom: 108px; }
     .studio-layout { grid-template-columns: 160px minmax(330px,1fr) 300px; }
     .story-layout { grid-template-columns: 225px minmax(330px,1fr) 290px; }
+    .story-layout.files-right { grid-template-columns: minmax(330px,1fr) 225px 290px; }
 }
 @media (max-width: 860px) {
     body { overflow: auto; }
@@ -21,8 +22,10 @@
     .sidebar { display: none; }
     .main-pane { min-height: calc(100dvh - 95px); overflow: visible; }
     .library-scroll { overflow: visible; }
-    .studio-layout, .story-layout { grid-template-columns: 1fr; grid-template-rows: auto minmax(520px,75vh) auto; }
+    .studio-layout, .story-layout, .story-layout.files-right { grid-template-columns: 1fr; grid-template-rows: auto minmax(520px,75vh) auto; }
+    .story-layout, .story-layout.files-right { grid-template-areas: "files" "stage" "inspector"; }
     .filmstrip, .story-rail { border-right: 0; border-bottom: 1px solid var(--border); max-height: 180px; }
+    .story-layout.files-right .story-rail { border-left: 0; border-bottom: 1px solid var(--border); }
     .panel-scroll, .step-list { display: flex; overflow-x: auto; gap: 7px; }
     .film-item { min-width: 135px; }
     .step-item { min-width: 220px; }

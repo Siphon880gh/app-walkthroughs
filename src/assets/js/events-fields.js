@@ -89,6 +89,10 @@ document.addEventListener('input', event => {
             const clear = $('[data-action="clear-step-title"]');
             if (clear) clear.disabled = !step.title;
         }
+        if (key === 'dwellSeconds') {
+            const readout = target.closest('.field')?.querySelector('[data-dwell-readout]');
+            if (readout) readout.textContent = `${Number(step.dwellSeconds).toFixed(1)}s`;
+        }
         if ((key === 'narrateBefore' || key === 'narrateAfter') && !String(step[key]).trim()) expandedNarration.add(`${step.id}:${key}`);
         persist();
     }

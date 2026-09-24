@@ -23,7 +23,7 @@ require dirname(__DIR__, 2) . '/guard.php';
                 <button type="button" class="nav-button" id="syncMenuButton" data-action="toggle-sync-menu" aria-haspopup="menu" aria-expanded="false" aria-controls="syncMenu"><span class="nav-icon">⟳</span>Sync</button>
                 <div class="sync-menu-panel" id="syncMenu" role="menu" hidden>
                     <button type="button" class="sync-option" role="menuitem" data-action="sync-demo">Sync to Demo</button>
-                    <p class="sync-warning">This will make it appear to all current users.</p>
+                    <p class="sync-warning">This publishes all projects to current users.</p>
                     <button type="button" class="sync-option danger" role="menuitem" data-action="reset-profile">Reset Profile</button>
                     <p class="sync-warning">This removes all your data and resets back to Demo.</p>
                 </div>

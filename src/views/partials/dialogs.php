@@ -64,7 +64,7 @@ require dirname(__DIR__, 2) . '/guard.php';
 <dialog id="syncDemoDialog">
     <form id="syncDemoForm">
         <div class="dialog-head">
-            <div><h2>Sync to Demo</h2><p>Enter the sync password. This will make it appear to all current users.</p></div>
+            <div><h2>Sync all projects to Demo</h2><p>Enter the sync password. Every project in this profile will appear to all current users.</p></div>
             <button type="button" class="button ghost icon-only" data-action="close-sync-demo" aria-label="Close">×</button>
         </div>
         <div class="dialog-body">

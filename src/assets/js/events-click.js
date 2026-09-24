@@ -260,6 +260,13 @@ document.addEventListener('click', event => {
     }
     else if (action === 'toggle-hotspot') { const step = activeStep(); step.interaction.enabled = !step.interaction.enabled; persist(true); }
     else if (action === 'preview-story') setView('player');
+    else if (action === 'story-panel-layout') {
+        const layout = target.dataset.layout === 'files-right' ? 'files-right' : 'files-left';
+        if (layout === storyPanelLayout) return;
+        storyPanelLayout = layout;
+        localStorage.setItem(APP.storyLayoutKey, storyPanelLayout);
+        renderApp();
+    }
     else if (action === 'download-story-photos') {
         const seen = new Set();
         const screens = activeStory().steps.flatMap(item => {

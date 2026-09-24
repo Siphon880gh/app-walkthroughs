@@ -227,6 +227,42 @@ function ingestSharedHash() {
 
 const SHARED_DEMO_ID = 'proj-shared-demo';
 
+function isSharedDemoProject(project) {
+    return Boolean(project && (
+        project.id === SHARED_DEMO_ID ||
+        String(project.id || '').startsWith(`${SHARED_DEMO_ID}-`) ||
+        typeof project.demoSourceId === 'string'
+    ));
+}
+
+function sharedDemoIdentity(project) {
+    return String(project?.demoSourceId || project?.id || '');
+}
+
+function demoProjectsFromPayload(payload, respectDismissed = true) {
+    const sources = Array.isArray(payload?.projects) ? payload.projects : (payload?.project ? [payload.project] : []);
+    const syncedAt = Number(payload?.syncedAt || 0);
+    if (respectDismissed && syncedAt && syncedAt <= Number(localStorage.getItem('storyflow_dismissed_demo_at') || 0)) return [];
+    return sources.flatMap((source, index) => {
+        if (!isValidProject(source)) return [];
+        const incoming = structuredClone(source);
+        const alreadyShared = isSharedDemoProject(incoming);
+        incoming.demoSourceId = String(incoming.demoSourceId || incoming.id);
+        if (sources.length > 1 && !alreadyShared) incoming.id = `${SHARED_DEMO_ID}-${index + 1}`;
+        else if (sources.length === 1 && !alreadyShared) incoming.id = SHARED_DEMO_ID;
+        incoming.syncedAt = Number(syncedAt || incoming.syncedAt || 0);
+        if (!incoming.name.endsWith(' (Demo)')) incoming.name = `${incoming.name} (Demo)`;
+        return [incoming];
+    });
+}
+
+function projectsForDemoSync() {
+    const localIds = new Set(projects.filter(project => !isSharedDemoProject(project)).map(project => project.id));
+    return projects
+        .filter(project => !isSharedDemoProject(project) || !localIds.has(sharedDemoIdentity(project)))
+        .map(project => structuredClone(project));
+}
+
 function refreshProjectSelect() {
     const select = $('#projectSelect');
     if (!select) return;
@@ -234,21 +270,19 @@ function refreshProjectSelect() {
 }
 
 function applySharedDemo(payload) {
-    const source = payload?.project;
-    if (!isValidProject(source)) return false;
-    const incoming = structuredClone(source);
-    incoming.id = SHARED_DEMO_ID;
-    incoming.syncedAt = Number(payload.syncedAt || incoming.syncedAt || 0);
-    if (incoming.syncedAt && incoming.syncedAt <= Number(localStorage.getItem('storyflow_dismissed_demo_at') || 0)) return false;
-    if (!incoming.name.endsWith(' (Demo)')) incoming.name = `${incoming.name} (Demo)`;
-    const index = projects.findIndex(project => project.id === SHARED_DEMO_ID);
-    if (index >= 0 && Number(projects[index].syncedAt || 0) >= incoming.syncedAt) return false;
-    const viewing = activeProjectId === SHARED_DEMO_ID;
-    if (viewing) stopPlayback();
-    if (index >= 0) projects[index] = incoming;
-    else projects.unshift(incoming);
+    const incoming = demoProjectsFromPayload(payload);
+    if (!incoming.length) return false;
+    const newestIncoming = Math.max(...incoming.map(project => Number(project.syncedAt || 0)));
+    const existing = projects.filter(isSharedDemoProject);
+    const newestExisting = Math.max(0, ...existing.map(project => Number(project.syncedAt || 0)));
+    if (existing.length && newestExisting >= newestIncoming) return false;
+    const activeDemo = projects.find(project => project.id === activeProjectId && isSharedDemoProject(project));
+    const activeIdentity = sharedDemoIdentity(activeDemo);
+    if (activeDemo) stopPlayback();
+    projects = [...incoming, ...projects.filter(project => !isSharedDemoProject(project))];
+    if (activeDemo) activeProjectId = incoming.find(project => sharedDemoIdentity(project) === activeIdentity)?.id || incoming[0].id;
     saveJson(APP.storageKey, projects);
-    if (viewing) renderApp();
+    if (activeDemo) renderApp();
     else refreshProjectSelect();
     return true;
 }
@@ -308,10 +342,13 @@ async function confirmSyncDemo() {
     if (button) button.disabled = true;
     let bytes = 0;
     try {
-        const project = structuredClone(activeProject());
-        const issue = projectSyncIssue(project);
-        if (issue) throw new Error(issue);
-        const body = JSON.stringify({version: 2, password, project});
+        const syncedProjects = projectsForDemoSync();
+        if (!syncedProjects.length) throw new Error('There are no projects to sync.');
+        syncedProjects.forEach((project, index) => {
+            const issue = projectSyncIssue(project);
+            if (issue) throw new Error(`${project.name || `Project ${index + 1}`}: ${issue}`);
+        });
+        const body = JSON.stringify({version: 3, password, projects: syncedProjects});
         bytes = body.length;
         const response = await fetch('?action=sync-demo', {
             method: 'POST',
@@ -326,10 +363,10 @@ async function confirmSyncDemo() {
             throw failure;
         }
         if (input) input.value = '';
-        project.syncedAt = result.syncedAt;
-        applySharedDemo({syncedAt: result.syncedAt, project});
+        await pullSharedDemo();
         dialog?.close();
-        toast('Synced to Demo. Current users can see this project.');
+        const count = Number(result.projectCount || syncedProjects.length);
+        toast(`Synced ${count} project${count === 1 ? '' : 's'} to Demo. Current users can see them.`);
     } catch (error) {
         reportSyncFailure(error.message || 'Could not sync to Demo.', {status: error.status || 0, bytes});
     } finally {
@@ -345,19 +382,15 @@ async function confirmResetProfile() {
         const response = await fetch('?action=sync-demo', {cache: 'no-store'});
         if (response.status === 204 || !response.ok) throw new Error('The Demo is not available, so nothing was reset.');
         const payload = await response.json();
-        const source = payload?.project;
-        if (!isValidProject(source)) throw new Error('The Demo is not available, so nothing was reset.');
-        const demo = structuredClone(source);
-        demo.id = SHARED_DEMO_ID;
-        demo.syncedAt = Number(payload.syncedAt || demo.syncedAt || 0);
-        if (!demo.name.endsWith(' (Demo)')) demo.name = `${demo.name} (Demo)`;
+        const demoProjects = demoProjectsFromPayload(payload, false);
+        if (!demoProjects.length) throw new Error('The Demo is not available, so nothing was reset.');
         stopPlayback();
         localStorage.removeItem(APP.storageKey);
         localStorage.removeItem(APP.activeKey);
         localStorage.removeItem(APP.audioKey);
         localStorage.removeItem('storyflow_dismissed_demo_at');
-        projects = [demo];
-        activeProjectId = demo.id;
+        projects = demoProjects;
+        activeProjectId = demoProjects[0].id;
         audioSettings = structuredClone(defaultAudio);
         selectedFolder = null;
         searchTerm = '';
@@ -378,7 +411,7 @@ async function confirmResetProfile() {
         localStorage.setItem(APP.activeKey, activeProjectId);
         dialog?.close();
         setView('screenshots', 'replace');
-        toast('Profile reset. You are back on the Demo.');
+        toast(`Profile reset. ${demoProjects.length} Demo project${demoProjects.length === 1 ? '' : 's'} restored.`);
     } catch (error) {
         toast(error.message || 'Could not reset the profile.', 'warn');
     } finally {

@@ -68,6 +68,27 @@ function storyflow_sync_fail(int $status, string $error): void
     exit;
 }
 
+function storyflow_sync_project_error($project): string
+{
+    if (!is_array($project)) {
+        return 'the project payload is missing';
+    }
+    if (!is_string($project['name'] ?? null) || trim($project['name']) === '') {
+        return 'it has no name';
+    }
+    if (strlen($project['name']) > 120) {
+        return 'the name is longer than 120 characters';
+    }
+    if (!is_array($project['screenshots'] ?? null)) {
+        return 'its screens are missing';
+    }
+    if (!is_array($project['stories'] ?? null)) {
+        return 'its walkthroughs are missing';
+    }
+
+    return '';
+}
+
 function storyflow_image_fail(int $status, string $error): void
 {
     http_response_code($status);
@@ -356,32 +377,42 @@ if (($_GET['action'] ?? '') === 'sync-demo') {
     if (!$authorized) {
         storyflow_sync_fail($expected === '' ? 503 : 401, $expected === '' ? 'Sync to Demo is not configured.' : 'Incorrect sync password.');
     }
-    $project = is_array($parsed) ? ($parsed['project'] ?? null) : null;
-    if (!is_array($project)) {
-        storyflow_sync_fail(422, 'That project cannot be synced because the project payload is missing.');
-    }
-    if (!is_string($project['name'] ?? null) || trim($project['name']) === '') {
-        storyflow_sync_fail(422, 'That project cannot be synced because it has no name.');
-    }
-    if (strlen($project['name']) > 120) {
-        storyflow_sync_fail(422, 'That project cannot be synced because the name is longer than 120 characters.');
-    }
-    if (!is_array($project['screenshots'] ?? null)) {
-        storyflow_sync_fail(422, 'That project cannot be synced because its screens are missing.');
-    }
-    if (!is_array($project['stories'] ?? null)) {
-        storyflow_sync_fail(422, 'That project cannot be synced because its walkthroughs are missing.');
-    }
     if (!is_string($raw) || strlen($raw) > 20000000) {
-        storyflow_sync_fail(413, 'Project is too large to sync. It is ' . (is_string($raw) ? strlen($raw) : 0) . ' bytes and the limit is 20000000 bytes.');
+        storyflow_sync_fail(413, 'Projects are too large to sync. The request is ' . (is_string($raw) ? strlen($raw) : 0) . ' bytes and the limit is 20000000 bytes.');
     }
-    $project['id'] = 'proj-shared-demo';
-    $project['syncedAt'] = (int) round(microtime(true) * 1000);
+    $projectList = is_array($parsed) ? ($parsed['projects'] ?? null) : null;
+    // Accept the version 2 single-project request during rolling deployments.
+    if (!is_array($projectList) && is_array($parsed['project'] ?? null)) {
+        $projectList = [$parsed['project']];
+    }
+    if (!is_array($projectList) || count($projectList) === 0) {
+        storyflow_sync_fail(422, 'No projects were provided to sync.');
+    }
+    $syncedAt = (int) round(microtime(true) * 1000);
+    $syncedProjects = [];
+    $sourceIds = [];
+    foreach (array_values($projectList) as $index => $project) {
+        $issue = storyflow_sync_project_error($project);
+        if ($issue !== '') {
+            storyflow_sync_fail(422, 'Project ' . ($index + 1) . ' cannot be synced because ' . $issue . '.');
+        }
+        $sourceId = is_string($project['demoSourceId'] ?? null) && trim($project['demoSourceId']) !== ''
+            ? $project['demoSourceId']
+            : (is_string($project['id'] ?? null) && trim($project['id']) !== '' ? $project['id'] : 'project-' . ($index + 1));
+        if (isset($sourceIds[$sourceId])) {
+            storyflow_sync_fail(422, 'Two projects cannot be synced because they share the same project ID.');
+        }
+        $sourceIds[$sourceId] = true;
+        $project['demoSourceId'] = $sourceId;
+        $project['id'] = 'proj-shared-demo-' . substr(hash('sha256', $sourceId), 0, 16);
+        $project['syncedAt'] = $syncedAt;
+        $syncedProjects[] = $project;
+    }
     $directory = dirname($demoPath);
     if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
         storyflow_sync_fail(500, 'The demo could not be saved because the data folder could not be created.');
     }
-    $payload = json_encode(['version' => 2, 'syncedAt' => $project['syncedAt'], 'project' => $project], JSON_UNESCAPED_SLASHES);
+    $payload = json_encode(['version' => 3, 'syncedAt' => $syncedAt, 'projects' => $syncedProjects], JSON_UNESCAPED_SLASHES);
     if ($payload === false) {
         storyflow_sync_fail(500, 'The demo could not be saved because the project could not be encoded (' . json_last_error_msg() . ').');
     }
@@ -391,7 +422,7 @@ if (($_GET['action'] ?? '') === 'sync-demo') {
         storyflow_sync_fail(500, 'The demo could not be saved. ' . $reason);
     }
     header('Content-Type: application/json; charset=utf-8');
-    echo json_encode(['ok' => true, 'syncedAt' => $project['syncedAt']]);
+    echo json_encode(['ok' => true, 'syncedAt' => $syncedAt, 'projectCount' => count($syncedProjects)]);
     exit;
 }
 
