@@ -17,6 +17,13 @@ document.addEventListener('keydown', event => {
         renderApp();
         return;
     }
+    if (currentView === 'editor' && !typing && (event.key === 'Delete' || event.key === 'Backspace') && selectedAnnotationId) {
+        event.preventDefault();
+        if (!selectedAnnotation()) return;
+        if (!confirm('Are you sure you want to delete this annotation?')) return;
+        removeAnnotation(selectedAnnotationId);
+        return;
+    }
     if (currentView !== 'player' || typing) return;
     if (event.key === 'ArrowRight') { event.preventDefault(); setPlayerIndex(playerIndex+1,isPlaying); }
     else if (event.key === 'ArrowLeft') { event.preventDefault(); setPlayerIndex(playerIndex-1,isPlaying); }

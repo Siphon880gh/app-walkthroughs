@@ -11,6 +11,16 @@ function annotationHistory(screenId) {
     return annotationHistories.get(screenId) || {past: [], future: []};
 }
 
+function removeAnnotation(id) {
+    const screen = activeScreen();
+    if (!screen?.annotations?.some(item => item.id === id)) return false;
+    rememberAnnotations(screen);
+    screen.annotations = screen.annotations.filter(item => item.id !== id);
+    if (selectedAnnotationId === id) selectedAnnotationId = null;
+    persist(true);
+    return true;
+}
+
 function rememberAnnotations(screen) {
     if (!screen) return;
     const history = annotationHistories.get(screen.id) || {past: [], future: []};

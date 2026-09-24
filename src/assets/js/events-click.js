@@ -90,14 +90,7 @@ document.addEventListener('click', event => {
     else if (action === 'undo-annotation') undoAnnotations();
     else if (action === 'redo-annotation') redoAnnotations();
     else if (action === 'toggle-remove-handles') { showRemoveHandles = !showRemoveHandles; renderApp(); }
-    else if (action === 'delete-annotation') {
-        const screen = activeScreen();
-        if (!screen?.annotations?.some(item => item.id === target.dataset.id)) return;
-        rememberAnnotations(screen);
-        screen.annotations = screen.annotations.filter(item => item.id !== target.dataset.id);
-        if (selectedAnnotationId === target.dataset.id) selectedAnnotationId = null;
-        persist(true);
-    }
+    else if (action === 'delete-annotation') removeAnnotation(target.dataset.id);
     else if (action === 'clear-annotations') {
         const screen = activeScreen();
         if (!screen?.annotations?.length) return;
