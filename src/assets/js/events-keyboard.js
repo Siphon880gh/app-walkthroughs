@@ -13,7 +13,7 @@ document.addEventListener('keydown', event => {
         $('#uploadMenuButton')?.focus();
         return;
     }
-    if (event.key === 'Escape' && (['transitionInfo', 'dwellInfo'].some(id => { const note = document.getElementById(id); return note && !note.hidden; }))) {
+    if (event.key === 'Escape' && (['stepTitleInfo', 'transitionInfo', 'dwellInfo'].some(id => { const note = document.getElementById(id); return note && !note.hidden; }))) {
         closeInfoNotes();
         return;
     }

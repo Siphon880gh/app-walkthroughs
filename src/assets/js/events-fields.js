@@ -85,6 +85,10 @@ document.addEventListener('input', event => {
     else if (target.dataset.stepField && step) {
         const key = target.dataset.stepField;
         step[key] = target.type === 'range' ? Number(target.value) : target.value;
+        if (key === 'title') {
+            const clear = $('[data-action="clear-step-title"]');
+            if (clear) clear.disabled = !step.title;
+        }
         if ((key === 'narrateBefore' || key === 'narrateAfter') && !String(step[key]).trim()) expandedNarration.add(`${step.id}:${key}`);
         persist();
     }

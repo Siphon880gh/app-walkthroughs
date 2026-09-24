@@ -230,6 +230,13 @@ document.addEventListener('click', event => {
         persist(true);
         toast(`Slide “${step.title}” deleted.`);
     }
+    else if (action === 'clear-step-title') {
+        const step = activeStep();
+        if (!step || !step.title) return;
+        step.title = '';
+        persist(true);
+        $('[data-step-field="title"]')?.focus();
+    }
     else if (action === 'toggle-info') {
         const id = target.dataset.info;
         if (!id) return;
