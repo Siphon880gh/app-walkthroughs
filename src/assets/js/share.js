@@ -138,7 +138,7 @@ function projectSyncIssue(project) {
     if (project.name.length > 120) return 'The project name is longer than 120 characters.';
     if (!Array.isArray(project.screenshots)) return 'The project is missing its screens.';
     if (!Array.isArray(project.stories)) return 'The project is missing its walkthroughs.';
-    const screen = project.screenshots.find(item => typeof item?.id !== 'string' || !/^data:image\/(?:png|jpeg|webp|gif|svg\+xml)(?:;|,)/i.test(String(item.dataUrl || '')));
+    const screen = project.screenshots.find(item => typeof item?.id !== 'string' || !isProjectImage(item.dataUrl || ''));
     if (screen) return `“${screen.name || 'A screen'}” does not have an image that can be synced.`;
     const story = project.stories.find(item => typeof item?.id !== 'string' || !Array.isArray(item.steps));
     if (story) return `“${story.name || 'A walkthrough'}” is missing its steps.`;

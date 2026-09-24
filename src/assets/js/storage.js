@@ -24,7 +24,7 @@ function isValidProject(project) {
     return Boolean(
         project && typeof project.id === 'string' && typeof project.name === 'string' &&
         Array.isArray(project.screenshots) && Array.isArray(project.stories) &&
-        project.screenshots.every(screen => typeof screen?.id === 'string' && /^data:image\/(?:png|jpeg|webp|gif|svg\+xml)(?:;|,)/i.test(String(screen.dataUrl || ''))) &&
+        project.screenshots.every(screen => typeof screen?.id === 'string' && isProjectImage(screen.dataUrl || '')) &&
         project.stories.every(story => typeof story?.id === 'string' && Array.isArray(story.steps))
     );
 }

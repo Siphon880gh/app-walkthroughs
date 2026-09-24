@@ -51,4 +51,4 @@ php -S 127.0.0.1:8080
 
 Open http://127.0.0.1:8080. Library, Annotate, Stories, Player, and Export keep their place in the address after a hash: `#library`, `#annotate`, `#stories`, `#player`, and `#export`.
 
-Projects, screenshots, and narration settings stay in the browser. Sync to Demo is the shared copy: it saves one demo on the machine running PHP so other open sessions can load it.
+Projects and narration settings stay in the browser. Uploaded screenshots are saved on this server in `data/screenshots`, named with a hash of the file. Sync to Demo is the shared copy: it saves one demo on the machine running PHP so other open sessions can load it.

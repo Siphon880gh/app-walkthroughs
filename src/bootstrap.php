@@ -76,6 +76,69 @@ function storyflow_image_fail(int $status, string $error): void
     exit;
 }
 
+function storyflow_image_mime(string $body): string
+{
+    $info = @getimagesizefromstring($body);
+    $mime = is_array($info) ? (string) ($info['mime'] ?? '') : '';
+    if (in_array($mime, ['image/png', 'image/jpeg', 'image/webp', 'image/gif'], true)) {
+        return $mime;
+    }
+    if (stripos(substr($body, 0, 2048), '<svg') !== false) {
+        return 'image/svg+xml';
+    }
+
+    return '';
+}
+
+function storyflow_image_extension(string $mime): string
+{
+    switch ($mime) {
+        case 'image/png':
+            return 'png';
+        case 'image/jpeg':
+            return 'jpg';
+        case 'image/webp':
+            return 'webp';
+        case 'image/gif':
+            return 'gif';
+        case 'image/svg+xml':
+            return 'svg';
+        default:
+            return '';
+    }
+}
+
+/** Save image bytes as data/screenshots/{sha256}.{ext}. The same bytes always reuse the same file. */
+function storyflow_store_screenshot(string $body, string $mime): string
+{
+    $extension = storyflow_image_extension($mime);
+    if ($body === '' || $extension === '') {
+        storyflow_image_fail(415, 'Choose a PNG, JPEG, WebP, GIF, or SVG image.');
+    }
+    $hash = hash('sha256', $body);
+    $directory = dirname(__DIR__) . '/data/screenshots';
+    if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
+        storyflow_image_fail(500, 'The screenshot folder could not be created.');
+    }
+    $filename = $hash . '.' . $extension;
+    $path = $directory . '/' . $filename;
+    if (!is_file($path)) {
+        $temporary = $directory . '/' . $hash . '.' . bin2hex(random_bytes(6)) . '.tmp';
+        if (file_put_contents($temporary, $body, LOCK_EX) === false) {
+            @unlink($temporary);
+            storyflow_image_fail(500, 'The screenshot could not be saved.');
+        }
+        if (!rename($temporary, $path)) {
+            @unlink($temporary);
+            if (!is_file($path)) {
+                storyflow_image_fail(500, 'The screenshot could not be saved.');
+            }
+        }
+    }
+
+    return 'data/screenshots/' . $filename;
+}
+
 /** @return string[] Every address the host resolves to, or none if any of them is private or reserved. */
 function storyflow_public_ips(string $host): array
 {
@@ -100,6 +163,53 @@ function storyflow_public_ips(string $host): array
     return $ips;
 }
 
+if (($_GET['action'] ?? '') === 'upload-screenshot') {
+    header('Cache-Control: no-store');
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        header('Allow: POST');
+        exit;
+    }
+    $site = $_SERVER['HTTP_SEC_FETCH_SITE'] ?? 'same-origin';
+    if ($site !== 'same-origin' && $site !== 'none') {
+        storyflow_image_fail(403, 'Images can only be uploaded from StoryFlow itself.');
+    }
+    $maxBytes = 10 * 1048576;
+    $file = $_FILES['file'] ?? null;
+    if (!is_array($file)) {
+        storyflow_image_fail(422, 'Choose an image to upload.');
+    }
+    $error = (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE);
+    if ($error === UPLOAD_ERR_INI_SIZE || $error === UPLOAD_ERR_FORM_SIZE) {
+        storyflow_image_fail(413, 'That image is larger than the server upload limit.');
+    }
+    if ($error !== UPLOAD_ERR_OK) {
+        storyflow_image_fail(422, 'The image did not upload completely.');
+    }
+    $size = (int) ($file['size'] ?? 0);
+    if ($size <= 0 || $size > $maxBytes) {
+        storyflow_image_fail($size > $maxBytes ? 413 : 422, $size > $maxBytes ? 'That image is larger than 10 MB.' : 'Choose an image to upload.');
+    }
+    $temporary = (string) ($file['tmp_name'] ?? '');
+    if ($temporary === '' || !is_uploaded_file($temporary)) {
+        storyflow_image_fail(422, 'Choose an image to upload.');
+    }
+    $body = file_get_contents($temporary);
+    if (!is_string($body) || $body === '') {
+        storyflow_image_fail(422, 'Choose an image to upload.');
+    }
+    if (strlen($body) > $maxBytes) {
+        storyflow_image_fail(413, 'That image is larger than 10 MB.');
+    }
+    $mime = storyflow_image_mime($body);
+    if ($mime === '') {
+        storyflow_image_fail(415, 'Choose a PNG, JPEG, WebP, GIF, or SVG image.');
+    }
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['ok' => true, 'path' => storyflow_store_screenshot($body, $mime)], JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
 if (($_GET['action'] ?? '') === 'fetch-image') {
     header('Cache-Control: no-store');
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -121,7 +231,6 @@ if (($_GET['action'] ?? '') === 'fetch-image') {
     }
     $maxBytes = 10 * 1048576;
     $body = '';
-    $contentType = '';
     for ($hop = 0; ; $hop++) {
         $parts = parse_url($url);
         $scheme = strtolower((string) ($parts['scheme'] ?? ''));
@@ -159,7 +268,6 @@ if (($_GET['action'] ?? '') === 'fetch-image') {
         $ok = curl_exec($curl);
         $status = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
         $redirect = (string) curl_getinfo($curl, CURLINFO_REDIRECT_URL);
-        $contentType = strtolower((string) curl_getinfo($curl, CURLINFO_CONTENT_TYPE));
         $curlError = curl_error($curl);
         curl_close($curl);
         if ($tooLarge) {
@@ -180,11 +288,7 @@ if (($_GET['action'] ?? '') === 'fetch-image') {
         }
         break;
     }
-    $info = @getimagesizefromstring($body);
-    $mime = is_array($info) ? (string) $info['mime'] : '';
-    if (!in_array($mime, ['image/png', 'image/jpeg', 'image/webp', 'image/gif'], true)) {
-        $mime = (strpos($contentType, 'image/svg+xml') === 0 || stripos(substr($body, 0, 2048), '<svg') !== false) ? 'image/svg+xml' : '';
-    }
+    $mime = storyflow_image_mime($body);
     if ($mime === '') {
         storyflow_image_fail(415, 'That address is not a PNG, JPEG, WebP, GIF, or SVG image.');
     }
@@ -194,7 +298,7 @@ if (($_GET['action'] ?? '') === 'fetch-image') {
     echo json_encode([
         'ok' => true,
         'name' => $name === '' ? 'Linked screen' : substr($name, 0, 120),
-        'dataUrl' => 'data:' . $mime . ';base64,' . base64_encode($body),
+        'path' => storyflow_store_screenshot($body, $mime),
     ], JSON_UNESCAPED_SLASHES);
     exit;
 }
