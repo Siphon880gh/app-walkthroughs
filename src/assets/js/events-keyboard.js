@@ -1,6 +1,6 @@
 document.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && $('#transitionInfo') && !$('#transitionInfo').hidden) {
-        setTransitionInfo(false);
+    if (event.key === 'Escape' && (['transitionInfo', 'dwellInfo'].some(id => { const note = document.getElementById(id); return note && !note.hidden; }))) {
+        closeInfoNotes();
         return;
     }
     const typing = ['INPUT','TEXTAREA','SELECT'].includes(event.target.tagName);
