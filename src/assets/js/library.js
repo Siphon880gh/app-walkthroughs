@@ -13,6 +13,15 @@ function annotatedInScope(project) {
 }
 
 function saveAnnotatedScreen() {
+    const screen = activeScreen();
+    if (!screen) return;
+    screen.annotated = true;
+    showAnnotatedScreens = true;
+    persist(true);
+    toast('Snapshot saved. This screen is marked Annotated.');
+}
+
+function saveAnnotatedScreenAs() {
     const project = activeProject();
     const screen = activeScreen();
     if (!screen) return;

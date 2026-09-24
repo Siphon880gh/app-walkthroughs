@@ -21,7 +21,7 @@ Drop, paste, or upload screenshots. Folders group them by app and platform, such
 
 ![Annotate screen with drawing tools and the snapshot inspector](docs/screenshots/annotate.png)
 
-Draw on a screen with Select, Pin, Highlight, Box, Circle, Arrow, Text, and Spotlight. The inspector keeps the screen name and the three-part note: what the user is doing, what is visible, and what happens next.
+Draw on a screen with Select, Pin, Highlight, Box, Circle, Arrow, Text, and Spotlight. The inspector keeps the screen name.
 
 ## Stories
 

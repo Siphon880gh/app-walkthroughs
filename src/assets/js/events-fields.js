@@ -81,8 +81,7 @@ document.addEventListener('input', event => {
     }
     const screen = activeScreen();
     const step = activeStep();
-    if (target.dataset.analysisField && screen) { screen.analysis ||= {}; screen.analysis[target.dataset.analysisField] = target.value; persist(); }
-    else if (target.dataset.screenField && screen) { screen[target.dataset.screenField] = target.value; persist(); }
+    if (target.dataset.screenField && screen) { screen[target.dataset.screenField] = target.value; persist(); }
     else if (target.dataset.stepField && step) { step[target.dataset.stepField] = target.type === 'range' ? Number(target.value) : target.value; persist(); }
     else if (target.dataset.transitionField && step) { step.transition[target.dataset.transitionField] = target.type === 'number' ? Number(target.value) : target.value; persist(); }
     else if (target.dataset.interactionField && step) { step.interaction[target.dataset.interactionField] = target.type === 'number' ? Number(target.value) : target.value; paintStoryHotspot(step); persist(); }
