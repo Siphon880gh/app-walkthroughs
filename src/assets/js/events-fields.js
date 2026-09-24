@@ -97,7 +97,8 @@ document.addEventListener('change', event => {
     const target = event.target;
     if (target.id === 'projectSelect') {
         stopPlayback();
-        activeProjectId = target.value; selectedFolder = null; playerIndex = 0; persist(true);
+        activeProjectId = target.value; selectedFolder = null; playerIndex = 0;
+        selectedPhotoIds.clear(); selectedPickerScreenIds.clear(); persist(true);
     } else if (target.id === 'fileInput') {
         handleFiles([...target.files]); target.value = '';
     } else if (target.id === 'jsonInput') {
@@ -111,4 +112,3 @@ document.addEventListener('change', event => {
         audioSettings[target.dataset.audioField] = target.type === 'range' ? Number(target.value) : target.value; saveJson(APP.audioKey,audioSettings);
     }
 });
-

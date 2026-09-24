@@ -37,6 +37,141 @@ function download(content, filename, type) {
     setTimeout(() => URL.revokeObjectURL(link.href), 1000);
 }
 
+const ZIP_CRC_TABLE = (() => {
+    const table = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) {
+        let value = n;
+        for (let bit = 0; bit < 8; bit++) value = value & 1 ? 0xedb88320 ^ (value >>> 1) : value >>> 1;
+        table[n] = value >>> 0;
+    }
+    return table;
+})();
+
+function zipCrc32(bytes) {
+    let crc = 0xffffffff;
+    for (const byte of bytes) crc = ZIP_CRC_TABLE[(crc ^ byte) & 0xff] ^ (crc >>> 8);
+    return (crc ^ 0xffffffff) >>> 0;
+}
+
+function zipNumber(value, width) {
+    const bytes = new Uint8Array(width);
+    let number = Number(value) >>> 0;
+    for (let index = 0; index < width; index++) {
+        bytes[index] = number & 0xff;
+        number >>>= 8;
+    }
+    return bytes;
+}
+
+function joinBytes(parts) {
+    const joined = new Uint8Array(parts.reduce((total, part) => total + part.byteLength, 0));
+    let offset = 0;
+    parts.forEach(part => { joined.set(part, offset); offset += part.byteLength; });
+    return joined;
+}
+
+function zipTimestamp(value) {
+    const candidate = new Date(value || Date.now());
+    const date = Number.isNaN(candidate.getTime()) ? new Date() : candidate;
+    const year = clamp(date.getFullYear(), 1980, 2107);
+    return {
+        time:(date.getHours() << 11) | (date.getMinutes() << 5) | Math.floor(date.getSeconds() / 2),
+        date:((year - 1980) << 9) | ((date.getMonth() + 1) << 5) | date.getDate()
+    };
+}
+
+function photoArchiveExtension(screen, blob) {
+    const fromName = String(screen.name || '').match(/\.(png|jpe?g|webp|gif|svg)$/i)?.[1]?.toLowerCase();
+    if (fromName) return fromName === 'jpeg' ? 'jpg' : fromName;
+    return ({'image/png':'png','image/jpeg':'jpg','image/webp':'webp','image/gif':'gif','image/svg+xml':'svg'})[blob.type.split(';')[0].toLowerCase()]
+        || String(screen.dataUrl || '').match(/\.(png|jpe?g|webp|gif|svg)$/i)?.[1]?.toLowerCase()
+        || 'png';
+}
+
+function uniquePhotoFilename(screen, blob, usedNames) {
+    const extension = photoArchiveExtension(screen, blob);
+    const raw = String(screen.name || 'photo').split(/[\\/]/).pop().replace(/[\u0000-\u001f<>:"|?*]/g, '-').trim();
+    const base = (raw.replace(/\.(png|jpe?g|webp|gif|svg)$/i, '') || 'photo').slice(0, 120);
+    let name = `${base}.${extension}`;
+    let copy = 2;
+    while (usedNames.has(name.toLowerCase())) name = `${base}-${copy++}.${extension}`;
+    usedNames.add(name.toLowerCase());
+    return name;
+}
+
+function buildPhotoZip(entries) {
+    const encoder = new TextEncoder();
+    const localParts = [];
+    const centralParts = [];
+    let offset = 0;
+    entries.forEach(entry => {
+        const name = encoder.encode(entry.name);
+        const crc = zipCrc32(entry.bytes);
+        const stamp = zipTimestamp(entry.timestamp);
+        const localHeader = joinBytes([
+            zipNumber(0x04034b50, 4), zipNumber(20, 2), zipNumber(0x0800, 2), zipNumber(0, 2),
+            zipNumber(stamp.time, 2), zipNumber(stamp.date, 2), zipNumber(crc, 4),
+            zipNumber(entry.bytes.byteLength, 4), zipNumber(entry.bytes.byteLength, 4),
+            zipNumber(name.byteLength, 2), zipNumber(0, 2), name
+        ]);
+        localParts.push(localHeader, entry.bytes);
+        centralParts.push(joinBytes([
+            zipNumber(0x02014b50, 4), zipNumber(20, 2), zipNumber(20, 2), zipNumber(0x0800, 2), zipNumber(0, 2),
+            zipNumber(stamp.time, 2), zipNumber(stamp.date, 2), zipNumber(crc, 4),
+            zipNumber(entry.bytes.byteLength, 4), zipNumber(entry.bytes.byteLength, 4),
+            zipNumber(name.byteLength, 2), zipNumber(0, 2), zipNumber(0, 2), zipNumber(0, 2),
+            zipNumber(0, 2), zipNumber(0, 4), zipNumber(offset, 4), name
+        ]));
+        offset += localHeader.byteLength + entry.bytes.byteLength;
+    });
+    const central = joinBytes(centralParts);
+    const end = joinBytes([
+        zipNumber(0x06054b50, 4), zipNumber(0, 2), zipNumber(0, 2),
+        zipNumber(entries.length, 2), zipNumber(entries.length, 2),
+        zipNumber(central.byteLength, 4), zipNumber(offset, 4), zipNumber(0, 2)
+    ]);
+    return new Blob([...localParts, central, end], {type:'application/zip'});
+}
+
+async function downloadPhotoArchive(screens, filename, button) {
+    const uniqueScreens = [...new Map(screens.filter(screen => screen && isProjectImage(screen.dataUrl)).map(screen => [screen.id, screen])).values()];
+    if (!uniqueScreens.length) { toast('Select at least one photo to download.', 'warn'); return; }
+    const original = button?.innerHTML;
+    if (button) { button.disabled = true; button.setAttribute('aria-busy', 'true'); button.textContent = 'Preparing…'; }
+    toast(`Preparing ${uniqueScreens.length} photo${uniqueScreens.length === 1 ? '' : 's'}…`);
+    try {
+        const settled = await Promise.allSettled(uniqueScreens.map(async screen => {
+            const response = await fetch(screen.dataUrl);
+            if (!response.ok) throw new Error(`Could not load ${screen.name}.`);
+            const blob = await response.blob();
+            return {
+                screen,
+                blob,
+                bytes:new Uint8Array(await blob.arrayBuffer()),
+                timestamp:screen.uploadedAt
+            };
+        }));
+        const usedNames = new Set();
+        const entries = settled.flatMap(result => result.status === 'fulfilled'
+            ? [Object.assign(result.value, {name:uniquePhotoFilename(result.value.screen, result.value.blob, usedNames)})]
+            : []);
+        const failed = settled.length - entries.length;
+        if (!entries.length) throw new Error('The selected photos could not be loaded.');
+        download(buildPhotoZip(entries), filename, 'application/zip');
+        toast(failed
+            ? `Downloaded ${entries.length} photo${entries.length === 1 ? '' : 's'}; ${failed} could not be loaded.`
+            : `Downloaded ${entries.length} photo${entries.length === 1 ? '' : 's'} as one ZIP.`, failed ? 'warn' : 'good');
+    } catch (error) {
+        toast(error.message || 'The photo archive could not be created.', 'warn');
+    } finally {
+        if (button?.isConnected) {
+            button.disabled = false;
+            button.removeAttribute('aria-busy');
+            button.innerHTML = original;
+        }
+    }
+}
+
 function standaloneHtml() {
     const payload = projectPayload();
     const json = JSON.stringify(payload).replace(/</g, '\\u003c');
@@ -55,6 +190,8 @@ function importProjectData(file) {
             projects.unshift(project);
             activeProjectId = project.id;
             selectedFolder = null;
+            selectedPhotoIds.clear();
+            selectedPickerScreenIds.clear();
             persist(true);
             toast('Project restored from JSON.');
         } catch (error) {
@@ -234,6 +371,8 @@ async function confirmResetProfile() {
         selectedAnnotationId = null;
         showAnnotatedScreens = true;
         pickerShowAnnotated = true;
+        selectedPhotoIds.clear();
+        selectedPickerScreenIds.clear();
         storyPickerOpen = false;
         saveJson(APP.storageKey, projects);
         localStorage.setItem(APP.activeKey, activeProjectId);
@@ -259,4 +398,3 @@ $('#syncDemoDialog').addEventListener('close', () => {
     const input = $('#syncDemoPassword');
     if (input) input.value = '';
 });
-

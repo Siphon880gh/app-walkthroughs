@@ -49,9 +49,10 @@ document.addEventListener('click', event => {
         (sessionUploadOpen ? $('.upload-tray-collapse') : $('.upload-tray-icon'))?.focus();
     }
     else if (action === 'copy-screen-url') { if (target.dataset.url) copyText(target.dataset.url, 'Image URL copied.'); }
-    else if (action === 'toggle-url-select' || action === 'select-all-urls') {
-        const ids = action === 'select-all-urls' ? (target.dataset.ids || '').split(' ').filter(Boolean) : [target.dataset.id];
-        ids.forEach(id => { if (target.checked) selectedUrlIds.add(id); else selectedUrlIds.delete(id); });
+    else if (['toggle-photo-select','toggle-url-select','select-all-photos','select-all-urls'].includes(action)) {
+        const selectsMany = action === 'select-all-photos' || action === 'select-all-urls';
+        const ids = selectsMany ? (target.dataset.ids || '').split(' ').filter(Boolean) : [target.dataset.id];
+        ids.forEach(id => { if (target.checked) selectedPhotoIds.add(id); else selectedPhotoIds.delete(id); });
         const scroll = $('.library-scroll')?.scrollTop || 0;
         const trayScroll = $('.upload-tray-list')?.scrollTop || 0;
         renderApp();
@@ -62,9 +63,13 @@ document.addEventListener('click', event => {
     }
     else if (action === 'copy-selected-urls') {
         const urls = target.dataset.scope === 'tray'
-            ? sessionUploads.filter(item => item.url && selectedUrlIds.has(item.id)).map(item => item.url)
-            : activeProject().screenshots.filter(screen => selectedUrlIds.has(screen.id)).map(screen => screenUrl(screen.dataUrl)).filter(Boolean);
+            ? sessionUploads.filter(item => item.url && selectedPhotoIds.has(item.id)).map(item => item.url)
+            : activeProject().screenshots.filter(screen => selectedPhotoIds.has(screen.id)).map(screen => screenUrl(screen.dataUrl)).filter(Boolean);
         if (urls.length) copyText(urls.join('\n'), `${urls.length} image URL${urls.length === 1 ? '' : 's'} copied.`);
+    }
+    else if (action === 'download-library-photos') {
+        const screens = project.screenshots.filter(screen => selectedPhotoIds.has(screen.id));
+        downloadPhotoArchive(screens, `${slug(project.name)}-photos.zip`, target);
     }
     else if (action === 'close-url-dialog') $('#urlDialog').close();
     else if (action === 'select-folder') { selectedFolder = target.dataset.folder || null; renderApp(); }
@@ -92,6 +97,7 @@ document.addEventListener('click', event => {
             if (!story.steps.some(step => step.id === story.activeStepId)) story.activeStepId = story.steps[0]?.id || '';
         });
         screenIds.forEach(id => forgetAnnotationHistory(id));
+        screenIds.forEach(id => selectedPhotoIds.delete(id));
         if (selectedFolder === fullPath) selectedFolder = null;
         if (!project.screenshots.some(screen => screen.id === project.activeScreenshotId)) project.activeScreenshotId = project.screenshots[0]?.id || '';
         persist(true);
@@ -109,6 +115,7 @@ document.addEventListener('click', event => {
         if (restored) projects = seedProjects();
         activeProjectId = projects[Math.min(index, projects.length - 1)].id;
         selectedFolder = null;
+        selectedPhotoIds.clear();
         selectedPickerScreenIds.clear();
         persist();
         setView('screenshots');
@@ -131,6 +138,7 @@ document.addEventListener('click', event => {
             if (!story.steps.some(step => step.id === story.activeStepId)) story.activeStepId = story.steps[0]?.id || '';
         });
         project.activeScreenshotId = project.screenshots[0]?.id || '';
+        selectedPhotoIds.delete(screen.id);
         selectedPickerScreenIds.delete(screen.id);
         forgetAnnotationHistory(screen.id);
         persist(true);
@@ -239,6 +247,16 @@ document.addEventListener('click', event => {
     }
     else if (action === 'toggle-hotspot') { const step = activeStep(); step.interaction.enabled = !step.interaction.enabled; persist(true); }
     else if (action === 'preview-story') setView('player');
+    else if (action === 'download-story-photos') {
+        const seen = new Set();
+        const screens = activeStory().steps.flatMap(item => {
+            if (seen.has(item.screenId)) return [];
+            seen.add(item.screenId);
+            const screen = screenById(item.screenId);
+            return screen ? [screen] : [];
+        });
+        downloadPhotoArchive(screens, `${slug(activeStory().name)}-photos.zip`, target);
+    }
     else if (action === 'player-prev') setPlayerIndex(playerIndex-1, false);
     else if (action === 'player-next' || action === 'hotspot-next') setPlayerIndex(playerIndex+1, isPlaying);
     else if (action === 'player-jump') setPlayerIndex(Number(target.dataset.index), isPlaying);
@@ -284,4 +302,3 @@ document.addEventListener('click', event => {
     else if (action === 'import-json') $('#jsonInput').click();
     else if (action === 'audio-toggle') { audioSettings[target.dataset.key] = !audioSettings[target.dataset.key]; saveJson(APP.audioKey,audioSettings); renderAudioSettings(); }
 });
-

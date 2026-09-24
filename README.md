@@ -15,7 +15,7 @@ The app opens with a sample project, Orbit Pay, so you can click through a finis
 
 ![Screenshot library with the Orbit Pay sample screens](docs/screenshots/library.png)
 
-Drop, paste, or upload screenshots, or choose Enter URL from the arrow beside Upload screens to add an image from the web. Folders group them by app and platform, such as Orbit Pay / iOS. The project menu sits beside New project.
+Drop, paste, or upload screenshots, or choose Enter URL from the arrow beside Upload screens to add an image from the web. Folders group them by app and platform, such as Orbit Pay / iOS. Select multiple cards to download their original images together as a ZIP. The project menu sits beside New project.
 
 ## Annotate
 
@@ -27,7 +27,7 @@ Draw on a screen with Select, Pin, Highlight, Box, Circle, Arrow, Text, and Spot
 
 ![Stories screen sequencing the Send money flow](docs/screenshots/stories.png)
 
-A walkthrough is an ordered list of steps. Set the dwell time, the transition, and the hotspot, then preview the flow.
+A walkthrough is an ordered list of steps. Add several photos at once, drag steps into sequence, or use the Earlier and Later controls for precise movement. Set the dwell time, transition, and hotspot, then preview the flow. The compact Photos action downloads the walkthrough’s unique images as a ZIP.
 
 ## Player
 

@@ -67,13 +67,13 @@ function renderSessionTray() {
         return;
     }
     tray.className = 'upload-tray';
-    const picked = sessionUploads.filter(item => item.url && selectedUrlIds.has(item.id));
+    const picked = sessionUploads.filter(item => item.url && selectedPhotoIds.has(item.id));
     const hostedIds = sessionUploads.filter(item => item.url).map(item => item.id);
     const allPicked = hostedIds.length > 0 && picked.length === hostedIds.length;
     const selectAll = hostedIds.length ? `<label class="select-all"><input class="url-check" type="checkbox" data-action="select-all-urls" data-ids="${esc(hostedIds.join(' '))}" ${allPicked ? 'checked' : ''}>Select all</label>` : '';
     const copySelected = (picked.length ? `<button type="button" class="button small" data-action="copy-selected-urls" data-scope="tray">Copy selected <span class="count-pill">${picked.length}</span></button>` : '') + selectAll;
     const rows = sessionUploads.map(item => {
-        const checked = selectedUrlIds.has(item.id);
+        const checked = selectedPhotoIds.has(item.id);
         const actions = item.url ? `<div class="url-actions"><button type="button" class="button small" data-action="copy-screen-url" data-url="${esc(item.url)}">Copy</button><span class="url-actions-sep" aria-hidden="true"></span><input class="url-check" type="checkbox" data-action="toggle-url-select" data-id="${esc(item.id)}" aria-label="Select ${esc(item.name)}" ${checked ? 'checked' : ''}></div>` : '';
         return `<li class="upload-tray-row${checked ? ' picked' : ''}"><span class="upload-tray-name">${esc(item.name)}</span>${actions}</li>`;
     }).join('');
