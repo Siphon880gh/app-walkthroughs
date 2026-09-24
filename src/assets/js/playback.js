@@ -291,6 +291,13 @@ function spokenSlipName(value) {
         .trim();
 }
 
+function spokenStepTitle(step) {
+    const title = spokenSlipName(step?.title || '');
+    if (!title) return '';
+    const fileName = spokenSlipName(screenById(step?.screenId)?.name || '');
+    return fileName && title.toLowerCase() === fileName.toLowerCase() ? '' : title;
+}
+
 function speakStep(step) {
     const token = ++narrationToken;
     speechCancelGeneration += 1;
@@ -300,8 +307,8 @@ function speakStep(step) {
     window.speechSynthesis.cancel();
     const parts = [];
     if (audioSettings.readTitle && step.title) {
-        const name = spokenSlipName(step.title);
-        if (name) parts.push(name);
+        const title = spokenStepTitle(step);
+        if (title) parts.push(title);
     }
     const speak = (enabled, key) => {
         if (!enabled) return;
@@ -341,4 +348,3 @@ function openAudioDialog() {
     $('#audioDialog').showModal();
     if ('speechSynthesis' in window) window.speechSynthesis.onvoiceschanged = () => { if ($('#audioDialog').open) renderAudioSettings(); };
 }
-

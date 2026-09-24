@@ -33,7 +33,7 @@ A walkthrough is an ordered list of steps. Add several photos at once, drag step
 
 ![Player showing the Send money flow on a phone frame](docs/screenshots/player.png)
 
-Play the walkthrough inside a device frame. Narration reads the step aloud. Mute and narration settings, the sliders icon, live in the player header. Speech stops when you leave the player or switch to another project or walkthrough. Underscores, dashes, and similar separators in a slip name are skipped when they are spoken.
+Play the walkthrough inside a device frame. Narration reads the step aloud. Mute and narration settings, the sliders icon, live in the player header. Speech stops when you leave the player or switch to another project or walkthrough. A user-authored step title can be spoken, but a title that only repeats the source file name is skipped.
 
 ## Export and Sync
 
