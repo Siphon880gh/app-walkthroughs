@@ -109,6 +109,7 @@ document.addEventListener('click', event => {
         if (restored) projects = seedProjects();
         activeProjectId = projects[Math.min(index, projects.length - 1)].id;
         selectedFolder = null;
+        selectedPickerScreenIds.clear();
         persist();
         setView('screenshots');
         toast(restored ? `Project “${name}” deleted. The sample project is back because it was the last one.` : `Project “${name}” deleted.`);
@@ -130,16 +131,38 @@ document.addEventListener('click', event => {
             if (!story.steps.some(step => step.id === story.activeStepId)) story.activeStepId = story.steps[0]?.id || '';
         });
         project.activeScreenshotId = project.screenshots[0]?.id || '';
+        selectedPickerScreenIds.delete(screen.id);
         forgetAnnotationHistory(screen.id);
         persist(true);
         toast('Screen and linked steps deleted.');
     }
     else if (action === 'add-to-story') { addScreenToStory(target.dataset.id); setView('stories'); }
-    else if (action === 'open-photo-picker') { pickerShowAnnotated = true; renderPhotoPicker(); $('#photoDialog').showModal(); }
-    else if (action === 'close-photo-picker') $('#photoDialog').close();
+    else if (action === 'open-photo-picker') {
+        pickerShowAnnotated = true;
+        selectedPickerScreenIds.clear();
+        renderPhotoPicker();
+        $('#photoDialog').showModal();
+    }
+    else if (action === 'close-photo-picker') { selectedPickerScreenIds.clear(); $('#photoDialog').close(); }
     else if (action === 'toggle-picker-annotated') { pickerShowAnnotated = !pickerShowAnnotated; renderPhotoPicker(); }
     else if (action === 'pick-photo') {
-        addScreenToStory(target.dataset.id);
+        const id = target.dataset.id;
+        if (selectedPickerScreenIds.has(id)) selectedPickerScreenIds.delete(id);
+        else selectedPickerScreenIds.add(id);
+        renderPhotoPicker();
+        $$('[data-action="pick-photo"]').find(button => button.dataset.id === id)?.focus();
+    }
+    else if (action === 'toggle-all-picker-photos') {
+        const ids = (target.dataset.ids || '').split(' ').filter(Boolean);
+        const allPicked = ids.length > 0 && ids.every(id => selectedPickerScreenIds.has(id));
+        ids.forEach(id => { if (allPicked) selectedPickerScreenIds.delete(id); else selectedPickerScreenIds.add(id); });
+        renderPhotoPicker();
+        $('[data-action="toggle-all-picker-photos"]')?.focus();
+    }
+    else if (action === 'add-selected-photos') {
+        const added = addScreensToStory([...selectedPickerScreenIds]);
+        if (!added) return;
+        selectedPickerScreenIds.clear();
         $('#photoDialog').close();
         renderApp();
     }

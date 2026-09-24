@@ -1,14 +1,5 @@
-function addScreenToStory(screenId) {
-    const project = activeProject();
-    const screen = screenById(screenId);
-    if (!screen) return;
-    let story = activeStory();
-    if (!story) {
-        story = newStory('Primary walkthrough');
-        project.stories.push(story);
-        project.activeStoryId = story.id;
-    }
-    const step = {
+function storyStepFromScreen(screen) {
+    return {
         id:uid('step'), screenId:screen.id, title:screen.name.replace(/\.[^.]+$/,''),
         userAction:screen.analysis?.userAction || '',
         screenContent:screen.analysis?.screenContent || '',
@@ -18,11 +9,32 @@ function addScreenToStory(screenId) {
         transition:{type:'slide-left',duration:.6,easing:'ease-in-out',scrollDistancePx:300},
         interaction:{enabled:true,type:'tap',xPercent:50,yPercent:50,label:'Continue'}, dwellSeconds:3.5
     };
-    story.steps.push(step);
-    story.activeStepId = step.id;
+}
+
+function addScreensToStory(screenIds) {
+    const project = activeProject();
+    const wanted = new Set(screenIds);
+    const screens = project.screenshots.filter(screen => wanted.has(screen.id));
+    if (!screens.length) return 0;
+    let story = activeStory();
+    if (!story) {
+        story = newStory('Primary walkthrough');
+        project.stories.push(story);
+        project.activeStoryId = story.id;
+    }
+    const steps = screens.map(storyStepFromScreen);
+    story.steps.push(...steps);
+    story.activeStepId = steps.at(-1).id;
     project.activeStoryId = story.id;
     persist();
-    toast(`Added “${screen.name}” to ${story.name}.`);
+    toast(screens.length === 1
+        ? `Added “${screens[0].name}” to ${story.name}.`
+        : `Added ${screens.length} photos to ${story.name} in library order.`);
+    return screens.length;
+}
+
+function addScreenToStory(screenId) {
+    return addScreensToStory([screenId]);
 }
 
 function newStory(name) {

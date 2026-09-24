@@ -47,6 +47,7 @@ let syncMenuOpen = false;
 let uploadMenuOpen = false;
 let libraryListMode = false;
 const selectedUrlIds = new Set();
+const selectedPickerScreenIds = new Set();
 let sessionUploadOpen = true;
 const sessionUploads = [];
 

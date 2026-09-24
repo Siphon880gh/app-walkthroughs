@@ -42,11 +42,11 @@ require dirname(__DIR__, 2) . '/guard.php';
 
 <dialog id="photoDialog">
     <div class="dialog-head">
-        <div><h2>Add a photo</h2><p>Append a screen to the current walkthrough. Annotated pictures stay visible until you hide them.</p></div>
+        <div><h2>Add photos</h2><p>Select one or more screens to append to the current walkthrough.</p></div>
         <button type="button" class="button ghost icon-only" data-action="close-photo-picker" aria-label="Close">×</button>
     </div>
     <div class="dialog-body" id="photoPickerBody"></div>
-    <div class="dialog-foot"><button type="button" class="button" data-action="close-photo-picker">Cancel</button></div>
+    <div class="dialog-foot photo-picker-foot"><span id="photoPickerSelection" aria-live="polite">Choose one or more photos</span><button type="button" class="button" data-action="close-photo-picker">Cancel</button><button type="button" class="button primary" id="addSelectedPhotos" data-action="add-selected-photos" disabled>Add photos</button></div>
 </dialog>
 
 <dialog id="audioDialog">

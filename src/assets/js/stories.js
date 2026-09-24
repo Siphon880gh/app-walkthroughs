@@ -66,11 +66,23 @@ function renderPhotoPicker() {
     const cards = screens.map(screen => {
         const notes = screen.annotations?.length ? `<span class="annotation-layer">${annotationMarkup(screen.annotations)}</span>` : '';
         const kind = screen.annotated ? '<span class="tag">Annotated</span>' : `<span class="tag">${esc(screen.platform || 'screen')}</span>`;
-        return `<button type="button" class="photo-pick" data-action="pick-photo" data-id="${esc(screen.id)}"><span class="photo-pick-frame"><img src="${safeImage(screen.dataUrl)}" alt="">${notes}</span><span class="photo-pick-copy"><span class="photo-pick-name">${esc(screen.name)}</span>${kind}</span></button>`;
+        const picked = selectedPickerScreenIds.has(screen.id);
+        return `<button type="button" class="photo-pick${picked ? ' picked' : ''}" data-action="pick-photo" data-id="${esc(screen.id)}" aria-pressed="${picked}"><span class="photo-pick-check" aria-hidden="true">${picked ? '✓' : ''}</span><span class="photo-pick-frame"><img src="${safeImage(screen.dataUrl)}" alt="">${notes}</span><span class="photo-pick-copy"><span class="photo-pick-name">${esc(screen.name)}</span>${kind}</span></button>`;
     }).join('');
     const body = $('#photoPickerBody');
     if (!body) return;
-    body.innerHTML = `<div class="photo-picker-bar"><span>${screens.length} photo${screens.length === 1 ? '' : 's'}</span><button type="button" class="button ${pickerShowAnnotated ? 'active' : ''}" data-action="toggle-picker-annotated" aria-pressed="${pickerShowAnnotated ? 'true' : 'false'}" title="Show or hide annotated pictures">Annotated <span class="count-pill">${annotated.length}</span></button></div>${cards ? `<div class="photo-picker-grid">${cards}</div>` : '<p class="photo-picker-empty">No photos match this filter.</p>'}`;
+    const availableIds = new Set((project?.screenshots || []).map(screen => screen.id));
+    [...selectedPickerScreenIds].forEach(id => { if (!availableIds.has(id)) selectedPickerScreenIds.delete(id); });
+    const selectedCount = selectedPickerScreenIds.size;
+    const allVisiblePicked = screens.length > 0 && screens.every(screen => selectedPickerScreenIds.has(screen.id));
+    body.innerHTML = `<div class="photo-picker-bar"><span>${screens.length} photo${screens.length === 1 ? '' : 's'} · added in library order</span><span class="photo-picker-tools"><button type="button" class="button ghost small" data-action="toggle-all-picker-photos" data-ids="${esc(screens.map(screen => screen.id).join(' '))}">${allVisiblePicked ? 'Clear visible' : 'Select visible'}</button><button type="button" class="button small ${pickerShowAnnotated ? 'active' : ''}" data-action="toggle-picker-annotated" aria-pressed="${pickerShowAnnotated ? 'true' : 'false'}" title="Show or hide annotated pictures">Annotated <span class="count-pill">${annotated.length}</span></button></span></div>${cards ? `<div class="photo-picker-grid">${cards}</div>` : '<p class="photo-picker-empty">No photos match this filter.</p>'}`;
+    const count = $('#photoPickerSelection');
+    const add = $('#addSelectedPhotos');
+    if (count) count.textContent = selectedCount ? `${selectedCount} selected` : 'Choose one or more photos';
+    if (add) {
+        add.disabled = selectedCount === 0;
+        add.textContent = selectedCount ? `Add ${selectedCount} photo${selectedCount === 1 ? '' : 's'}` : 'Add photos';
+    }
 }
 
 function deviceFrameName(screen) {
