@@ -125,6 +125,20 @@ document.addEventListener('click', event => {
         closeInfoNotes();
         if (opening) setInfoNote(id, true);
     }
+    else if (action === 'toggle-narration') {
+        const step = activeStep();
+        const key = target.dataset.field;
+        if (!step || (key !== 'narrateBefore' && key !== 'narrateAfter')) return;
+        const id = `${step.id}:${key}`;
+        const scroller = $('.story-layout .panel-scroll');
+        const top = scroller?.scrollTop || 0;
+        if (expandedNarration.has(id)) expandedNarration.delete(id);
+        else expandedNarration.add(id);
+        renderApp();
+        const next = $('.story-layout .panel-scroll');
+        if (next) next.scrollTop = top;
+        if (expandedNarration.has(id)) document.querySelector(`[data-step-field="${key}"]`)?.focus();
+    }
     else if (action === 'toggle-hotspot') { const step = activeStep(); step.interaction.enabled = !step.interaction.enabled; persist(true); }
     else if (action === 'preview-story') setView('player');
     else if (action === 'player-prev') setPlayerIndex(playerIndex-1, false);

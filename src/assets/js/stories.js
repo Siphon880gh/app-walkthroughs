@@ -19,8 +19,18 @@ function narrativeField(step, label, key, placeholder = '') {
     return `<label class="field"><span class="field-label">${label}</span><textarea class="textarea" data-step-field="${key}"${hint}>${esc(step[key] || '')}</textarea></label>`;
 }
 
+function narrationOpen(step, key) {
+    return Boolean(String(step[key] || '').trim()) || expandedNarration.has(`${step.id}:${key}`);
+}
+
+function optionalNarrative(step, label, key, placeholder) {
+    if (!narrationOpen(step, key)) return `<button type="button" class="narration-toggle" data-action="toggle-narration" data-field="${key}" aria-expanded="false"><span class="narration-plus" aria-hidden="true">+</span>${label}</button>`;
+    const hide = String(step[key] || '').trim() ? '' : `<button type="button" class="button ghost small" data-action="toggle-narration" data-field="${key}" aria-expanded="true">Hide</button>`;
+    return `<div class="field"><span class="field-label"><span>${label}</span>${hide}</span><textarea class="textarea" data-step-field="${key}" placeholder="${esc(placeholder)}">${esc(step[key] || '')}</textarea></div>`;
+}
+
 function narrativeInspector(step) {
-    return `<div class="section"><div class="section-title">BEHAVIORAL TRIAD</div>${narrativeField(step, 'USER ACTION', 'userAction')}${narrativeField(step, 'VISIBLE STATE', 'screenContent')}${narrativeField(step, 'NEXT ACTION', 'nextAction')}</div><div class="section"><div class="section-title">MISC</div>${narrativeField(step, 'NARRATE BEFORE', 'narrateBefore', 'Spoken before the behavioral triad')}${narrativeField(step, 'NARRATE AFTER', 'narrateAfter', 'Spoken after the behavioral triad')}${narrativeField(step, 'COMMENT', 'comment', 'Shown in the player. Not read aloud.')}</div>`;
+    return `<div class="section"><div class="section-title">BEHAVIORAL TRIAD</div>${narrativeField(step, 'USER ACTION', 'userAction')}${narrativeField(step, 'VISIBLE STATE', 'screenContent')}${narrativeField(step, 'NEXT ACTION', 'nextAction')}</div><div class="section"><div class="section-title">MISC</div>${optionalNarrative(step, 'NARRATE BEFORE', 'narrateBefore', 'Spoken before the behavioral triad')}${optionalNarrative(step, 'NARRATE AFTER', 'narrateAfter', 'Spoken after the behavioral triad')}${narrativeField(step, 'COMMENT', 'comment', 'Shown in the player. Not read aloud.')}</div>`;
 }
 
 function transitionInspector(step, index) {
