@@ -59,6 +59,7 @@ require dirname(__DIR__, 2) . '/guard.php';
 </dialog>
 
 <div class="toast-region" id="toastRegion" role="status" aria-live="polite"></div>
+<div class="upload-tray" id="uploadTray" hidden></div>
 
 <dialog id="syncDemoDialog">
     <form id="syncDemoForm">

@@ -41,6 +41,14 @@ document.addEventListener('click', event => {
     else if (action === 'upload') $('#fileInput').click();
     else if (action === 'toggle-upload-menu') setUploadMenu(!uploadMenuOpen);
     else if (action === 'enter-url') { setUploadMenu(false); openUrlDialog(); }
+    else if (action === 'toggle-url-list') { libraryListMode = !libraryListMode; renderApp(); }
+    else if (action === 'paste-url') pasteClipboardUrls();
+    else if (action === 'toggle-upload-tray') {
+        sessionUploadOpen = !sessionUploadOpen;
+        renderSessionTray();
+        (sessionUploadOpen ? $('.upload-tray-collapse') : $('.upload-tray-icon'))?.focus();
+    }
+    else if (action === 'copy-screen-url') { if (target.dataset.url) copyText(target.dataset.url, 'Image URL copied.'); }
     else if (action === 'close-url-dialog') $('#urlDialog').close();
     else if (action === 'select-folder') { selectedFolder = target.dataset.folder || null; renderApp(); }
     else if (action === 'add-folder') {

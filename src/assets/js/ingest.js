@@ -32,11 +32,49 @@ async function fileToScreen(file, folder) {
     return screenRecord(file.name || `Pasted screen ${new Date().toLocaleTimeString()}`, path, folder, await imageDimensions(path));
 }
 
+function uploadFolder() {
+    const project = activeProject();
+    return selectedFolder || project.folders?.[0]?.fullPath || `${project.name} / Web`;
+}
+
+function commitScreens(screens) {
+    if (!screens.length) return;
+    const project = activeProject();
+    project.screenshots.push(...screens);
+    project.activeScreenshotId = screens[0].id;
+    screens.forEach(screen => sessionUploads.unshift({id:screen.id, name:screen.name, url:screenUrl(screen.dataUrl)}));
+    sessionUploadOpen = true;
+    persist(true);
+}
+
+function renderSessionTray() {
+    const tray = $('#uploadTray');
+    if (!tray) return;
+    if (!sessionUploads.length) {
+        tray.hidden = true;
+        tray.innerHTML = '';
+        document.body.classList.remove('has-upload-tray', 'has-upload-icon');
+        return;
+    }
+    tray.hidden = false;
+    document.body.classList.toggle('has-upload-tray', sessionUploadOpen);
+    document.body.classList.toggle('has-upload-icon', !sessionUploadOpen);
+    const count = sessionUploads.length;
+    const files = `${count} file${count === 1 ? '' : 's'}`;
+    if (!sessionUploadOpen) {
+        tray.className = 'upload-tray is-collapsed';
+        tray.innerHTML = `<button type="button" class="upload-tray-icon" data-action="toggle-upload-tray" aria-expanded="false" aria-label="Show ${files} uploaded this session"><span aria-hidden="true">↑</span><span class="count-pill">${count}</span></button>`;
+        return;
+    }
+    tray.className = 'upload-tray';
+    const rows = sessionUploads.map(item => `<li class="upload-tray-row"><span class="upload-tray-name">${esc(item.name)}</span>${item.url ? `<button type="button" class="button small" data-action="copy-screen-url" data-url="${esc(item.url)}">Copy</button>` : ''}</li>`).join('');
+    tray.innerHTML = `<section class="upload-tray-panel" aria-label="Files uploaded this session"><header class="upload-tray-head"><strong>Last uploaded</strong><span class="count-pill">${count}</span><button type="button" class="button ghost icon-only upload-tray-collapse" data-action="toggle-upload-tray" aria-expanded="true" aria-label="Collapse uploaded files">⌄</button></header><ul class="upload-tray-list">${rows}</ul></section>`;
+}
+
 async function handleFiles(files) {
     const images = files.filter(file => file.type.startsWith('image/'));
     if (!images.length) { toast('Choose PNG, JPEG, WebP, GIF, or SVG images.', 'warn'); return; }
-    const project = activeProject();
-    const folder = selectedFolder || project.folders?.[0]?.fullPath || `${project.name} / Web`;
+    const folder = uploadFolder();
     toast(`Uploading ${images.length} screen${images.length === 1 ? '':'s'}…`);
     const settled = await Promise.all(images.map(async file => {
         try { return await fileToScreen(file, folder); }
@@ -44,9 +82,7 @@ async function handleFiles(files) {
     }));
     const added = settled.filter(Boolean);
     if (!added.length) return;
-    project.screenshots.push(...added);
-    project.activeScreenshotId = added[0].id;
-    persist(true);
+    commitScreens(added);
     toast(`${added.length} screen${added.length === 1 ? '':'s'} added to ${folder}.`);
 }
 
@@ -72,6 +108,38 @@ async function urlToScreen(url, folder) {
     return screenRecord(result.name || fallbackName, result.path, folder, await imageDimensions(result.path));
 }
 
+function urlsFromClipboard(text) {
+    return String(text || '').split(/\s+/).flatMap(part => {
+        try {
+            const url = new URL(part);
+            return url.protocol === 'http:' || url.protocol === 'https:' ? [url] : [];
+        } catch { return []; }
+    });
+}
+
+async function handlePastedUrls(urls) {
+    if (!urls.length) { toast('Paste an http or https image address.', 'warn'); return; }
+    const folder = uploadFolder();
+    toast(`Uploading ${urls.length} screen${urls.length === 1 ? '':'s'}…`);
+    const settled = await Promise.all(urls.map(async url => {
+        try { return await urlToScreen(url, folder); }
+        catch (error) { toast(error.message || 'Could not upload that URL.', 'warn'); return null; }
+    }));
+    const added = settled.filter(Boolean);
+    if (!added.length) return;
+    commitScreens(added);
+    toast(`${added.length} screen${added.length === 1 ? '':'s'} added to ${folder}.`);
+}
+
+async function pasteClipboardUrls() {
+    let text = '';
+    try { text = await navigator.clipboard.readText(); }
+    catch { toast('Allow clipboard access to paste a URL.', 'warn'); return; }
+    const urls = urlsFromClipboard(text);
+    if (!urls.length) { toast('The clipboard does not contain an image URL.', 'warn'); return; }
+    handlePastedUrls(urls);
+}
+
 function openUrlDialog() {
     const input = $('#urlInput');
     const error = $('#urlError');
@@ -92,13 +160,10 @@ async function confirmUrlUpload() {
     if (url.protocol !== 'http:' && url.protocol !== 'https:') { fail('Only http and https addresses are supported.'); return; }
     if (button) button.disabled = true;
     try {
-        const project = activeProject();
-        const folder = selectedFolder || project.folders?.[0]?.fullPath || `${project.name} / Web`;
+        const folder = uploadFolder();
         const screen = await urlToScreen(url, folder);
         $('#urlDialog').close();
-        project.screenshots.push(screen);
-        project.activeScreenshotId = screen.id;
-        persist(true);
+        commitScreens([screen]);
         toast(`1 screen added to ${folder}.`);
     } catch (problem) {
         fail(problem.message || 'Could not load that URL.');

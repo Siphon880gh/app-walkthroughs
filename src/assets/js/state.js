@@ -16,6 +16,11 @@ const DATA_IMAGE = /^data:image\/(?:png|jpeg|webp|gif|svg\+xml)(?:;|,)/i;
 const STORED_IMAGE = /^data\/screenshots\/[a-f0-9]{64}\.(?:png|jpe?g|webp|gif|svg)$/;
 const isProjectImage = (value = '') => DATA_IMAGE.test(String(value)) || STORED_IMAGE.test(String(value));
 const safeImage = (value = '') => isProjectImage(value) ? esc(value) : '';
+const screenUrl = (value = '') => {
+    const path = String(value || '');
+    if (!STORED_IMAGE.test(path)) return '';
+    try { return new URL(path, location.href).href; } catch { return ''; }
+};
 const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
 const slug = (value) => String(value).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'storyflow';
 const formatBytes = (bytes) => bytes < 1024 ? `${bytes} B` : bytes < 1048576 ? `${(bytes/1024).toFixed(1)} KB` : `${(bytes/1048576).toFixed(1)} MB`;
@@ -40,6 +45,9 @@ let storyPickerOpen = false;
 const expandedNarration = new Set();
 let syncMenuOpen = false;
 let uploadMenuOpen = false;
+let libraryListMode = false;
+let sessionUploadOpen = true;
+const sessionUploads = [];
 
 const defaultAudio = {
     enabled: true,

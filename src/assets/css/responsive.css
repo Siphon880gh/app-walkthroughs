@@ -4,11 +4,15 @@
     .sync-menu-panel { top: auto; bottom: calc(100% + 8px); }
     .top-actions { grid-column: 2; }
     .app-shell { padding-bottom: 39px; }
+    .upload-tray { bottom: 56px; }
+    body.has-upload-tray .library-scroll { padding-bottom: 280px; }
+    body.has-upload-icon .library-scroll { padding-bottom: 108px; }
     .studio-layout { grid-template-columns: 160px minmax(330px,1fr) 300px; }
     .story-layout { grid-template-columns: 225px minmax(330px,1fr) 290px; }
 }
 @media (max-width: 860px) {
     body { overflow: auto; }
+    .upload-tray { left: 16px; right: 16px; width: auto; }
     .app-shell { height: auto; min-height: 100dvh; overflow: visible; }
     .topbar { position: sticky; top: 0; grid-template-columns: 1fr auto; gap: 8px; }
     .brand-build { display: none; }

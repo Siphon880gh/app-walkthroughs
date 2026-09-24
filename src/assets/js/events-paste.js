@@ -1,5 +1,7 @@
 document.addEventListener('paste', event => {
     if (currentView !== 'screenshots' || ['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)) return;
     const files = [...(event.clipboardData?.files || [])].filter(file => file.type.startsWith('image/'));
-    if (files.length) { event.preventDefault(); handleFiles(files); }
+    if (files.length) { event.preventDefault(); handleFiles(files); return; }
+    const urls = urlsFromClipboard(event.clipboardData?.getData('text') || '');
+    if (urls.length) { event.preventDefault(); handlePastedUrls(urls); }
 });
