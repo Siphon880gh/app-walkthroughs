@@ -1,4 +1,4 @@
-.export-scroll { overflow: auto; padding: 28px clamp(18px,4vw,54px) 60px; }
+.export-scroll { flex: 1; min-height: 0; overflow: auto; padding: 28px clamp(18px,4vw,54px) 60px; }
 .export-grid { max-width: 1080px; margin: 0 auto; display: grid; grid-template-columns: minmax(0,1fr) minmax(300px,.72fr); gap: 34px; }
 .export-section { padding: 0 0 28px; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
 .export-section h2 { font-size: 15px; }

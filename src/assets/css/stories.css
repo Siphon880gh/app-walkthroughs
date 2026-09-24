@@ -1,4 +1,4 @@
-.story-layout { min-height: 0; flex: 1; display: grid; grid-template-columns: 265px minmax(380px,1fr) 320px; }
+.story-layout { min-height: 0; flex: 1; overflow: hidden; display: grid; grid-template-columns: 265px minmax(380px,1fr) 320px; grid-template-rows: minmax(0, 1fr); }
 .story-rail { min-height: 0; overflow: hidden; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
 .story-chooser { padding: 10px 12px; border-bottom: 1px solid var(--border); }
 #photoDialog { width: min(760px, calc(100% - 28px)); }

@@ -64,7 +64,7 @@
 .ann-remove.on-pin { transform: translate(14px, -16px); }
 .ann-remove.on-text { transform: translate(8px, -14px); }
 .ann-remove.on-text-sized { transform: translate(6px, -14px); }
-.inspector > .panel-scroll { display: block; overflow: auto; }
+.inspector > .panel-scroll { display: block; flex: 1 1 auto; min-height: 0; overflow: auto; }
 .note-editor .range-row { grid-template-columns: 72px minmax(0, 1fr) 36px; margin-bottom: 8px; }
 .note-editor .range-value { font-family: var(--mono); color: var(--text); text-align: right; font-size: 10px; }
 .note-colors { flex-wrap: wrap; margin-top: 6px; }

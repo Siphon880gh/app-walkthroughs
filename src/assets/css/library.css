@@ -1,4 +1,4 @@
-.library-scroll { overflow: auto; padding: 18px 22px 44px; }
+.library-scroll { flex: 1; min-height: 0; overflow: auto; padding: 18px 22px 44px; }
 .library-meta { display: flex; align-items: center; justify-content: space-between; color: var(--dim); font: 10px/1 var(--mono); margin-bottom: 12px; }
 .drop-strip { min-height: 74px; border: 1px dashed #334155; background: rgba(15,23,42,.45); display: flex; align-items: center; justify-content: center; gap: 9px; color: var(--muted); border-radius: 8px; margin-bottom: 18px; transition: border-color .16s ease, background .16s ease; }
 .drop-strip.dragover { border-color: var(--blue); background: var(--blue-soft); color: #bfdbfe; }
