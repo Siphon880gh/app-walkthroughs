@@ -49,6 +49,23 @@ document.addEventListener('click', event => {
         (sessionUploadOpen ? $('.upload-tray-collapse') : $('.upload-tray-icon'))?.focus();
     }
     else if (action === 'copy-screen-url') { if (target.dataset.url) copyText(target.dataset.url, 'Image URL copied.'); }
+    else if (action === 'toggle-url-select' || action === 'select-all-urls') {
+        const ids = action === 'select-all-urls' ? (target.dataset.ids || '').split(' ').filter(Boolean) : [target.dataset.id];
+        ids.forEach(id => { if (target.checked) selectedUrlIds.add(id); else selectedUrlIds.delete(id); });
+        const scroll = $('.library-scroll')?.scrollTop || 0;
+        const trayScroll = $('.upload-tray-list')?.scrollTop || 0;
+        renderApp();
+        const next = $('.library-scroll');
+        if (next) next.scrollTop = scroll;
+        const nextTray = $('.upload-tray-list');
+        if (nextTray) nextTray.scrollTop = trayScroll;
+    }
+    else if (action === 'copy-selected-urls') {
+        const urls = target.dataset.scope === 'tray'
+            ? sessionUploads.filter(item => item.url && selectedUrlIds.has(item.id)).map(item => item.url)
+            : activeProject().screenshots.filter(screen => selectedUrlIds.has(screen.id)).map(screen => screenUrl(screen.dataUrl)).filter(Boolean);
+        if (urls.length) copyText(urls.join('\n'), `${urls.length} image URL${urls.length === 1 ? '' : 's'} copied.`);
+    }
     else if (action === 'close-url-dialog') $('#urlDialog').close();
     else if (action === 'select-folder') { selectedFolder = target.dataset.folder || null; renderApp(); }
     else if (action === 'add-folder') {
