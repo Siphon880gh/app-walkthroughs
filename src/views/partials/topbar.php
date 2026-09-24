@@ -33,6 +33,7 @@ require dirname(__DIR__, 2) . '/guard.php';
             <div class="project-control">
                 <select class="project-select" id="projectSelect" aria-label="Current project"></select>
             </div>
+            <button class="button danger" data-action="delete-project">Delete</button>
             <button class="button primary" data-action="new-project"><span aria-hidden="true">＋</span> New project</button>
         </div>
     </header>

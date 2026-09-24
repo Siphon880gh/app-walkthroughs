@@ -102,6 +102,7 @@ function applySharedDemo(payload) {
     const incoming = structuredClone(source);
     incoming.id = SHARED_DEMO_ID;
     incoming.syncedAt = Number(payload.syncedAt || incoming.syncedAt || 0);
+    if (incoming.syncedAt && incoming.syncedAt <= Number(localStorage.getItem('storyflow_dismissed_demo_at') || 0)) return false;
     if (!incoming.name.endsWith(' (Demo)')) incoming.name = `${incoming.name} (Demo)`;
     const index = projects.findIndex(project => project.id === SHARED_DEMO_ID);
     if (index >= 0 && Number(projects[index].syncedAt || 0) >= incoming.syncedAt) return false;
@@ -217,6 +218,7 @@ async function confirmResetProfile() {
         localStorage.removeItem(APP.storageKey);
         localStorage.removeItem(APP.activeKey);
         localStorage.removeItem(APP.audioKey);
+        localStorage.removeItem('storyflow_dismissed_demo_at');
         projects = [demo];
         activeProjectId = demo.id;
         audioSettings = structuredClone(defaultAudio);

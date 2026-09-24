@@ -43,11 +43,16 @@
 .sidebar-head { min-height: 59px; display: flex; align-items: center; justify-content: space-between; padding: 0 14px 0 16px; border-bottom: 1px solid var(--border); }
 .eyebrow { color: var(--dim); text-transform: uppercase; font: 700 9px/1.2 var(--mono); letter-spacing: .13em; }
 .sidebar-title { margin-top: 5px; font-weight: 700; font-size: 13px; }
-.sidebar-scroll { overflow: auto; padding: 10px 8px 18px; }
+.sidebar-scroll { flex: 1; min-height: 0; overflow: auto; padding: 10px 8px 18px; }
 .folder-row { width: 100%; border: 0; display: grid; grid-template-columns: 18px minmax(0,1fr) auto; gap: 7px; align-items: center; padding: 8px 8px; border-radius: 6px; color: var(--muted); background: transparent; text-align: left; font-size: 11px; }
 .folder-row:hover { background: var(--raised); color: var(--text); }
 .folder-row.active { background: var(--blue-soft); color: #bfdbfe; box-shadow: inset 0 0 0 1px rgba(59,130,246,.22); }
 .folder-row .count { color: var(--dim); font: 10px/1 var(--mono); }
+.folder-item { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; }
+.folder-item .folder-row { min-width: 0; }
+.folder-delete { width: 24px; height: 24px; margin-right: 4px; border: 0; border-radius: 5px; background: transparent; color: var(--dim); opacity: 0; font: 14px/1 var(--mono); }
+.folder-item:hover .folder-delete, .folder-item:focus-within .folder-delete, .folder-item.active .folder-delete { opacity: 1; }
+.folder-delete:hover { color: #fecaca; background: rgba(239,68,68,.12); }
 .tree-label { padding: 13px 8px 6px; color: var(--dim); font: 700 9px/1 var(--mono); letter-spacing: .11em; text-transform: uppercase; }
 .local-note { margin: auto 10px 12px; padding: 12px; border-top: 1px solid var(--border); color: var(--dim); font-size: 10px; line-height: 1.55; }
 .local-note strong { display: block; color: #a7f3d0; font-size: 10px; margin-bottom: 3px; }

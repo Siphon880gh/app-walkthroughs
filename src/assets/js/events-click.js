@@ -60,6 +60,42 @@ document.addEventListener('click', event => {
         selectedFolder = fullPath;
         persist(true);
     }
+    else if (action === 'delete-folder') {
+        const fullPath = target.dataset.folder || '';
+        const folder = project.folders.find(item => item.fullPath === fullPath);
+        if (!folder) return;
+        const screens = project.screenshots.filter(screen => screen.folder === fullPath);
+        const detail = screens.length ? ` and its ${screens.length} screen${screens.length === 1 ? '' : 's'}` : '';
+        if (!confirm(`Delete “${fullPath}”${detail}? Linked walkthrough steps will also be removed.`)) return;
+        const screenIds = new Set(screens.map(screen => screen.id));
+        project.folders = project.folders.filter(item => item.fullPath !== fullPath);
+        project.screenshots = project.screenshots.filter(screen => screen.folder !== fullPath);
+        project.stories.forEach(story => {
+            story.steps = story.steps.filter(step => !screenIds.has(step.screenId));
+            if (!story.steps.some(step => step.id === story.activeStepId)) story.activeStepId = story.steps[0]?.id || '';
+        });
+        screenIds.forEach(id => forgetAnnotationHistory(id));
+        if (selectedFolder === fullPath) selectedFolder = null;
+        if (!project.screenshots.some(screen => screen.id === project.activeScreenshotId)) project.activeScreenshotId = project.screenshots[0]?.id || '';
+        persist(true);
+        toast(`Folder “${fullPath}” deleted.`);
+    }
+    else if (action === 'delete-project') {
+        if (!confirm(`Delete “${project.name}”? This removes its screens and walkthroughs from this browser.`)) return;
+        stopPlayback();
+        if (project.id === SHARED_DEMO_ID) localStorage.setItem('storyflow_dismissed_demo_at', String(project.syncedAt || Date.now()));
+        const index = projects.findIndex(item => item.id === project.id);
+        if (index < 0) return;
+        const name = project.name;
+        projects.splice(index, 1);
+        const restored = projects.length === 0;
+        if (restored) projects = seedProjects();
+        activeProjectId = projects[Math.min(index, projects.length - 1)].id;
+        selectedFolder = null;
+        persist();
+        setView('screenshots');
+        toast(restored ? `Project “${name}” deleted. The sample project is back because it was the last one.` : `Project “${name}” deleted.`);
+    }
     else if (action === 'edit-screen') { project.activeScreenshotId = target.dataset.id; persist(); setView('editor'); }
     else if (action === 'select-screen') { selectedAnnotationId = null; project.activeScreenshotId = target.dataset.id; persist(true); }
     else if (action === 'duplicate-screen') {
