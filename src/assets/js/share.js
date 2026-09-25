@@ -12,6 +12,15 @@ function decodePayload(value) {
     return JSON.parse(new TextDecoder().decode(bytes));
 }
 
+function sharedProjectName(name, sharedAt) {
+    const timestamp = Number(sharedAt);
+    const date = new Date(Number.isFinite(timestamp) && timestamp > 0 ? timestamp : Date.now());
+    const pad = value => String(value).padStart(2, '0');
+    const version = `${date.getFullYear()}.${pad(date.getMonth() + 1)}.${pad(date.getDate())} T${pad(date.getHours())}${pad(date.getMinutes())}`;
+    const base = String(name || 'Shared walkthrough').replace(/(?:\s+\(Shared(?:\s+\d{4}\.\d{2}\.\d{2}\s+T\d{4})?\))+$/, '');
+    return `${base} (Shared ${version})`;
+}
+
 async function copyText(text, message) {
     try {
         await navigator.clipboard.writeText(text);
@@ -215,7 +224,7 @@ function ingestSharedHash() {
         if (!isValidProject(project)) throw new Error('Invalid payload');
         normalizeProjectStoryCategories(project);
         project.id = uid('shared-proj');
-        project.name = `${project.name} (Shared)`;
+        project.name = sharedProjectName(project.name, parsed.sharedAt);
         projects.unshift(project);
         activeProjectId = project.id;
         playerStoryCategoryFilter = 'all';
