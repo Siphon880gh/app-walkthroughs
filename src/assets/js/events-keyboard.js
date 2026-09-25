@@ -13,6 +13,11 @@ document.addEventListener('keydown', event => {
         $('#uploadMenuButton')?.focus();
         return;
     }
+    if (event.key === 'Escape' && storyMenuOpen) {
+        setStoryMenu(false);
+        $('#storyMenuButton')?.focus();
+        return;
+    }
     if (event.key === 'Escape' && (['stepTitleInfo', 'transitionInfo', 'dwellInfo'].some(id => { const note = document.getElementById(id); return note && !note.hidden; }))) {
         closeInfoNotes();
         return;

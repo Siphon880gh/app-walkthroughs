@@ -61,6 +61,7 @@ let storyPanelLayout = localStorage.getItem(APP.storyLayoutKey) === 'files-right
 const expandedNarration = new Set();
 let syncMenuOpen = false;
 let uploadMenuOpen = false;
+let storyMenuOpen = false;
 let libraryListMode = false;
 const selectedPhotoIds = new Set();
 const selectedPickerScreenIds = new Set();

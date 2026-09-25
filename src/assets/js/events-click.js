@@ -18,10 +18,21 @@ function setUploadMenu(open) {
     button.classList.toggle('active', open);
 }
 
+function setStoryMenu(open) {
+    storyMenuOpen = open;
+    const panel = $('#storyMenu');
+    const button = $('#storyMenuButton');
+    if (!panel || !button) return;
+    panel.hidden = !open;
+    button.setAttribute('aria-expanded', String(open));
+    button.classList.toggle('active', open);
+}
+
 document.addEventListener('click', event => {
     const target = event.target.closest('[data-action], [data-view]');
     if (syncMenuOpen && !event.target.closest('.sync-menu')) setSyncMenu(false);
     if (uploadMenuOpen && !event.target.closest('.upload-menu')) setUploadMenu(false);
+    if (storyMenuOpen && !event.target.closest('.story-more-menu')) setStoryMenu(false);
     if (!event.target.closest('.title-with-info')) closeInfoNotes();
     if (storyPickerOpen && !event.target.closest('.scope-switcher')) {
         storyPickerOpen = false;
@@ -214,6 +225,51 @@ document.addEventListener('click', event => {
         const name = prompt('Walkthrough name:');
         if (!name?.trim()) return;
         const story = newStory(name.trim()); project.stories.push(story); project.activeStoryId = story.id; persist(true);
+    }
+    else if (action === 'toggle-story-menu') setStoryMenu(!storyMenuOpen);
+    else if (action === 'rename-story') {
+        const story = activeStory();
+        if (!story) return;
+        setStoryMenu(false);
+        const name = prompt('Walkthrough name:', story.name);
+        if (name === null || name.trim() === story.name) return;
+        if (!name.trim()) { toast('Walkthrough name cannot be empty.', 'warn'); return; }
+        story.name = name.trim();
+        story.updatedAt = Date.now();
+        persist(true);
+        toast(`Walkthrough renamed to “${story.name}”.`);
+    }
+    else if (action === 'copy-story-photo-urls') {
+        const story = activeStory();
+        if (!story) return;
+        setStoryMenu(false);
+        const seen = new Set();
+        const urls = story.steps.flatMap(step => {
+            if (seen.has(step.screenId)) return [];
+            seen.add(step.screenId);
+            const url = screenUrl(screenById(step.screenId)?.dataUrl);
+            return url ? [url] : [];
+        });
+        if (!urls.length) { toast('This walkthrough has no copyable photo URLs.', 'warn'); return; }
+        copyText(urls.join('\n'), `${urls.length} photo URL${urls.length === 1 ? '' : 's'} copied.`);
+    }
+    else if (action === 'delete-story') {
+        const story = activeStory();
+        if (!story) return;
+        setStoryMenu(false);
+        const slideCount = story.steps.length;
+        const detail = slideCount ? ` and its ${slideCount} slide${slideCount === 1 ? '' : 's'}` : '';
+        if (!confirm(`Delete walkthrough “${story.name}”${detail}?`)) return;
+        const index = project.stories.findIndex(item => item.id === story.id);
+        if (index < 0) return;
+        project.stories.splice(index, 1);
+        project.activeStoryId = project.stories[Math.min(index, project.stories.length - 1)]?.id || '';
+        story.steps.forEach(step => {
+            [...expandedNarration].forEach(key => { if (key.startsWith(`${step.id}:`)) expandedNarration.delete(key); });
+        });
+        playerIndex = 0;
+        persist(true);
+        toast(`Walkthrough “${story.name}” deleted.`);
     }
     else if (action === 'select-step') { const story = activeStory(); story.activeStepId = target.dataset.id; persist(true); }
     else if (action === 'move-step') moveStep(target.dataset.direction);
