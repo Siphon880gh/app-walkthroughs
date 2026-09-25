@@ -81,12 +81,12 @@ require dirname(__DIR__, 2) . '/guard.php';
 <dialog id="resetProfileDialog">
     <form id="resetProfileForm">
         <div class="dialog-head">
-            <div><h2>Reset Profile</h2><p>Are you sure? This removes all your data and resets back to Demo.</p></div>
+            <div><h2>Reset Profile to Demo</h2><p>Are you sure? This removes all your data and resets back to Demo.</p></div>
             <button type="button" class="button ghost icon-only" data-action="close-reset-profile" aria-label="Close">×</button>
         </div>
         <div class="dialog-foot">
             <button type="button" class="button" data-action="close-reset-profile">Cancel</button>
-            <button type="submit" class="button danger">Reset Profile</button>
+            <button type="submit" class="button danger">Reset Profile to Demo</button>
         </div>
     </form>
 </dialog>
