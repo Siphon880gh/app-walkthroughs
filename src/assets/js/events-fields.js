@@ -106,6 +106,7 @@ document.addEventListener('change', event => {
     if (target.id === 'projectSelect') {
         stopPlayback();
         activeProjectId = target.value; selectedFolder = null; playerIndex = 0;
+        playerStoryCategoryFilter = 'all'; exportStoryCategoryFilter = 'all';
         selectedPhotoIds.clear(); selectedPickerScreenIds.clear(); persist(true);
     } else if (target.dataset.screenName) {
         const screen = screenById(target.dataset.screenName);
@@ -127,7 +128,31 @@ document.addEventListener('change', event => {
         handleFiles([...target.files]); target.value = '';
     } else if (target.id === 'jsonInput') {
         if (target.files[0]) importProjectData(target.files[0]); target.value = '';
+    } else if (target.dataset.action === 'change-story-category') {
+        const story = activeStory();
+        const category = normalizeStoryCategory(target.value);
+        if (!story || story.category === category) return;
+        story.category = category;
+        story.updatedAt = Date.now();
+        if (playerStoryCategoryFilter !== 'all' && playerStoryCategoryFilter !== category) playerStoryCategoryFilter = 'all';
+        persist(true);
+        toast(`Walkthrough categorized as “${category}”.`);
+    } else if (target.dataset.action === 'filter-player-stories') {
+        stopPlayback();
+        playerStoryCategoryFilter = normalizeStoryCategoryFilter(target.value);
+        const visibleStories = storiesForCategory(activeProject().stories, playerStoryCategoryFilter);
+        const story = activeStory();
+        const chosen = visibleStories.find(item => item.id === story?.id) || visibleStories[0];
+        playerIndex = 0;
+        if (chosen && chosen.id !== story?.id) {
+            activeProject().activeStoryId = chosen.id;
+            persist(true);
+        } else renderApp();
+    } else if (target.dataset.action === 'filter-export-stories') {
+        exportStoryCategoryFilter = normalizeStoryCategoryFilter(target.value);
+        renderApp();
     } else if (target.dataset.action === 'change-story') {
+        if (!activeProject().stories.some(story => story.id === target.value)) return;
         stopPlayback();
         activeProject().activeStoryId = target.value; playerIndex = 0; persist(true);
     } else if (target.dataset.transitionField) {

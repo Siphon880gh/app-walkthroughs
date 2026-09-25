@@ -39,7 +39,7 @@ function addScreenToStory(screenId) {
 
 function newStory(name) {
     const now = Date.now();
-    return {id:uid('story'),name,description:'A new documented product journey.',folder:selectedFolder || '',steps:[],settings:{defaultSpeed:1,autoAdvance:false,interactiveHotspots:true,showDeviceMockup:true,deviceType:'iphone'},createdAt:now,updatedAt:now};
+    return {id:uid('story'),name,description:'A new documented product journey.',category:DEFAULT_STORY_CATEGORY,folder:selectedFolder || '',steps:[],settings:{defaultSpeed:1,autoAdvance:false,interactiveHotspots:true,showDeviceMockup:true,deviceType:'iphone'},createdAt:now,updatedAt:now};
 }
 
 function moveStep(direction) {

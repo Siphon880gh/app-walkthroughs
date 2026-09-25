@@ -8,6 +8,7 @@ $('#projectForm').addEventListener('submit', event => {
     const project = {id:uid('proj'),name,description:String(data.get('description')||''),activeScreenshotId:'',activeStoryId:story.id,screenshots:[],folders:[{id:uid('folder'),app:name,platform:'Web',fullPath:`${name} / Web`},{id:uid('folder'),app:name,platform:'Mobile',fullPath:`${name} / Mobile`}],stories:[story],createdAt:now,updatedAt:now};
     stopPlayback();
     projects.push(project); activeProjectId = project.id; selectedFolder = null;
+    playerStoryCategoryFilter = 'all'; exportStoryCategoryFilter = 'all';
     selectedPhotoIds.clear(); selectedPickerScreenIds.clear(); persist();
     $('#projectDialog').close(); event.currentTarget.reset(); setView('screenshots'); toast(`Project “${name}” created.`);
 });

@@ -69,14 +69,13 @@ function seedProjects() {
     const now = Date.now();
     return [{
         id:'proj-orbit-pay', name:'Orbit Pay — Transfer', description:'A precision handoff for the instant transfer journey.',
-        demoSeedVersion:2, activeScreenshotId:screens[0].id, activeStoryId:'story-transfer', screenshots:screens,
+        demoSeedVersion:3, activeScreenshotId:screens[0].id, activeStoryId:'story-transfer', screenshots:screens,
         folders:[{id:'folder-ios',app:'Orbit Pay',platform:'iOS',fullPath:'Orbit Pay / iOS'},{id:'folder-web',app:'Orbit Pay',platform:'Web',fullPath:'Orbit Pay / Web'}],
         stories:[
-            {id:'story-transfer',name:'Send money flow',description:'From account overview to successful transfer.',folder:'Orbit Pay / iOS',steps,settings:{defaultSpeed:1,autoAdvance:false,interactiveHotspots:true,showDeviceMockup:true,deviceType:'iphone'},createdAt:now,updatedAt:now},
-            {id:'story-request',name:'Request dinner payment',description:'Choose a contact, set a request, and verify delivery.',folder:'Orbit Pay / iOS',steps:requestSteps,settings:{defaultSpeed:1,autoAdvance:false,interactiveHotspots:true,showDeviceMockup:true,deviceType:'iphone'},createdAt:now,updatedAt:now},
-            {id:'story-freeze-card',name:'Freeze a missing card',description:'Secure a missing card and verify transaction restrictions.',folder:'Orbit Pay / iOS',steps:cardSteps,settings:{defaultSpeed:1,autoAdvance:false,interactiveHotspots:true,showDeviceMockup:true,deviceType:'android'},createdAt:now,updatedAt:now}
+            {id:'story-transfer',name:'Send money flow',description:'From account overview to successful transfer.',category:'Finalized',folder:'Orbit Pay / iOS',steps,settings:{defaultSpeed:1,autoAdvance:false,interactiveHotspots:true,showDeviceMockup:true,deviceType:'iphone'},createdAt:now,updatedAt:now},
+            {id:'story-request',name:'Request dinner payment',description:'Choose a contact, set a request, and verify delivery.',category:'WIP - Editing',folder:'Orbit Pay / iOS',steps:requestSteps,settings:{defaultSpeed:1,autoAdvance:false,interactiveHotspots:true,showDeviceMockup:true,deviceType:'iphone'},createdAt:now,updatedAt:now},
+            {id:'story-freeze-card',name:'Freeze a missing card',description:'Secure a missing card and verify transaction restrictions.',category:'WIP - Collecting',folder:'Orbit Pay / iOS',steps:cardSteps,settings:{defaultSpeed:1,autoAdvance:false,interactiveHotspots:true,showDeviceMockup:true,deviceType:'android'},createdAt:now,updatedAt:now}
         ],
         createdAt:now,updatedAt:now
     }];
 }
-

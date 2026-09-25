@@ -10,6 +10,8 @@
     .studio-layout { grid-template-columns: 160px minmax(330px,1fr) 300px; }
     .story-layout { grid-template-columns: 225px minmax(330px,1fr) 290px; }
     .story-layout.files-right { grid-template-columns: minmax(330px,1fr) 225px 290px; }
+    .player-category-filter { width: 145px; }
+    .player-story-select { width: 155px; }
 }
 @media (max-width: 860px) {
     body { overflow: auto; }
@@ -58,6 +60,10 @@
     .player-main { grid-template-rows: 470px auto; }
     .player-stage { padding: 12px; }
     .narrative { padding: 17px 14px; }
+    .player-top { grid-template-columns: 1fr; }
+    .player-top .view-actions:last-child { justify-self: stretch; flex-wrap: wrap; }
+    .player-story-controls { width: 100%; }
+    .player-category-filter, .player-story-select { width: auto; min-width: 0; flex: 1; }
     .player-bottom { grid-template-columns: 1fr auto; }
     .timeline { grid-column: 1 / -1; grid-row: 1; }
     .player-time { display: none; }

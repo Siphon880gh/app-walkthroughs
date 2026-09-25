@@ -3,15 +3,39 @@ let activeProjectId = localStorage.getItem(APP.activeKey) || projects[0].id;
 
 function upgradeSeedProjects(projectList) {
     const target = projectList.find(project => project.id === 'proj-orbit-pay');
-    if (!target || Number(target.demoSeedVersion || 1) >= 2) return projectList;
+    if (!target || Number(target.demoSeedVersion || 1) >= 3) return false;
+    const version = Number(target.demoSeedVersion || 1);
     const template = seedProjects()[0];
-    const screenIds = new Set(target.screenshots.map(screen => screen.id));
-    const storyIds = new Set(target.stories.map(story => story.id));
-    template.screenshots.forEach(screen => { if (!screenIds.has(screen.id)) target.screenshots.push(screen); });
-    template.stories.forEach(story => { if (!storyIds.has(story.id)) target.stories.push(story); });
-    target.demoSeedVersion = 2;
+    if (version < 2) {
+        const screenIds = new Set(target.screenshots.map(screen => screen.id));
+        const storyIds = new Set(target.stories.map(story => story.id));
+        template.screenshots.forEach(screen => { if (!screenIds.has(screen.id)) target.screenshots.push(screen); });
+        template.stories.forEach(story => { if (!storyIds.has(story.id)) target.stories.push(story); });
+    }
+    template.stories.forEach(templateStory => {
+        const story = target.stories.find(item => item.id === templateStory.id);
+        if (story && !STORY_CATEGORIES.includes(story.category)) story.category = templateStory.category;
+    });
+    target.demoSeedVersion = 3;
     target.updatedAt = Date.now();
-    saveJson(APP.storageKey, projectList);
+    return true;
+}
+
+function normalizeProjectStoryCategories(project) {
+    let changed = false;
+    project.stories.forEach(story => {
+        const category = normalizeStoryCategory(story.category);
+        if (story.category === category) return;
+        story.category = category;
+        changed = true;
+    });
+    return changed;
+}
+
+function prepareProjects(projectList) {
+    let changed = upgradeSeedProjects(projectList);
+    projectList.forEach(project => { changed = normalizeProjectStoryCategories(project) || changed; });
+    if (changed) saveJson(APP.storageKey, projectList);
     return projectList;
 }
 
@@ -19,7 +43,7 @@ function loadProjects() {
     const saved = loadJson(APP.storageKey, []);
     if (Array.isArray(saved)) {
         const valid = saved.filter(isValidProject);
-        if (valid.length) return upgradeSeedProjects(valid);
+        if (valid.length) return prepareProjects(valid);
     }
     const seeded = seedProjects();
     saveJson(APP.storageKey, seeded);
@@ -83,9 +107,12 @@ function setView(view, historyMode = 'push') {
     if (!VIEW_SLUG[view]) view = 'screenshots';
     stopPlayback();
     if (view !== 'export') storyPickerOpen = false;
+    if (view === 'player') {
+        const story = activeStory();
+        if (playerStoryCategoryFilter !== 'all' && normalizeStoryCategory(story?.category) !== playerStoryCategoryFilter) playerStoryCategoryFilter = 'all';
+    }
     currentView = view;
     if (view !== 'player') playerIndex = 0;
     if (historyMode !== 'none') rememberViewUrl(historyMode === 'replace');
     renderApp();
 }
-

@@ -27,19 +27,19 @@ Draw on a screen with Select, Pin, Highlight, Box, Circle, Arrow, Text, and Spot
 
 ![Stories screen sequencing the Send money flow](docs/screenshots/stories.png)
 
-A walkthrough is an ordered list of steps. Add several photos at once, drag steps into sequence, or use the Earlier and Later controls for precise movement. Set the dwell time, transition, and hotspot, then preview the flow. The compact Photos action downloads the walkthrough’s unique images as a ZIP.
+A walkthrough is an ordered list of steps. Categorize each one as **WIP - Collecting**, **WIP - Editing**, or **Finalized**. Add several photos at once, drag steps into sequence, or use the Earlier and Later controls for precise movement. Set the dwell time, transition, and hotspot, then preview the flow. The compact Photos action downloads the walkthrough’s unique images as a ZIP.
 
 ## Player
 
 ![Player showing the Send money flow on a phone frame](docs/screenshots/player.png)
 
-Play the walkthrough inside a device frame. Narration reads the step aloud. Mute and narration settings, the sliders icon, live in the player header. Speech stops when you leave the player or switch to another project or walkthrough. A user-authored step title can be spoken, but a title that only repeats the source file name is skipped.
+Play the walkthrough inside a device frame. Filter the walkthrough selector by category or show all categories. Narration reads the step aloud. Mute and narration settings, the sliders icon, live in the player header. Speech stops when you leave the player or switch to another project or walkthrough. A user-authored step title can be spoken, but a title that only repeats the source file name is skipped.
 
 ## Export and Sync
 
 ![Export screen with share, download, and package details](docs/screenshots/export.png)
 
-Copy a share link, or download a standalone HTML player, a Markdown spec, or a JSON backup. Sync sits beside Export, set off by a divider. Its Sync to Demo action publishes every project in the profile to all current users of this server.
+Copy a share link, or download a standalone HTML player, a Markdown spec, or a JSON backup. The Current walkthrough popover can be filtered by category before choosing a flow. Sync sits beside Export, set off by a divider. Its Sync to Demo action publishes every project in the profile to all current users of this server.
 
 ## Run it
 

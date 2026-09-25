@@ -185,11 +185,14 @@ function importProjectData(file) {
             const parsed = JSON.parse(reader.result);
             const project = parsed.project || parsed;
             if (!isValidProject(project)) throw new Error('Unsupported project shape');
+            normalizeProjectStoryCategories(project);
             project.id = uid('proj-import');
             project.name = `${project.name} (Imported)`;
             projects.unshift(project);
             activeProjectId = project.id;
             selectedFolder = null;
+            playerStoryCategoryFilter = 'all';
+            exportStoryCategoryFilter = 'all';
             selectedPhotoIds.clear();
             selectedPickerScreenIds.clear();
             persist(true);
@@ -210,10 +213,13 @@ function ingestSharedHash() {
         const parsed = decodePayload(match[1]);
         const project = parsed.project;
         if (!isValidProject(project)) throw new Error('Invalid payload');
+        normalizeProjectStoryCategories(project);
         project.id = uid('shared-proj');
         project.name = `${project.name} (Shared)`;
         projects.unshift(project);
         activeProjectId = project.id;
+        playerStoryCategoryFilter = 'all';
+        exportStoryCategoryFilter = 'all';
         currentView = 'player';
         persist();
         toast('Shared walkthrough loaded locally.');
@@ -246,6 +252,7 @@ function demoProjectsFromPayload(payload, respectDismissed = true) {
     return sources.flatMap((source, index) => {
         if (!isValidProject(source)) return [];
         const incoming = structuredClone(source);
+        normalizeProjectStoryCategories(incoming);
         const alreadyShared = isSharedDemoProject(incoming);
         incoming.demoSourceId = String(incoming.demoSourceId || incoming.id);
         if (sources.length > 1 && !alreadyShared) incoming.id = `${SHARED_DEMO_ID}-${index + 1}`;
@@ -404,6 +411,8 @@ async function confirmResetProfile() {
         selectedAnnotationId = null;
         showAnnotatedScreens = true;
         pickerShowAnnotated = true;
+        playerStoryCategoryFilter = 'all';
+        exportStoryCategoryFilter = 'all';
         selectedPhotoIds.clear();
         selectedPickerScreenIds.clear();
         storyPickerOpen = false;

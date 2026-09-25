@@ -12,7 +12,11 @@
 .scope-switcher .scope-option { width: 100%; }
 .scope-chevron { position: absolute; left: 50%; bottom: -9px; transform: translateX(-50%); z-index: 2; width: 28px; height: 16px; border: 1px solid var(--border-strong); border-radius: 999px; background: #10192b; color: #93c5fd; font: 12px/1 var(--mono); }
 .scope-switcher.open .scope-chevron { border-color: var(--blue); background: var(--blue-strong); color: #fff; }
-.story-picker { position: absolute; top: calc(100% + 14px); left: 0; z-index: 6; display: grid; grid-auto-flow: column; grid-auto-columns: 148px; gap: 8px; width: min(480px, 70vw); max-width: 70vw; overflow-x: auto; padding: 8px; border: 1px solid var(--border-strong); border-radius: 8px; background: #0b1220; box-shadow: 0 18px 40px rgba(0,0,0,.5); }
+.story-picker { position: absolute; top: calc(100% + 14px); left: 0; z-index: 6; width: min(500px, 70vw); max-width: 70vw; padding: 9px; border: 1px solid var(--border-strong); border-radius: 8px; background: #0b1220; box-shadow: 0 18px 40px rgba(0,0,0,.5); }
+.story-picker-filter { display: grid; grid-template-columns: auto minmax(150px, 210px) 1fr; align-items: center; gap: 8px; padding: 2px 2px 9px; color: var(--dim); font: 700 8px/1 var(--mono); letter-spacing: .07em; }
+.story-picker-filter strong { justify-self: end; color: var(--muted); font: 700 8px/1 var(--mono); letter-spacing: .02em; }
+.story-picker-grid { display: grid; grid-auto-flow: column; grid-auto-columns: 148px; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
+.story-picker-empty { min-height: 112px; display: grid; place-items: center; border: 1px dashed var(--border); border-radius: 7px; color: var(--dim); font-size: 10px; }
 .story-pick { display: grid; gap: 6px; border: 1px solid var(--border); border-radius: 7px; background: #080e19; color: var(--text); text-align: left; padding: 7px; }
 .story-pick.selected, .story-pick:hover, .story-pick:focus-visible { border-color: var(--blue); }
 .story-pick-thumb { height: 84px; display: grid; place-items: center; overflow: hidden; border-radius: 4px; background: #050913; }

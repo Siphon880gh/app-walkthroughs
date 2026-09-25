@@ -115,6 +115,8 @@ document.addEventListener('click', event => {
         if (restored) projects = seedProjects();
         activeProjectId = projects[Math.min(index, projects.length - 1)].id;
         selectedFolder = null;
+        playerStoryCategoryFilter = 'all';
+        exportStoryCategoryFilter = 'all';
         selectedPhotoIds.clear();
         selectedPickerScreenIds.clear();
         persist();
@@ -280,6 +282,7 @@ document.addEventListener('click', event => {
     else if (action === 'player-prev') setPlayerIndex(playerIndex-1, false);
     else if (action === 'player-next' || action === 'hotspot-next') setPlayerIndex(playerIndex+1, isPlaying);
     else if (action === 'player-jump') setPlayerIndex(Number(target.dataset.index), isPlaying);
+    else if (action === 'clear-player-story-filter') { playerStoryCategoryFilter = 'all'; renderApp(); }
     else if (action === 'toggle-play') {
         if (isPlaying) { stopPlayback(); renderApp(); }
         else { isPlaying = true; renderApp(); startStepTimer(); }
