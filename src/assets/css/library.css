@@ -47,6 +47,18 @@
 .select-all { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font: 700 10px/1 var(--font); white-space: nowrap; cursor: pointer; }
 .photo-download { color: var(--muted); opacity: .78; }
 .photo-download:hover, .photo-download[aria-busy="true"] { color: #dbe6f4; opacity: 1; }
+.transfer-menu { position: relative; display: inline-flex; align-items: stretch; }
+.transfer-menu > .button { color: var(--muted); opacity: .78; }
+.transfer-menu > .button:hover, .transfer-menu > .button.active { color: #dbe6f4; opacity: 1; }
+.transfer-menu .transfer-main { border-radius: 6px 0 0 6px; padding-right: 6px; }
+.transfer-menu .transfer-toggle { width: 22px; padding: 0; border-radius: 0 6px 6px 0; }
+.transfer-menu .transfer-toggle svg { transition: transform .15s ease; }
+.transfer-menu .transfer-toggle.active svg { transform: rotate(180deg); }
+.transfer-menu .button:active { transform: none; }
+.transfer-menu .transfer-menu-panel { top: calc(100% + 6px); bottom: auto; width: 220px; max-height: 280px; overflow: auto; }
+.transfer-menu-head { padding: 2px 2px 4px; color: var(--dim); font: 700 9px/1.2 var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+.transfer-menu-panel .sync-option { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.transfer-menu-panel .sync-option[disabled] { cursor: not-allowed; opacity: .42; }
 .url-row.picked { background: #0c1730; }
 .upload-tray { position: fixed; z-index: 70; right: 16px; bottom: 16px; width: min(420px, calc(100vw - 270px)); }
 .upload-tray.is-collapsed { width: auto; }

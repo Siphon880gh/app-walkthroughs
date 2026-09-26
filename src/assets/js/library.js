@@ -49,6 +49,63 @@ function renderUrlList(screens, project) {
     }).join('')}</div>`;
 }
 
+function transferMenuItems(project) {
+    if (transferMenu === 'mode') return `<button type="button" class="sync-option" role="menuitem" data-action="open-transfer" data-mode="move">Move to…</button><button type="button" class="sync-option" role="menuitem" data-action="open-transfer" data-mode="copy">Copy to…</button>`;
+    if (transferMenu !== 'move' && transferMenu !== 'copy') return '';
+    const picked = project.screenshots.filter(screen => selectedPhotoIds.has(screen.id));
+    const verb = transferMenu === 'move' ? 'Move' : 'Copy';
+    const head = `<div class="transfer-menu-head">${verb} ${picked.length} photo${picked.length === 1 ? '' : 's'} to</div>`;
+    const folders = project.folders || [];
+    if (!folders.length) return `${head}<p class="sync-warning">Add an app / platform folder first.</p>`;
+    return head + folders.map(folder => {
+        const alreadyThere = transferMenu === 'move' && picked.every(screen => screen.folder === folder.fullPath);
+        return `<button type="button" class="sync-option" role="menuitem" data-action="transfer-photos" data-mode="${transferMenu}" data-folder="${esc(folder.fullPath)}" ${alreadyThere ? 'disabled title="The selected photos are already here"' : ''}>${esc(folder.fullPath)}</button>`;
+    }).join('');
+}
+
+function setTransferMenu(mode) {
+    transferMenu = mode;
+    const panel = $('#transferMenu');
+    if (!panel) return;
+    panel.innerHTML = transferMenuItems(activeProject());
+    panel.hidden = !mode;
+    [['#transferMoveButton', mode === 'move'], ['#transferModeButton', mode === 'mode']].forEach(([selector, open]) => {
+        const button = $(selector);
+        if (!button) return;
+        button.classList.toggle('active', open);
+        button.setAttribute('aria-expanded', String(open));
+    });
+}
+
+function transferPhotos(mode, fullPath) {
+    const project = activeProject();
+    const folder = project.folders.find(item => item.fullPath === fullPath);
+    if (!folder) return;
+    const picked = project.screenshots.filter(screen => selectedPhotoIds.has(screen.id));
+    const tagsFor = screen => [slug(folder.app), slug(folder.platform), ...(screen.tags || []).filter(tag => tag !== slug(screen.app || '') && tag !== slug(screen.platform || ''))];
+    const place = screen => Object.assign(screen, {folder:folder.fullPath, app:folder.app, platform:folder.platform, tags:tagsFor(screen)});
+    let count = 0;
+    if (mode === 'copy') {
+        picked.forEach(screen => {
+            const copy = place(structuredClone(screen));
+            copy.id = uid('screen');
+            copy.uploadedAt = Date.now();
+            project.screenshots.push(copy);
+            count++;
+        });
+    } else {
+        picked.forEach(screen => {
+            if (screen.folder === folder.fullPath) return;
+            place(screen);
+            count++;
+        });
+    }
+    transferMenu = null;
+    selectedPhotoIds.clear();
+    persist(true);
+    toast(`${mode === 'copy' ? 'Copied' : 'Moved'} ${count} photo${count === 1 ? '' : 's'} to ${folder.fullPath}.`);
+}
+
 function renderLibrary() {
     const project = activeProject();
     const annotatedCount = annotatedInScope(project).length;
@@ -59,7 +116,8 @@ function renderLibrary() {
     const selectAll = screens.length ? `<label class="select-all"><input class="url-check" type="checkbox" data-action="select-all-photos" data-ids="${esc(screens.map(screen => screen.id).join(' '))}" ${allPicked ? 'checked' : ''}>Select all</label>` : '';
     const copySelected = libraryListMode && selectedUrls.length ? `<button type="button" class="button ghost small" data-action="copy-selected-urls">Copy URLs <span class="count-pill">${selectedUrls.length}</span></button>` : '';
     const downloadSelected = selectedPhotos.length ? `<button type="button" class="button ghost small photo-download" data-action="download-library-photos" title="Download selected photos as a ZIP file">↓ ZIP <span class="count-pill">${selectedPhotos.length}</span></button>` : '';
-    const bulkTools = `${downloadSelected}${copySelected}${selectAll}`;
+    const transferSelected = selectedPhotos.length ? `<div class="transfer-menu"><button type="button" class="button ghost small transfer-main ${transferMenu === 'move' ? 'active' : ''}" id="transferMoveButton" data-action="open-transfer" data-mode="move" aria-haspopup="menu" aria-expanded="${transferMenu === 'move' ? 'true' : 'false'}" aria-controls="transferMenu" title="Move selected photos to another app / platform">Move to</button><button type="button" class="button ghost small transfer-toggle ${transferMenu === 'mode' ? 'active' : ''}" id="transferModeButton" data-action="open-transfer" data-mode="mode" aria-haspopup="menu" aria-expanded="${transferMenu === 'mode' ? 'true' : 'false'}" aria-controls="transferMenu" aria-label="Choose Move to or Copy to"><svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="sync-menu-panel transfer-menu-panel" id="transferMenu" role="menu" ${transferMenu ? '' : 'hidden'}>${transferMenuItems(project)}</div></div>` : '';
+    const bulkTools = `${downloadSelected}${transferSelected}${copySelected}${selectAll}`;
     const cards = screens.map(screen => {
         const notes = screen.annotations?.length ? `<div class="annotation-layer">${annotationMarkup(screen.annotations)}</div>` : '';
         const kind = screen.annotated ? '<span class="tag">Annotated</span>' : `<span class="tag">${esc(screen.platform)}</span>`;

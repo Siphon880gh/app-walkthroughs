@@ -15,7 +15,7 @@ The app opens with a sample project, Orbit Pay, so you can click through a finis
 
 ![Screenshot library with the Orbit Pay sample screens](docs/screenshots/library.png)
 
-Drop, paste, or upload screenshots, or choose Enter URL from the arrow beside Upload screens to add an image from the web. Folders group them by app and platform, such as Orbit Pay / iOS; the pencil beside a folder renames its app and platform. Select multiple cards to download their original images together as a ZIP. The project menu sits beside New project.
+Drop, paste, or upload screenshots, or choose Enter URL from the arrow beside Upload screens to add an image from the web. Folders group them by app and platform, such as Orbit Pay / iOS; the pencil beside a folder renames its app and platform. Select multiple cards to download their original images together as a ZIP, or use Move to beside it to send them to another app / platform folder; its arrow switches to Copy to, which leaves the originals in place. The project menu sits beside New project.
 
 ## Annotate
 

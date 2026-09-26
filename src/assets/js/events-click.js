@@ -32,6 +32,7 @@ document.addEventListener('click', event => {
     const target = event.target.closest('[data-action], [data-view]');
     if (syncMenuOpen && !event.target.closest('.sync-menu')) setSyncMenu(false);
     if (uploadMenuOpen && !event.target.closest('.upload-menu')) setUploadMenu(false);
+    if (transferMenu && !event.target.closest('.transfer-menu')) setTransferMenu(null);
     if (storyMenuOpen && !event.target.closest('.story-more-menu')) setStoryMenu(false);
     if (!event.target.closest('.title-with-info')) closeInfoNotes();
     if (storyPickerOpen && !event.target.closest('.scope-switcher')) {
@@ -82,6 +83,13 @@ document.addEventListener('click', event => {
         const screens = project.screenshots.filter(screen => selectedPhotoIds.has(screen.id));
         downloadPhotoArchive(screens, `${slug(project.name)}-photos.zip`, target);
     }
+    else if (action === 'open-transfer') {
+        const mode = target.dataset.mode;
+        const fromChooser = transferMenu === 'mode' && mode !== 'mode';
+        setTransferMenu(transferMenu === mode && !fromChooser ? null : mode);
+        $('#transferMenu .sync-option:not([disabled])')?.focus();
+    }
+    else if (action === 'transfer-photos') transferPhotos(target.dataset.mode, target.dataset.folder || '');
     else if (action === 'close-url-dialog') $('#urlDialog').close();
     else if (action === 'select-folder') { selectedFolder = target.dataset.folder || null; renderApp(); }
     else if (action === 'add-folder') {
