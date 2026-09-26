@@ -90,6 +90,23 @@ document.addEventListener('click', event => {
         setTransferMenu(transferMenu === mode && !fromChooser ? null : mode);
         $('#transferMenu .sync-option:not([disabled])')?.focus();
     }
+    else if (action === 'delete-library-photos') {
+        const screens = project.screenshots.filter(screen => selectedPhotoIds.has(screen.id));
+        if (!screens.length) return;
+        const screenIds = new Set(screens.map(screen => screen.id));
+        const stepCount = project.stories.reduce((sum, story) => sum + story.steps.filter(step => screenIds.has(step.screenId)).length, 0);
+        const detail = stepCount ? ` and ${stepCount} linked walkthrough step${stepCount === 1 ? '' : 's'}` : '';
+        if (!confirm(`Delete ${screens.length} photo${screens.length === 1 ? '' : 's'}${detail}?`)) return;
+        project.screenshots = project.screenshots.filter(screen => !screenIds.has(screen.id));
+        project.stories.forEach(story => {
+            story.steps = story.steps.filter(step => !screenIds.has(step.screenId));
+            if (!story.steps.some(step => step.id === story.activeStepId)) story.activeStepId = story.steps[0]?.id || '';
+        });
+        screenIds.forEach(id => { forgetAnnotationHistory(id); selectedPhotoIds.delete(id); selectedPickerScreenIds.delete(id); });
+        if (!project.screenshots.some(screen => screen.id === project.activeScreenshotId)) project.activeScreenshotId = project.screenshots[0]?.id || '';
+        persist(true);
+        toast(`Deleted ${screens.length} photo${screens.length === 1 ? '' : 's'}${detail}.`);
+    }
     else if (action === 'transfer-photos') transferPhotos(target.dataset.mode, target.dataset.folder || '');
     else if (action === 'close-url-dialog') $('#urlDialog').close();
     else if (action === 'select-folder') { selectedFolder = target.dataset.folder || null; renderApp(); }
