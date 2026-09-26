@@ -114,6 +114,33 @@ document.addEventListener('click', event => {
         persist(true);
         toast(`Folder “${fullPath}” deleted.`);
     }
+    else if (action === 'rename-folder') {
+        const oldPath = target.dataset.folder || '';
+        const folder = project.folders.find(item => item.fullPath === oldPath);
+        if (!folder) return;
+        const input = prompt('Rename folder as App / Platform:', folder.fullPath);
+        if (input === null) return;
+        const [appPart, ...platformParts] = input.split('/').map(part => part.trim());
+        const app = platformParts.length ? appPart : folder.app;
+        const platform = platformParts.length ? platformParts.join(' / ') : appPart;
+        if (!app || !platform) { toast('Enter both an app and a platform, like “Orbit Pay / iOS”.', 'warn'); return; }
+        const fullPath = `${app} / ${platform}`;
+        if (fullPath === oldPath) return;
+        if (project.folders.some(item => item !== folder && item.fullPath === fullPath)) { toast('That folder already exists.', 'warn'); return; }
+        const renameTag = tag => tag === slug(folder.app) ? slug(app) : tag === slug(folder.platform) ? slug(platform) : tag;
+        project.screenshots.forEach(screen => {
+            if (screen.folder !== oldPath) return;
+            screen.folder = fullPath;
+            screen.app = app;
+            screen.platform = platform;
+            if (Array.isArray(screen.tags)) screen.tags = screen.tags.map(renameTag);
+        });
+        project.stories.forEach(story => { if (story.folder === oldPath) story.folder = fullPath; });
+        Object.assign(folder, {app, platform, fullPath});
+        if (selectedFolder === oldPath) selectedFolder = fullPath;
+        persist(true);
+        toast(`Folder renamed to “${fullPath}”.`);
+    }
     else if (action === 'delete-project') {
         if (!confirm(`Delete “${project.name}”? This removes its screens and walkthroughs from this browser.`)) return;
         stopPlayback();

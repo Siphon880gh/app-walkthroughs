@@ -48,10 +48,12 @@
 .folder-row:hover { background: var(--raised); color: var(--text); }
 .folder-row.active { background: var(--blue-soft); color: #bfdbfe; box-shadow: inset 0 0 0 1px rgba(59,130,246,.22); }
 .folder-row .count { color: var(--dim); font: 10px/1 var(--mono); }
-.folder-item { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; }
+.folder-item { display: grid; grid-template-columns: minmax(0,1fr) auto auto; align-items: center; }
 .folder-item .folder-row { min-width: 0; }
-.folder-delete { width: 24px; height: 24px; margin-right: 4px; border: 0; border-radius: 5px; background: transparent; color: var(--dim); opacity: 0; font: 14px/1 var(--mono); }
-.folder-item:hover .folder-delete, .folder-item:focus-within .folder-delete, .folder-item.active .folder-delete { opacity: 1; }
+.folder-rename, .folder-delete { width: 24px; height: 24px; margin-right: 4px; border: 0; border-radius: 5px; background: transparent; color: var(--dim); opacity: 0; font: 14px/1 var(--mono); }
+.folder-rename { margin-right: 0; font-size: 12px; }
+.folder-item:hover :is(.folder-rename, .folder-delete), .folder-item:focus-within :is(.folder-rename, .folder-delete), .folder-item.active :is(.folder-rename, .folder-delete) { opacity: 1; }
+.folder-rename:hover { color: var(--text); background: var(--raised); }
 .folder-delete:hover { color: #fecaca; background: rgba(239,68,68,.12); }
 .tree-label { padding: 13px 8px 6px; color: var(--dim); font: 700 9px/1 var(--mono); letter-spacing: .11em; text-transform: uppercase; }
 .local-note { margin: auto 10px 12px; padding: 12px; border-top: 1px solid var(--border); color: var(--dim); font-size: 10px; line-height: 1.55; }
