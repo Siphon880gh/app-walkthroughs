@@ -269,6 +269,8 @@ document.addEventListener('click', event => {
     else if (action === 'undo-annotation') undoAnnotations();
     else if (action === 'redo-annotation') redoAnnotations();
     else if (action === 'toggle-remove-handles') { showRemoveHandles = !showRemoveHandles; renderApp(); }
+    else if (action === 'toggle-canvas-fit') { canvasFitOpen = !canvasFitOpen; renderApp(); }
+    else if (action === 'canvas-fit') { canvasFit = canvasFit === target.dataset.fit ? 'auto' : target.dataset.fit; canvasFitOpen = false; renderApp(); }
     else if (action === 'delete-annotation') removeAnnotation(target.dataset.id);
     else if (action === 'clear-annotations') {
         const screen = activeScreen();

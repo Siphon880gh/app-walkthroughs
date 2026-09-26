@@ -417,6 +417,8 @@ async function confirmResetProfile() {
         playerIndex = 0;
         draftAnnotation = null;
         showRemoveHandles = false;
+        canvasFit = 'auto';
+        canvasFitOpen = false;
         selectedAnnotationId = null;
         showAnnotatedScreens = true;
         pickerShowAnnotated = true;

@@ -32,6 +32,17 @@
 .canvas-wrap.mobile img { height: 100%; width: auto; }
 .canvas-wrap.desktop { width: min(100%, 900px); }
 .canvas-wrap img { max-height: 100%; max-width: 100%; object-fit: contain; pointer-events: none; }
+.stage-area { position: relative; min-height: 0; display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); }
+.stage.fit-height, .stage.fit-width { place-items: safe center; }
+.stage.fit-height { grid-template-rows: minmax(0, 1fr); }
+.stage.fit-width { grid-template-columns: minmax(0, 1fr); }
+.canvas-wrap.fit-height { height: 100%; width: auto; max-width: none; }
+.canvas-wrap.fit-height img { display: block; height: 100%; width: auto; max-width: none; }
+.canvas-wrap.fit-width { width: 100%; height: auto; max-width: none; max-height: none; }
+.canvas-wrap.fit-width img { display: block; width: 100%; height: auto; max-height: none; }
+.canvas-fit { position: absolute; top: 10px; right: 14px; z-index: 50; padding: 3px; border: 1px solid var(--border); border-radius: 7px; background: rgba(11,18,32,.92); box-shadow: 0 6px 18px rgba(0,0,0,.4); }
+.canvas-fit.open .canvas-fit-toggle { margin-left: 2px; }
+.canvas-fit-toggle { padding: 0 7px; }
 .annotation-layer { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .ann { position: absolute; pointer-events: none; }
 .ann.rect, .ann.circle, .ann.highlight, .ann.spotlight { border: var(--ann-stroke, 3px) solid var(--ann-color); }
