@@ -33,6 +33,7 @@ document.addEventListener('click', event => {
     if (syncMenuOpen && !event.target.closest('.sync-menu')) setSyncMenu(false);
     if (uploadMenuOpen && !event.target.closest('.upload-menu')) setUploadMenu(false);
     if (transferMenu && !event.target.closest('.transfer-menu')) setTransferMenu(null);
+    if (folderMenuPath !== null && !event.target.closest('.folder-menu')) setFolderMenu(null);
     if (storyMenuOpen && !event.target.closest('.story-more-menu')) setStoryMenu(false);
     if (!event.target.closest('.title-with-info')) closeInfoNotes();
     if (storyPickerOpen && !event.target.closest('.scope-switcher')) {
@@ -101,7 +102,13 @@ document.addEventListener('click', event => {
         selectedFolder = fullPath;
         persist(true);
     }
+    else if (action === 'toggle-folder-menu') {
+        const fullPath = target.dataset.folder || '';
+        setFolderMenu(folderMenuPath === fullPath ? null : fullPath);
+        if (folderMenuPath !== null) $('.sync-option', target.closest('.folder-menu'))?.focus();
+    }
     else if (action === 'delete-folder') {
+        setFolderMenu(null);
         const fullPath = target.dataset.folder || '';
         const folder = project.folders.find(item => item.fullPath === fullPath);
         if (!folder) return;
@@ -123,6 +130,7 @@ document.addEventListener('click', event => {
         toast(`Folder “${fullPath}” deleted.`);
     }
     else if (action === 'rename-folder') {
+        setFolderMenu(null);
         const oldPath = target.dataset.folder || '';
         const folder = project.folders.find(item => item.fullPath === oldPath);
         if (!folder) return;

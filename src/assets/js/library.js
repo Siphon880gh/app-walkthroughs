@@ -4,9 +4,22 @@ function folderSidebar() {
     const rows = folders.map(folder => {
         const count = project.screenshots.filter(screen => screen.folder === folder.fullPath).length;
         const active = selectedFolder === folder.fullPath;
-        return `<div class="folder-item ${active ? 'active' : ''}"><button class="folder-row ${active ? 'active':''}" data-action="select-folder" data-folder="${esc(folder.fullPath)}"><span aria-hidden="true">⌑</span><span>${esc(folder.fullPath)}</span><span class="count">${count}</span></button><button type="button" class="folder-rename" data-action="rename-folder" data-folder="${esc(folder.fullPath)}" aria-label="Rename ${esc(folder.fullPath)}" title="Rename app / platform">✎</button><button type="button" class="folder-delete" data-action="delete-folder" data-folder="${esc(folder.fullPath)}" aria-label="Delete ${esc(folder.fullPath)}">×</button></div>`;
+        const menuOpen = folderMenuPath === folder.fullPath;
+        return `<div class="folder-item ${active ? 'active' : ''}${menuOpen ? ' menu-open' : ''}"><button class="folder-row ${active ? 'active':''}" data-action="select-folder" data-folder="${esc(folder.fullPath)}"><span aria-hidden="true">⌑</span><span>${esc(folder.fullPath)}</span><span class="count">${count}</span></button><div class="folder-menu"><button type="button" class="folder-more ${menuOpen ? 'active' : ''}" data-action="toggle-folder-menu" data-folder="${esc(folder.fullPath)}" aria-haspopup="menu" aria-expanded="${menuOpen ? 'true' : 'false'}" aria-label="Actions for ${esc(folder.fullPath)}" title="Folder actions">⋯</button><div class="sync-menu-panel folder-menu-panel" role="menu" ${menuOpen ? '' : 'hidden'}><button type="button" class="sync-option" role="menuitem" data-action="rename-folder" data-folder="${esc(folder.fullPath)}">Rename…</button><button type="button" class="sync-option danger" role="menuitem" data-action="delete-folder" data-folder="${esc(folder.fullPath)}">Delete…</button></div></div></div>`;
     }).join('');
     return `<aside class="sidebar"><div class="sidebar-head"><div><div class="eyebrow">Project explorer</div><div class="sidebar-title">Folders</div></div><button class="button ghost icon-only" data-action="add-folder" aria-label="Add folder">＋</button></div><div class="sidebar-scroll"><button class="folder-row ${selectedFolder === null ? 'active':''}" data-action="select-folder" data-folder=""><span>▦</span><span>All screens</span><span class="count">${project.screenshots.length}</span></button><div class="tree-label">App / platform</div>${rows || '<p style="color:var(--dim);font-size:10px;padding:8px">No folders yet.</p>'}</div><div class="local-note"><strong><span class="status-dot"></span>Server screenshots</strong>Uploaded images are saved on this server. Project notes stay in this browser.</div></aside>`;
+}
+
+function setFolderMenu(fullPath) {
+    folderMenuPath = fullPath;
+    $$('.folder-menu').forEach(menu => {
+        const button = $('.folder-more', menu);
+        const open = fullPath !== null && button.dataset.folder === fullPath;
+        $('.folder-menu-panel', menu).hidden = !open;
+        button.classList.toggle('active', open);
+        button.setAttribute('aria-expanded', String(open));
+        menu.closest('.folder-item')?.classList.toggle('menu-open', open);
+    });
 }
 
 function annotatedInScope(project) {

@@ -13,6 +13,12 @@ document.addEventListener('keydown', event => {
         $('#uploadMenuButton')?.focus();
         return;
     }
+    if (event.key === 'Escape' && folderMenuPath !== null) {
+        const opener = $$('.folder-more').find(button => button.dataset.folder === folderMenuPath);
+        setFolderMenu(null);
+        opener?.focus();
+        return;
+    }
     if (event.key === 'Escape' && transferMenu) {
         const opener = transferMenu === 'move' ? '#transferMoveButton' : '#transferModeButton';
         setTransferMenu(null);

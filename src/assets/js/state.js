@@ -63,6 +63,7 @@ let syncMenuOpen = false;
 let uploadMenuOpen = false;
 // null (closed), 'mode' (Move/Copy chooser), 'move', or 'copy' (destination folders).
 let transferMenu = null;
+let folderMenuPath = null;
 let storyMenuOpen = false;
 let libraryListMode = false;
 const selectedPhotoIds = new Set();
