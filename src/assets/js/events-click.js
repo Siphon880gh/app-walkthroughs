@@ -18,6 +18,32 @@ function setUploadMenu(open) {
     button.classList.toggle('active', open);
 }
 
+function refreshLibraryView() {
+    const scroll = $('.library-scroll')?.scrollTop || 0;
+    const trayScroll = $('.upload-tray-list')?.scrollTop || 0;
+    renderApp();
+    const next = $('.library-scroll');
+    if (next) next.scrollTop = scroll;
+    const nextTray = $('.upload-tray-list');
+    if (nextTray) nextTray.scrollTop = trayScroll;
+}
+
+function photoIdsInSelectionRange(box) {
+    const boxes = $$('.library-scroll [data-action="toggle-photo-select"]');
+    const end = boxes.indexOf(box);
+    if (end < 0) return [box.dataset.id];
+    let start = librarySelectAnchor ? boxes.findIndex(item => item.dataset.id === librarySelectAnchor) : end;
+    if (start < 0) start = end;
+    const [from, to] = start < end ? [start, end] : [end, start];
+    return [...new Set(boxes.slice(from, to + 1).map(item => item.dataset.id))];
+}
+
+function applyLibraryPhotoSelection(ids, checked, anchorId) {
+    ids.filter(Boolean).forEach(id => { if (checked) selectedPhotoIds.add(id); else selectedPhotoIds.delete(id); });
+    if (anchorId) librarySelectAnchor = anchorId;
+    refreshLibraryView();
+}
+
 function setStoryMenu(open) {
     storyMenuOpen = open;
     const panel = $('#storyMenu');
@@ -39,6 +65,17 @@ document.addEventListener('click', event => {
     if (storyPickerOpen && !event.target.closest('.scope-switcher')) {
         storyPickerOpen = false;
         if (!target) { renderApp(); return; }
+    }
+    const photoRow = event.target.closest('.photo-row');
+    if (photoRow && !event.target.closest('button, input, textarea, a, label, .screen-tag')) {
+        const box = $('[data-action="toggle-photo-select"]', photoRow);
+        if (box) {
+            if (event.shiftKey) event.preventDefault();
+            const checked = !selectedPhotoIds.has(box.dataset.id);
+            const ids = event.shiftKey ? photoIdsInSelectionRange(box) : [box.dataset.id];
+            applyLibraryPhotoSelection(ids, checked, event.shiftKey ? '' : box.dataset.id);
+        }
+        return;
     }
     if (!target) return;
     if (target.dataset.view) {
@@ -71,7 +108,13 @@ document.addEventListener('click', event => {
     }
     else if (action === 'toggle-upload-menu') setUploadMenu(!uploadMenuOpen);
     else if (action === 'enter-url') { setUploadMenu(false); openUrlDialog(); }
-    else if (action === 'toggle-url-list') { libraryListMode = !libraryListMode; renderApp(); }
+    else if (action === 'set-library-view') {
+        const view = target.dataset.libraryView;
+        if (!['grid', 'list', 'urls'].includes(view) || view === libraryView) return;
+        libraryView = view;
+        localStorage.setItem(APP.libraryViewKey, libraryView);
+        refreshLibraryView();
+    }
     else if (action === 'paste-url') pasteClipboardUrls();
     else if (action === 'toggle-upload-tray') {
         sessionUploadOpen = !sessionUploadOpen;
@@ -81,15 +124,11 @@ document.addEventListener('click', event => {
     else if (action === 'copy-screen-url') { if (target.dataset.url) copyText(target.dataset.url, 'Image URL copied.'); }
     else if (['toggle-photo-select','toggle-url-select','select-all-photos','select-all-urls'].includes(action)) {
         const selectsMany = action === 'select-all-photos' || action === 'select-all-urls';
-        const ids = selectsMany ? (target.dataset.ids || '').split(' ').filter(Boolean) : [target.dataset.id];
-        ids.forEach(id => { if (target.checked) selectedPhotoIds.add(id); else selectedPhotoIds.delete(id); });
-        const scroll = $('.library-scroll')?.scrollTop || 0;
-        const trayScroll = $('.upload-tray-list')?.scrollTop || 0;
-        renderApp();
-        const next = $('.library-scroll');
-        if (next) next.scrollTop = scroll;
-        const nextTray = $('.upload-tray-list');
-        if (nextTray) nextTray.scrollTop = trayScroll;
+        const range = !selectsMany && action === 'toggle-photo-select' && event.shiftKey;
+        const ids = selectsMany
+            ? (target.dataset.ids || '').split(' ').filter(Boolean)
+            : range ? photoIdsInSelectionRange(target) : [target.dataset.id];
+        applyLibraryPhotoSelection(ids, target.checked, !selectsMany && !range ? target.dataset.id : '');
     }
     else if (action === 'copy-selected-urls') {
         const urls = target.dataset.scope === 'tray'

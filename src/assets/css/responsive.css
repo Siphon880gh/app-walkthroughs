@@ -53,6 +53,8 @@
     .search { flex: 1; width: auto; }
     .library-scroll { padding: 14px; }
     .screen-grid { grid-template-columns: 1fr 1fr; gap: 9px; }
+    .photo-row { grid-template-columns: 32px 40px minmax(0,1fr); }
+    .photo-row-actions { grid-column: 1 / -1; justify-content: flex-end; opacity: 1; }
     .screen-preview { height: 190px; }
     .card-actions { opacity: 1; transform: none; }
     .photo-picker-controls, .photo-picker-bar { align-items: stretch; flex-direction: column; }
