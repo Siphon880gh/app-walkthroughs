@@ -41,11 +41,19 @@ document.addEventListener('click', event => {
         if (!target) { renderApp(); return; }
     }
     if (!target) return;
-    if (target.dataset.view) { setView(target.dataset.view); return; }
+    if (target.dataset.view) {
+        if (target.dataset.view === 'editor') beginAnnotatingScreen(activeScreen()?.id);
+        else setView(target.dataset.view);
+        return;
+    }
     const action = target.dataset.action;
     const project = activeProject();
 
-    if (['screenshots','editor','stories','player','export'].includes(action)) { setView(action); return; }
+    if (['screenshots','editor','stories','player','export'].includes(action)) {
+        if (action === 'editor') beginAnnotatingScreen(activeScreen()?.id);
+        else setView(action);
+        return;
+    }
 
     if (action === 'new-project') $('#projectDialog').showModal();
     else if (action === 'close-project-dialog') $('#projectDialog').close();
@@ -201,8 +209,10 @@ document.addEventListener('click', event => {
         setView('screenshots');
         toast(restored ? `Project “${name}” deleted. The sample project is back because it was the last one.` : `Project “${name}” deleted.`);
     }
-    else if (action === 'edit-screen') { project.activeScreenshotId = target.dataset.id; persist(); setView('editor'); }
-    else if (action === 'select-screen') { selectedAnnotationId = null; project.activeScreenshotId = target.dataset.id; persist(true); }
+    else if (action === 'edit-screen') beginAnnotatingScreen(target.dataset.id);
+    else if (action === 'select-screen') beginAnnotatingScreen(target.dataset.id);
+    else if (action === 'close-annotation-story') closeAnnotationStoryDialog();
+    else if (action === 'choose-annotation-story') openAnnotatedVersion(pendingAnnotationScreenId, target.dataset.storyId);
     else if (action === 'duplicate-screen') {
         const original = screenById(target.dataset.id);
         if (!original) return;

@@ -74,6 +74,7 @@ let folderMenuPath = null;
 let storyMenuOpen = false;
 let libraryListMode = false;
 let libraryStoryFilter = 'all';
+let pendingAnnotationScreenId = null;
 const selectedPhotoIds = new Set();
 const selectedPickerScreenIds = new Set();
 const selectedStoryStepIds = new Set();

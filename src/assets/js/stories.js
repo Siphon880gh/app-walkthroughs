@@ -190,7 +190,9 @@ function hotspotMarkup(step, player = false) {
 }
 
 function screenInnerMarkup(screen, step, player = false) {
-    const annotations = step?.annotations?.length ? step.annotations : (screen?.annotations || []);
+    const annotations = screen?.annotated
+        ? (screen.annotations || [])
+        : (step?.annotations?.length ? step.annotations : (screen?.annotations || []));
     return `<img src="${safeImage(screen.dataUrl)}" alt="${esc(screen.name)}"><div class="annotation-layer">${annotationMarkup(annotations)}</div>${hotspotMarkup(step, player)}`;
 }
 

@@ -26,13 +26,102 @@ function annotatedInScope(project) {
     return project.screenshots.filter(screen => screen.annotated && (!selectedFolder || screen.folder === selectedFolder));
 }
 
+function storyReferencesForScreen(project, screenId) {
+    return project.stories.flatMap(story => {
+        const steps = story.steps.filter(step => step.screenId === screenId);
+        return steps.length ? [{story, steps}] : [];
+    });
+}
+
+function annotatedVersionName(project, name) {
+    const extension = String(name).match(/(\.[^.]+)$/)?.[1] || '';
+    const stem = extension ? String(name).slice(0, -extension.length) : String(name);
+    const base = stem.replace(/ annotated(?: \d+)?$/i, '');
+    let candidate = `${base} annotated${extension}`;
+    let number = 2;
+    const names = new Set(project.screenshots.map(screen => screen.name.toLowerCase()));
+    while (names.has(candidate.toLowerCase())) candidate = `${base} annotated ${number++}${extension}`;
+    return candidate;
+}
+
+function closeAnnotationStoryDialog() {
+    pendingAnnotationScreenId = null;
+    const dialog = $('#annotationStoryDialog');
+    if (dialog?.open) dialog.close();
+}
+
+function renderAnnotationStoryChoices(screenId) {
+    const project = activeProject();
+    const screen = screenById(screenId);
+    const body = $('#annotationStoryChoices');
+    if (!screen || !body) return;
+    const references = storyReferencesForScreen(project, screenId);
+    body.innerHTML = references.map(({story, steps}) => `<button type="button" class="annotation-story-choice" data-action="choose-annotation-story" data-story-id="${esc(story.id)}"><span><strong>${esc(story.name)}</strong><small>${steps.length} linked step${steps.length === 1 ? '' : 's'}</small></span><span aria-hidden="true">→</span></button>`).join('');
+}
+
+function openAnnotatedVersion(screenId, storyId = '') {
+    const project = activeProject();
+    const source = screenById(screenId);
+    if (!source) return;
+    const references = storyReferencesForScreen(project, screenId);
+    const selectedReference = storyId ? references.find(item => item.story.id === storyId) : null;
+    if (storyId && !selectedReference) return;
+
+    const canEditExisting = source.annotated && (
+        !storyId ||
+        (references.length === 1 && (!source.annotationStoryId || source.annotationStoryId === storyId))
+    );
+    let target = source;
+    if (!canEditExisting) {
+        target = structuredClone(source);
+        target.id = uid('screen');
+        target.name = annotatedVersionName(project, source.name);
+        target.annotated = true;
+        target.sourceScreenId = source.sourceScreenId || source.id;
+        target.annotationStoryId = storyId || '';
+        target.uploadedAt = Date.now();
+        target.annotations = structuredClone(source.annotations || []);
+        const index = project.screenshots.findIndex(screen => screen.id === source.id);
+        project.screenshots.splice(Math.max(index, 0) + 1, 0, target);
+        if (selectedReference) {
+            selectedReference.steps.forEach(step => {
+                step.screenId = target.id;
+                step.annotations = [];
+            });
+            project.activeStoryId = selectedReference.story.id;
+        }
+    }
+
+    closeAnnotationStoryDialog();
+    selectedAnnotationId = null;
+    project.activeScreenshotId = target.id;
+    showAnnotatedScreens = true;
+    persist();
+    setView('editor');
+    if (target !== source) toast(storyId ? `Created an annotated version for “${selectedReference.story.name}”.` : 'Created an annotated version.');
+}
+
+function beginAnnotatingScreen(screenId) {
+    const project = activeProject();
+    const screen = screenById(screenId);
+    if (!screen) return;
+    const references = storyReferencesForScreen(project, screenId);
+    if (references.length > 1) {
+        pendingAnnotationScreenId = screenId;
+        renderAnnotationStoryChoices(screenId);
+        $('#annotationStoryDialog').showModal();
+        return;
+    }
+    openAnnotatedVersion(screenId, references[0]?.story.id || '');
+}
+
 function saveAnnotatedScreen() {
     const screen = activeScreen();
     if (!screen) return;
     screen.annotated = true;
     showAnnotatedScreens = true;
     persist(true);
-    toast('Snapshot saved. This screen is marked Annotated.');
+    toast('Annotated version saved.');
 }
 
 function saveAnnotatedScreenAs() {

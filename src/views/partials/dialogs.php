@@ -58,6 +58,15 @@ require dirname(__DIR__, 2) . '/guard.php';
     <div class="dialog-foot"><button type="button" class="button primary" data-action="close-audio">Done</button></div>
 </dialog>
 
+<dialog id="annotationStoryDialog">
+    <div class="dialog-head">
+        <div><h2>Choose a walkthrough</h2><p>This photo is used in multiple walkthroughs. Its annotated version will only replace the photo in the walkthrough you choose.</p></div>
+        <button type="button" class="button ghost icon-only" data-action="close-annotation-story" aria-label="Close">×</button>
+    </div>
+    <div class="dialog-body annotation-story-choices" id="annotationStoryChoices"></div>
+    <div class="dialog-foot"><button type="button" class="button" data-action="close-annotation-story">Cancel</button></div>
+</dialog>
+
 <div class="toast-region" id="toastRegion" role="status" aria-live="polite"></div>
 <div class="upload-tray" id="uploadTray" hidden></div>
 
