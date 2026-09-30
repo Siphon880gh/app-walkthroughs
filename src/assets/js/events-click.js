@@ -109,7 +109,12 @@ document.addEventListener('click', event => {
     }
     else if (action === 'transfer-photos') transferPhotos(target.dataset.mode, target.dataset.folder || '');
     else if (action === 'close-url-dialog') $('#urlDialog').close();
-    else if (action === 'select-folder') { selectedFolder = target.dataset.folder || null; renderApp(); }
+    else if (action === 'select-folder') {
+        selectedFolder = target.dataset.folder || null;
+        libraryStoryFilter = 'all';
+        selectedPhotoIds.clear();
+        renderApp();
+    }
     else if (action === 'add-folder') {
         const platform = prompt('Platform folder name (for example, Android or Web):');
         if (!platform?.trim()) return;
@@ -186,6 +191,7 @@ document.addEventListener('click', event => {
         if (restored) projects = seedProjects();
         activeProjectId = projects[Math.min(index, projects.length - 1)].id;
         selectedFolder = null;
+        libraryStoryFilter = 'all';
         playerStoryStageFilter = 'all';
         exportStoryStageFilter = 'all';
         selectedPhotoIds.clear();

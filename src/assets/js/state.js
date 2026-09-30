@@ -10,7 +10,7 @@ const APP = {
 };
 
 const PALETTE = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
-const STORY_STAGES = ['WIP - Collecting', 'WIP - Editing', 'Finalized'];
+const STORY_STAGES = ['WIP - Collecting', 'WIP - Editing', 'Finalized', 'Treat as Collection'];
 const DEFAULT_STORY_STAGE = STORY_STAGES[0];
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -36,7 +36,8 @@ const storiesForStage = (stories, stage = 'all') => stage === 'all'
 const storyStageTone = story => ({
     'WIP - Collecting':'collecting',
     'WIP - Editing':'editing',
-    'Finalized':'finalized'
+    'Finalized':'finalized',
+    'Treat as Collection':'collection'
 })[normalizeStoryStage(story?.stage)];
 
 let currentView = 'screenshots';
@@ -72,6 +73,7 @@ let transferMenu = null;
 let folderMenuPath = null;
 let storyMenuOpen = false;
 let libraryListMode = false;
+let libraryStoryFilter = 'all';
 const selectedPhotoIds = new Set();
 const selectedPickerScreenIds = new Set();
 const selectedStoryStepIds = new Set();

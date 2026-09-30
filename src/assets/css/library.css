@@ -1,6 +1,8 @@
 .library-scroll { flex: 1; min-height: 0; overflow: auto; padding: 18px 22px 44px; }
 .library-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--dim); font: 10px/1 var(--mono); margin-bottom: 12px; }
 .library-meta-side { display: inline-flex; align-items: center; gap: 10px; }
+.library-story-filter { display: inline-flex; align-items: center; gap: 7px; color: var(--dim); font: 700 8px/1 var(--mono); letter-spacing: .08em; }
+.library-story-filter .select { width: min(250px, 24vw); height: 29px; padding-block: 4px; color: #cbd5e1; font-size: 9px; letter-spacing: 0; }
 .drop-strip { min-height: 74px; border: 1px dashed #334155; background: rgba(15,23,42,.45); display: flex; align-items: center; justify-content: center; gap: 9px; color: var(--muted); border-radius: 8px; margin-bottom: 18px; transition: border-color .16s ease, background .16s ease; }
 .drop-strip.dragover { border-color: var(--blue); background: var(--blue-soft); color: #bfdbfe; }
 .kbd { border: 1px solid #3b4b63; border-bottom-width: 2px; border-radius: 4px; padding: 2px 5px; color: #cbd5e1; font: 9px/1.1 var(--mono); background: #111b2c; }

@@ -106,6 +106,7 @@ document.addEventListener('change', event => {
     if (target.id === 'projectSelect') {
         stopPlayback();
         activeProjectId = target.value; selectedFolder = null; playerIndex = 0;
+        libraryStoryFilter = 'all';
         playerStoryStageFilter = 'all'; exportStoryStageFilter = 'all';
         selectedPhotoIds.clear(); selectedPickerScreenIds.clear(); selectedStoryStepIds.clear(); persist(true);
     } else if (target.dataset.screenName) {
@@ -140,6 +141,10 @@ document.addEventListener('change', event => {
         if (playerStoryStageFilter !== 'all' && playerStoryStageFilter !== stage) playerStoryStageFilter = 'all';
         persist(true);
         toast(`Walkthrough stage set to “${stage}”.`);
+    } else if (target.dataset.action === 'filter-library-stories') {
+        libraryStoryFilter = target.value;
+        selectedPhotoIds.clear();
+        renderApp();
     } else if (target.dataset.action === 'filter-player-stories') {
         stopPlayback();
         playerStoryStageFilter = normalizeStoryStageFilter(target.value);
