@@ -76,6 +76,7 @@ function storyStageOptions(selected, includeAll = false, stories = null) {
         ? [`<option value="all" ${current === 'all' ? 'selected' : ''}>All stages${count('all')}</option>`]
         : [];
     STORY_STAGES.forEach(stage => {
+        if (stage === 'Treat as Collection') options.push('<option disabled aria-hidden="true">──────────</option>');
         options.push(`<option value="${esc(stage)}" ${current === stage ? 'selected' : ''}>${esc(stage)}${count(stage)}</option>`);
     });
     return options.join('');
