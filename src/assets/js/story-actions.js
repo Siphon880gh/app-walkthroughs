@@ -13,8 +13,8 @@ function storyStepFromScreen(screen) {
 
 function addScreensToStory(screenIds) {
     const project = activeProject();
-    const wanted = new Set(screenIds);
-    const screens = project.screenshots.filter(screen => wanted.has(screen.id));
+    const byId = new Map(project.screenshots.map(screen => [screen.id, screen]));
+    const screens = [...new Set(screenIds)].map(id => byId.get(id)).filter(Boolean);
     if (!screens.length) return 0;
     let story = activeStory();
     if (!story) {
@@ -29,7 +29,7 @@ function addScreensToStory(screenIds) {
     persist();
     toast(screens.length === 1
         ? `Added “${screens[0].name}” to ${story.name}.`
-        : `Added ${screens.length} photos to ${story.name} in library order.`);
+        : `Added ${screens.length} photos to ${story.name} in the selected order.`);
     return screens.length;
 }
 

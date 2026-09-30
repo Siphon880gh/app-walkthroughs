@@ -5,7 +5,8 @@ const APP = {
     storageKey: 'storyflow_projects_v1',
     activeKey: 'storyflow_active_project_id_v1',
     audioKey: 'storyflow_audio_settings_v1',
-    storyLayoutKey: 'storyflow_story_layout_v1'
+    storyLayoutKey: 'storyflow_story_layout_v1',
+    photoDateKey: 'storyflow_photo_date_metadata_v1'
 };
 
 const PALETTE = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
@@ -56,6 +57,8 @@ let canvasFitOpen = false;
 let selectedAnnotationId = null;
 let showAnnotatedScreens = true;
 let pickerShowAnnotated = true;
+let photoPickerSort = 'recent';
+let photoPickerGroup = 'date';
 let storyPickerOpen = false;
 let playerStoryCategoryFilter = 'all';
 let exportStoryCategoryFilter = 'all';
@@ -63,6 +66,7 @@ let storyPanelLayout = localStorage.getItem(APP.storyLayoutKey) === 'files-right
 const expandedNarration = new Set();
 let syncMenuOpen = false;
 let uploadMenuOpen = false;
+let usePhotoMetadataDates = localStorage.getItem(APP.photoDateKey) !== 'false';
 // null (closed), 'mode' (Move/Copy chooser), 'move', or 'copy' (destination folders).
 let transferMenu = null;
 let folderMenuPath = null;

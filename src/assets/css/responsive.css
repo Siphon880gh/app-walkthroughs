@@ -55,6 +55,10 @@
     .screen-grid { grid-template-columns: 1fr 1fr; gap: 9px; }
     .screen-preview { height: 190px; }
     .card-actions { opacity: 1; transform: none; }
+    .photo-picker-controls, .photo-picker-bar { align-items: stretch; flex-direction: column; }
+    .photo-picker-fields { display: grid; grid-template-columns: 1fr 1fr; }
+    .photo-picker-fields .select { width: 100%; min-width: 0; }
+    .photo-picker-grid { grid-template-columns: 1fr 1fr; }
     .studio-layout, .story-layout { grid-template-rows: auto minmax(480px,70vh) auto; }
     .stage-toolbar { row-gap: 6px; }
     .player-main { grid-template-rows: 470px auto; }

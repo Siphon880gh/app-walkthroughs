@@ -84,26 +84,83 @@ function storyCategoryBadge(story) {
 }
 
 function storyChooser(storyOptions, story) {
-    return `<div class="story-chooser"><label class="story-select-field primary"><span>WALKTHROUGH</span><select class="select" data-action="change-story">${storyOptions}</select></label><label class="story-select-field secondary"><span>CATEGORY</span><select class="select story-category-select ${storyCategoryTone(story)}" data-action="change-story-category">${storyCategoryOptions(story.category)}</select></label><div class="story-chooser-actions"><button class="button" data-action="new-story" title="New walkthrough">＋ New</button><button class="button" data-action="open-photo-picker">＋ Add photo</button><div class="story-more-menu"><button type="button" class="button story-more-button${storyMenuOpen ? ' active' : ''}" id="storyMenuButton" data-action="toggle-story-menu" aria-haspopup="menu" aria-expanded="${storyMenuOpen ? 'true' : 'false'}" aria-controls="storyMenu" aria-label="More walkthrough options">⋯</button><div class="sync-menu-panel story-more-panel" id="storyMenu" role="menu" ${storyMenuOpen ? '' : 'hidden'}><button type="button" class="sync-option" role="menuitem" data-action="rename-story">Rename walkthrough</button><button type="button" class="sync-option" role="menuitem" data-action="copy-story-photo-urls">Copy photo URLs</button><span class="story-more-divider" aria-hidden="true"></span><button type="button" class="sync-option danger" role="menuitem" data-action="delete-story">Delete walkthrough</button></div></div></div></div>`;
+    return `<div class="story-chooser"><label class="story-select-field primary"><span>WALKTHROUGH</span><select class="select" data-action="change-story">${storyOptions}</select></label><label class="story-select-field secondary"><span>CATEGORY</span><select class="select story-category-select ${storyCategoryTone(story)}" data-action="change-story-category">${storyCategoryOptions(story.category)}</select></label><div class="story-chooser-actions"><button class="button" data-action="new-story" title="New walkthrough">＋ New</button><button class="button" data-action="open-photo-picker">＋ Add photos</button><div class="story-more-menu"><button type="button" class="button story-more-button${storyMenuOpen ? ' active' : ''}" id="storyMenuButton" data-action="toggle-story-menu" aria-haspopup="menu" aria-expanded="${storyMenuOpen ? 'true' : 'false'}" aria-controls="storyMenu" aria-label="More walkthrough options">⋯</button><div class="sync-menu-panel story-more-panel" id="storyMenu" role="menu" ${storyMenuOpen ? '' : 'hidden'}><button type="button" class="sync-option" role="menuitem" data-action="rename-story">Rename walkthrough</button><button type="button" class="sync-option" role="menuitem" data-action="copy-story-photo-urls">Copy photo URLs</button><span class="story-more-divider" aria-hidden="true"></span><button type="button" class="sync-option danger" role="menuitem" data-action="delete-story">Delete walkthrough</button></div></div></div></div>`;
+}
+
+function photoTimestamp(screen) {
+    const value = Number(screen?.capturedAt || screen?.uploadedAt || screen?.importedAt);
+    return Number.isFinite(value) && value > 0 ? value : 0;
+}
+
+function photoTimeZone() {
+    const configured = STORYFLOW_CONFIG?.photo_time_zone || {};
+    return {
+        label:configured.label || 'Pacific Standard Time',
+        utcOffset:configured.utc_offset || '-0800',
+        offsetMinutes:Number.isFinite(Number(configured.offset_minutes)) ? Number(configured.offset_minutes) : -480
+    };
+}
+
+function photoDateParts(screen) {
+    const zone = photoTimeZone();
+    const date = new Date(photoTimestamp(screen) + zone.offsetMinutes * 60000);
+    const valid = !Number.isNaN(date.getTime());
+    const format = options => valid ? new Intl.DateTimeFormat('en-US', {...options,timeZone:'UTC'}).format(date) : 'Date unknown';
+    return {
+        dateKey:valid ? date.toISOString().slice(0, 10) : 'unknown',
+        hourKey:valid ? `${date.toISOString().slice(0, 13)}:00` : 'unknown',
+        dateLabel:format({weekday:'short',month:'short',day:'numeric',year:'numeric'}),
+        hourLabel:format({hour:'numeric',minute:undefined}),
+        timeLabel:format({hour:'numeric',minute:'2-digit'})
+    };
+}
+
+function sortedPickerScreens(includeAnnotated = pickerShowAnnotated) {
+    const screens = (activeProject()?.screenshots || []).filter(screen => includeAnnotated || !screen.annotated);
+    if (photoPickerSort === 'library') return screens;
+    const direction = photoPickerSort === 'oldest' ? 1 : -1;
+    return [...screens].sort((a, b) => direction * (photoTimestamp(a) - photoTimestamp(b)));
+}
+
+function selectedPickerIdsInDisplayOrder() {
+    return sortedPickerScreens(true).filter(screen => selectedPickerScreenIds.has(screen.id)).map(screen => screen.id);
 }
 
 function renderPhotoPicker() {
     const project = activeProject();
     const annotated = (project?.screenshots || []).filter(screen => screen.annotated);
-    const screens = (project?.screenshots || []).filter(screen => pickerShowAnnotated || !screen.annotated);
-    const cards = screens.map(screen => {
+    const screens = sortedPickerScreens();
+    const card = screen => {
         const notes = screen.annotations?.length ? `<span class="annotation-layer">${annotationMarkup(screen.annotations)}</span>` : '';
         const kind = screen.annotated ? '<span class="tag">Annotated</span>' : `<span class="tag">${esc(screen.platform || 'screen')}</span>`;
         const picked = selectedPickerScreenIds.has(screen.id);
-        return `<button type="button" class="photo-pick${picked ? ' picked' : ''}" data-action="pick-photo" data-id="${esc(screen.id)}" aria-pressed="${picked}"><span class="photo-pick-check" aria-hidden="true">${picked ? '✓' : ''}</span><span class="photo-pick-frame"><img src="${safeImage(screen.dataUrl)}" alt="">${notes}</span><span class="photo-pick-copy"><span class="photo-pick-name">${esc(screen.name)}</span>${kind}</span></button>`;
-    }).join('');
+        const parts = photoDateParts(screen);
+        return `<button type="button" class="photo-pick${picked ? ' picked' : ''}" data-action="pick-photo" data-id="${esc(screen.id)}" aria-pressed="${picked}"><span class="photo-pick-check" aria-hidden="true">${picked ? '✓' : ''}</span><span class="photo-pick-frame"><img src="${safeImage(screen.dataUrl)}" alt="">${notes}</span><span class="photo-pick-copy"><span class="photo-pick-name">${esc(screen.name)}</span>${kind}</span><span class="photo-pick-time">${esc(parts.dateLabel)} · ${esc(parts.timeLabel)}</span></button>`;
+    };
+    let cards = '';
+    if (photoPickerGroup === 'none') {
+        cards = `<div class="photo-picker-grid">${screens.map(card).join('')}</div>`;
+    } else {
+        const groups = new Map();
+        screens.forEach(screen => {
+            const parts = photoDateParts(screen);
+            const key = photoPickerGroup === 'hour' ? parts.hourKey : parts.dateKey;
+            if (!groups.has(key)) groups.set(key, {parts,screens:[]});
+            groups.get(key).screens.push(screen);
+        });
+        cards = [...groups.values()].map(group => {
+            const heading = photoPickerGroup === 'hour' ? `${group.parts.dateLabel} · ${group.parts.hourLabel}` : group.parts.dateLabel;
+            return `<section class="photo-date-group"><h3>${esc(heading)} <span>${group.screens.length}</span></h3><div class="photo-picker-grid">${group.screens.map(card).join('')}</div></section>`;
+        }).join('');
+    }
     const body = $('#photoPickerBody');
     if (!body) return;
     const availableIds = new Set((project?.screenshots || []).map(screen => screen.id));
     [...selectedPickerScreenIds].forEach(id => { if (!availableIds.has(id)) selectedPickerScreenIds.delete(id); });
     const selectedCount = selectedPickerScreenIds.size;
     const allVisiblePicked = screens.length > 0 && screens.every(screen => selectedPickerScreenIds.has(screen.id));
-    body.innerHTML = `<div class="photo-picker-bar"><span>${screens.length} photo${screens.length === 1 ? '' : 's'} · added in library order</span><span class="photo-picker-tools"><button type="button" class="button ghost small" data-action="toggle-all-picker-photos" data-ids="${esc(screens.map(screen => screen.id).join(' '))}">${allVisiblePicked ? 'Clear visible' : 'Select visible'}</button><button type="button" class="button small ${pickerShowAnnotated ? 'active' : ''}" data-action="toggle-picker-annotated" aria-pressed="${pickerShowAnnotated ? 'true' : 'false'}" title="Show or hide annotated pictures">Annotated <span class="count-pill">${annotated.length}</span></button></span></div>${cards ? `<div class="photo-picker-grid">${cards}</div>` : '<p class="photo-picker-empty">No photos match this filter.</p>'}`;
+    const zone = photoTimeZone();
+    body.innerHTML = `<div class="photo-picker-controls"><div class="photo-picker-fields"><label><span>SORT</span><select class="select" data-action="photo-picker-sort"><option value="recent" ${photoPickerSort === 'recent' ? 'selected' : ''}>Most recent</option><option value="oldest" ${photoPickerSort === 'oldest' ? 'selected' : ''}>Oldest first</option><option value="library" ${photoPickerSort === 'library' ? 'selected' : ''}>Library order</option></select></label><label><span>GROUP</span><select class="select" data-action="photo-picker-group"><option value="date" ${photoPickerGroup === 'date' ? 'selected' : ''}>Date</option><option value="hour" ${photoPickerGroup === 'hour' ? 'selected' : ''}>Date and hour</option><option value="none" ${photoPickerGroup === 'none' ? 'selected' : ''}>No groups</option></select></label></div><button type="button" class="button primary" data-action="add-all-recent-photos" ${project?.screenshots?.length ? '' : 'disabled'}>＋ Add all recent</button></div><div class="photo-picker-zone">Times shown in ${esc(zone.label)} (UTC${esc(zone.utcOffset.slice(0, 3))}:${esc(zone.utcOffset.slice(3))}).</div><div class="photo-picker-bar"><span>${screens.length} photo${screens.length === 1 ? '' : 's'} · added in displayed order</span><span class="photo-picker-tools"><button type="button" class="button ghost small" data-action="toggle-all-picker-photos" data-ids="${esc(screens.map(screen => screen.id).join(' '))}">${allVisiblePicked ? 'Clear visible' : 'Select visible'}</button><button type="button" class="button small ${pickerShowAnnotated ? 'active' : ''}" data-action="toggle-picker-annotated" aria-pressed="${pickerShowAnnotated ? 'true' : 'false'}" title="Show or hide annotated pictures">Annotated <span class="count-pill">${annotated.length}</span></button></span></div>${cards || '<p class="photo-picker-empty">No photos match this filter.</p>'}`;
     const count = $('#photoPickerSelection');
     const add = $('#addSelectedPhotos');
     if (count) count.textContent = selectedCount ? `${selectedCount} selected` : 'Choose one or more photos';

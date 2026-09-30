@@ -74,6 +74,11 @@
 .split-button .split-toggle.active svg { transform: rotate(180deg); }
 .split-separator { width: 1px; margin: 7px 0; background: rgba(239,246,255,.35); }
 .split-button .button:active { transform: none; }
-.split-button .upload-menu-panel { top: calc(100% + 6px); bottom: auto; width: 168px; }
+.split-button .upload-menu-panel { top: calc(100% + 6px); bottom: auto; width: 252px; }
+.upload-date-option { display: grid; grid-template-columns: 16px minmax(0,1fr); gap: 8px; align-items: start; padding: 8px 9px; border: 1px solid var(--border); border-radius: 6px; background: #080e19; color: var(--text); cursor: pointer; }
+.upload-date-option input { width: 15px; height: 15px; margin: 1px 0 0; accent-color: var(--blue); }
+.upload-date-option span { display: grid; gap: 4px; }
+.upload-date-option strong { font-size: 11px; line-height: 1.2; }
+.upload-date-option small { color: var(--dim); font: 9px/1.35 var(--mono); }
 .search { width: 218px; height: 32px; background: #070d18; color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 0 10px; font-size: 11px; }
 .search::placeholder, textarea::placeholder, input::placeholder { color: #526079; }

@@ -7,12 +7,88 @@ async function imageDimensions(src) {
     });
 }
 
-function screenRecord(name, dataUrl, folder, dimensions) {
+function metadataDateTimestamp(value, offsetValue = '') {
+    const match = String(value || '').trim().match(/^(\d{4}):(\d{2}):(\d{2})[ T](\d{2}):(\d{2}):(\d{2})/);
+    if (!match) return 0;
+    let offsetMinutes = photoTimeZone().offsetMinutes;
+    const offset = String(offsetValue || '').trim().match(/^([+-])(\d{2}):?(\d{2})$/);
+    if (offset) offsetMinutes = (offset[1] === '-' ? -1 : 1) * (Number(offset[2]) * 60 + Number(offset[3]));
+    const parts = match.slice(1).map(Number);
+    const timestamp = Date.UTC(parts[0], parts[1] - 1, parts[2], parts[3], parts[4], parts[5]) - offsetMinutes * 60000;
+    return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+async function jpegExifDate(file) {
+    if (!/image\/jpe?g/i.test(file.type) && !/\.jpe?g$/i.test(file.name || '')) return 0;
+    const view = new DataView(await file.slice(0, 512 * 1024).arrayBuffer());
+    if (view.byteLength < 4 || view.getUint16(0) !== 0xffd8) return 0;
+    let markerOffset = 2;
+    while (markerOffset + 10 < view.byteLength) {
+        if (view.getUint8(markerOffset) !== 0xff) { markerOffset++; continue; }
+        const marker = view.getUint8(markerOffset + 1);
+        if (marker === 0xda || marker === 0xd9) break;
+        const size = view.getUint16(markerOffset + 2);
+        if (size < 2 || markerOffset + 2 + size > view.byteLength) break;
+        const payload = markerOffset + 4;
+        const isExif = marker === 0xe1 && view.getUint32(payload) === 0x45786966 && view.getUint16(payload + 4) === 0;
+        if (isExif) {
+            const tiff = payload + 6;
+            if (tiff + 8 > view.byteLength) return 0;
+            const little = view.getUint16(tiff) === 0x4949;
+            if ((!little && view.getUint16(tiff) !== 0x4d4d) || view.getUint16(tiff + 2, little) !== 42) return 0;
+            const readIfd = relativeOffset => {
+                const start = tiff + relativeOffset;
+                if (start < tiff || start + 2 > view.byteLength) return new Map();
+                const count = view.getUint16(start, little);
+                const values = new Map();
+                for (let index = 0; index < count; index++) {
+                    const entry = start + 2 + index * 12;
+                    if (entry + 12 > view.byteLength) break;
+                    const tag = view.getUint16(entry, little);
+                    const type = view.getUint16(entry + 2, little);
+                    const length = view.getUint32(entry + 4, little);
+                    if (type === 2 && length > 0 && length < 128) {
+                        const position = length <= 4 ? entry + 8 : tiff + view.getUint32(entry + 8, little);
+                        if (position >= 0 && position + length <= view.byteLength) {
+                            let text = '';
+                            for (let byte = 0; byte < length - 1; byte++) text += String.fromCharCode(view.getUint8(position + byte));
+                            values.set(tag, text.trim());
+                        }
+                    } else if (type === 4 && length === 1) {
+                        values.set(tag, view.getUint32(entry + 8, little));
+                    }
+                }
+                return values;
+            };
+            const root = readIfd(view.getUint32(tiff + 4, little));
+            const exif = Number.isFinite(root.get(0x8769)) ? readIfd(root.get(0x8769)) : new Map();
+            return metadataDateTimestamp(exif.get(0x9003) || exif.get(0x9004) || root.get(0x0132), exif.get(0x9011) || exif.get(0x9012));
+        }
+        markerOffset += size + 2;
+    }
+    return 0;
+}
+
+async function photoCaptureDate(file) {
+    if (!usePhotoMetadataDates) return {timestamp:Date.now(),source:'import'};
+    try {
+        const exifTimestamp = await jpegExifDate(file);
+        if (exifTimestamp) return {timestamp:exifTimestamp,source:'exif'};
+    } catch (error) {
+        console.warn(`Unable to read photo metadata for ${file.name || 'image'}`, error);
+    }
+    if (Number(file.lastModified) > 0) return {timestamp:Number(file.lastModified),source:'file-modified'};
+    return {timestamp:Date.now(),source:'import'};
+}
+
+function screenRecord(name, dataUrl, folder, dimensions, capturedAt = Date.now(), captureSource = 'import') {
     const [app, platform = 'Web'] = folder.split(' / ');
+    const importedAt = Date.now();
     return {
         id:uid('screen'), name, dataUrl, folder, app, platform,
         width:dimensions.width, height:dimensions.height, deviceFrame:dimensions.width <= 520 ? 'iphone':'desktop',
-        tags:[slug(app),slug(platform)], uploadedAt:Date.now(), analysis:{userAction:'',screenContent:'',nextAction:''}, annotations:[]
+        tags:[slug(app),slug(platform)], capturedAt, captureSource, importedAt, uploadedAt:importedAt,
+        analysis:{userAction:'',screenContent:'',nextAction:''}, annotations:[]
     };
 }
 
@@ -28,8 +104,8 @@ async function uploadScreenshot(file) {
 }
 
 async function fileToScreen(file, folder) {
-    const path = await uploadScreenshot(file);
-    return screenRecord(file.name || `Pasted screen ${new Date().toLocaleTimeString()}`, path, folder, await imageDimensions(path));
+    const [path, capture] = await Promise.all([uploadScreenshot(file), photoCaptureDate(file)]);
+    return screenRecord(file.name || `Pasted screen ${new Date().toLocaleTimeString()}`, path, folder, await imageDimensions(path), capture.timestamp, capture.source);
 }
 
 function uploadFolder() {

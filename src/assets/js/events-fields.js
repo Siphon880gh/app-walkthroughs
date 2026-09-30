@@ -128,6 +128,9 @@ document.addEventListener('change', event => {
         handleFiles([...target.files]); target.value = '';
     } else if (target.id === 'jsonInput') {
         if (target.files[0]) importProjectData(target.files[0]); target.value = '';
+    } else if (target.dataset.action === 'use-photo-metadata-dates') {
+        usePhotoMetadataDates = target.checked;
+        localStorage.setItem(APP.photoDateKey, String(usePhotoMetadataDates));
     } else if (target.dataset.action === 'change-story-category') {
         const story = activeStory();
         const category = normalizeStoryCategory(target.value);
@@ -151,6 +154,12 @@ document.addEventListener('change', event => {
     } else if (target.dataset.action === 'filter-export-stories') {
         exportStoryCategoryFilter = normalizeStoryCategoryFilter(target.value);
         renderApp();
+    } else if (target.dataset.action === 'photo-picker-sort') {
+        photoPickerSort = ['recent','oldest','library'].includes(target.value) ? target.value : 'recent';
+        renderPhotoPicker();
+    } else if (target.dataset.action === 'photo-picker-group') {
+        photoPickerGroup = ['date','hour','none'].includes(target.value) ? target.value : 'date';
+        renderPhotoPicker();
     } else if (target.dataset.action === 'change-story') {
         if (!activeProject().stories.some(story => story.id === target.value)) return;
         stopPlayback();

@@ -240,8 +240,18 @@ document.addEventListener('click', event => {
         renderPhotoPicker();
         $('[data-action="toggle-all-picker-photos"]')?.focus();
     }
+    else if (action === 'add-all-recent-photos') {
+        const ids = [...(project.screenshots || [])]
+            .sort((a, b) => photoTimestamp(b) - photoTimestamp(a))
+            .map(screen => screen.id);
+        const added = addScreensToStory(ids);
+        if (!added) return;
+        selectedPickerScreenIds.clear();
+        $('#photoDialog').close();
+        renderApp();
+    }
     else if (action === 'add-selected-photos') {
-        const added = addScreensToStory([...selectedPickerScreenIds]);
+        const added = addScreensToStory(selectedPickerIdsInDisplayOrder());
         if (!added) return;
         selectedPickerScreenIds.clear();
         $('#photoDialog').close();
