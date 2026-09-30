@@ -50,11 +50,11 @@ function syncNarrativeBlocks(root, step) {
 }
 
 function playerStoryControls(project, story) {
-    const visibleStories = storiesForCategory(project.stories, playerStoryCategoryFilter);
+    const visibleStories = storiesForStage(project.stories, playerStoryStageFilter);
     const storyOptions = visibleStories.length
         ? visibleStories.map(item => `<option value="${esc(item.id)}" ${item.id === story?.id ? 'selected':''}>${esc(item.name)}</option>`).join('')
         : '<option value="">No matching walkthroughs</option>';
-    return `<div class="player-story-controls"><select class="select player-category-filter" data-action="filter-player-stories" aria-label="Filter walkthroughs by category">${storyCategoryOptions(playerStoryCategoryFilter, true, project.stories)}</select><select class="select player-story-select" data-action="change-story" aria-label="Choose walkthrough" ${visibleStories.length ? '' : 'disabled'}>${storyOptions}</select></div>`;
+    return `<div class="player-story-controls"><select class="select player-category-filter" data-action="filter-player-stories" aria-label="Filter walkthroughs by stage">${storyStageOptions(playerStoryStageFilter, true, project.stories)}</select><select class="select player-story-select" data-action="change-story" aria-label="Choose walkthrough" ${visibleStories.length ? '' : 'disabled'}>${storyOptions}</select></div>`;
 }
 
 function playerHeader(project, story) {
@@ -63,10 +63,10 @@ function playerHeader(project, story) {
 
 function renderPlayer() {
     const project = activeProject();
-    const visibleStories = storiesForCategory(project.stories, playerStoryCategoryFilter);
+    const visibleStories = storiesForStage(project.stories, playerStoryStageFilter);
     const currentStory = activeStory();
     const story = visibleStories.find(item => item.id === currentStory?.id) || visibleStories[0] || null;
-    if (!story) return `<section class="player-view player-view-empty">${playerHeader(project, null)}<div class="player-empty">${renderEmpty('No walkthroughs in this category','Choose another category or show every walkthrough.','clear-player-story-filter','Show all categories')}</div></section>`;
+    if (!story) return `<section class="player-view player-view-empty">${playerHeader(project, null)}<div class="player-empty">${renderEmpty('No walkthroughs in this stage','Choose another stage or show every walkthrough.','clear-player-story-filter','Show all stages')}</div></section>`;
     if (!story.steps.length) return `<section class="player-view player-view-empty">${playerHeader(project, story)}<div class="player-empty">${renderEmpty('Nothing to play yet','Add at least one screenshot to this walkthrough.','screenshots','Open library')}</div></section>`;
     playerIndex = clamp(playerIndex, 0, story.steps.length - 1);
     const step = story.steps[playerIndex];

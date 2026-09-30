@@ -39,7 +39,7 @@ function addScreenToStory(screenId) {
 
 function newStory(name) {
     const now = Date.now();
-    return {id:uid('story'),name,description:'A new documented product journey.',category:DEFAULT_STORY_CATEGORY,folder:selectedFolder || '',steps:[],settings:{defaultSpeed:1,autoAdvance:false,interactiveHotspots:true,showDeviceMockup:true,deviceType:'iphone'},createdAt:now,updatedAt:now};
+    return {id:uid('story'),name,description:'A new documented product journey.',stage:DEFAULT_STORY_STAGE,folder:selectedFolder || '',steps:[],settings:{defaultSpeed:1,autoAdvance:false,interactiveHotspots:true,showDeviceMockup:true,deviceType:'iphone'},createdAt:now,updatedAt:now};
 }
 
 function moveStep(direction) {
@@ -51,6 +51,18 @@ function moveStep(direction) {
     if (target < 0 || target >= story.steps.length) return;
     [story.steps[index], story.steps[target]] = [story.steps[target], story.steps[index]];
     persist(true);
+}
+
+function reverseSelectedStorySteps() {
+    const story = activeStory();
+    if (!story) return 0;
+    const selected = story.steps.filter(step => selectedStoryStepIds.has(step.id));
+    if (selected.length < 2) return 0;
+    const reversed = [...selected].reverse();
+    let index = 0;
+    story.steps = story.steps.map(step => selectedStoryStepIds.has(step.id) ? reversed[index++] : step);
+    persist(true);
+    return selected.length;
 }
 
 function reorderStoryStep(stepId, targetId, placeAfter = false) {

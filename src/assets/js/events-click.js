@@ -186,10 +186,11 @@ document.addEventListener('click', event => {
         if (restored) projects = seedProjects();
         activeProjectId = projects[Math.min(index, projects.length - 1)].id;
         selectedFolder = null;
-        playerStoryCategoryFilter = 'all';
-        exportStoryCategoryFilter = 'all';
+        playerStoryStageFilter = 'all';
+        exportStoryStageFilter = 'all';
         selectedPhotoIds.clear();
         selectedPickerScreenIds.clear();
+        selectedStoryStepIds.clear();
         persist();
         setView('screenshots');
         toast(restored ? `Project “${name}” deleted. The sample project is back because it was the last one.` : `Project “${name}” deleted.`);
@@ -296,9 +297,14 @@ document.addEventListener('click', event => {
     else if (action === 'new-story') {
         const name = prompt('Walkthrough name:');
         if (!name?.trim()) return;
-        const story = newStory(name.trim()); project.stories.push(story); project.activeStoryId = story.id; persist(true);
+        const story = newStory(name.trim()); project.stories.push(story); project.activeStoryId = story.id; selectedStoryStepIds.clear(); persist(true);
     }
     else if (action === 'toggle-story-menu') setStoryMenu(!storyMenuOpen);
+    else if (action === 'reverse-selected-story-steps') {
+        setStoryMenu(false);
+        const count = reverseSelectedStorySteps();
+        if (count) toast(`Reversed ${count} selected photos.`);
+    }
     else if (action === 'rename-story') {
         const story = activeStory();
         if (!story) return;
@@ -336,12 +342,21 @@ document.addEventListener('click', event => {
         if (index < 0) return;
         project.stories.splice(index, 1);
         project.activeStoryId = project.stories[Math.min(index, project.stories.length - 1)]?.id || '';
+        selectedStoryStepIds.clear();
         story.steps.forEach(step => {
             [...expandedNarration].forEach(key => { if (key.startsWith(`${step.id}:`)) expandedNarration.delete(key); });
         });
         playerIndex = 0;
         persist(true);
         toast(`Walkthrough “${story.name}” deleted.`);
+    }
+    else if (action === 'toggle-story-step-selection') {
+        const id = target.dataset.id;
+        if (!activeStory()?.steps.some(step => step.id === id)) return;
+        if (selectedStoryStepIds.has(id)) selectedStoryStepIds.delete(id);
+        else selectedStoryStepIds.add(id);
+        renderApp();
+        $$('.step-pick').find(button => button.dataset.id === id)?.focus();
     }
     else if (action === 'select-step') { const story = activeStory(); story.activeStepId = target.dataset.id; persist(true); }
     else if (action === 'move-step') moveStep(target.dataset.direction);
@@ -355,6 +370,7 @@ document.addEventListener('click', event => {
         const index = story.steps.findIndex(item => item.id === step.id);
         if (index < 0) return;
         story.steps.splice(index, 1);
+        selectedStoryStepIds.delete(step.id);
         story.activeStepId = (story.steps[index] || story.steps[index - 1])?.id || '';
         [...expandedNarration].forEach(key => { if (key.startsWith(`${step.id}:`)) expandedNarration.delete(key); });
         persist(true);
@@ -410,7 +426,7 @@ document.addEventListener('click', event => {
     else if (action === 'player-prev') setPlayerIndex(playerIndex-1, false);
     else if (action === 'player-next' || action === 'hotspot-next') setPlayerIndex(playerIndex+1, isPlaying);
     else if (action === 'player-jump') setPlayerIndex(Number(target.dataset.index), isPlaying);
-    else if (action === 'clear-player-story-filter') { playerStoryCategoryFilter = 'all'; renderApp(); }
+    else if (action === 'clear-player-story-filter') { playerStoryStageFilter = 'all'; renderApp(); }
     else if (action === 'toggle-play') {
         if (isPlaying) { stopPlayback(); renderApp(); }
         else { isPlaying = true; renderApp(); startStepTimer(); }

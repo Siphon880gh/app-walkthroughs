@@ -4,7 +4,7 @@ function generateMarkdown() {
     const lines = [`# ${project.name}`, '', project.description || '', '', '## Walkthrough inventory', '', `- Screens: ${project.screenshots.length}`, `- Walkthroughs: ${project.stories.length}`, `- Exported: ${new Date().toLocaleString()}`, ''];
     const stories = exportScope === 'story' && story ? [story] : project.stories;
     stories.forEach(flow => {
-        lines.push(`## ${flow.name}`, '', flow.description || '', '', `**Category:** ${normalizeStoryCategory(flow.category)} · **Device:** ${flow.settings.deviceType} · **Default speed:** ${flow.settings.defaultSpeed}x`, '');
+        lines.push(`## ${flow.name}`, '', flow.description || '', '', `**Stage:** ${normalizeStoryStage(flow.stage)} · **Device:** ${flow.settings.deviceType} · **Default speed:** ${flow.settings.defaultSpeed}x`, '');
         flow.steps.forEach((step,index) => {
             const screen = project.screenshots.find(item => item.id === step.screenId);
             const noted = value => String(value || '').trim() || 'Not available';
@@ -23,7 +23,7 @@ function projectPayload(scope = exportScope) {
         project.screenshots = project.screenshots.filter(screen => screenIds.has(screen.id));
         project.activeStoryId = story?.id || '';
     }
-    return {version:2, app:APP.name, sharedAt:Date.now(), project};
+    return {version:3, app:APP.name, sharedAt:Date.now(), project};
 }
 
 function storyPickThumb(flow) {
@@ -32,10 +32,10 @@ function storyPickThumb(flow) {
 }
 
 function currentWalkthroughControl(project, story) {
-    const visibleStories = storiesForCategory(project.stories, exportStoryCategoryFilter);
-    const cards = visibleStories.map(item => `<button type="button" class="story-pick${item.id === story?.id ? ' selected' : ''}" data-action="pick-export-story" data-id="${esc(item.id)}" aria-pressed="${item.id === story?.id ? 'true' : 'false'}"><span class="story-pick-thumb">${storyPickThumb(item)}</span><span class="story-pick-name">${esc(item.name)}</span>${storyCategoryBadge(item)}</button>`).join('');
-    const picker = `<div class="story-picker" role="dialog" aria-label="Choose a walkthrough"><label class="story-picker-filter"><span>CATEGORY</span><select class="select" data-action="filter-export-stories" aria-label="Filter export walkthroughs by category">${storyCategoryOptions(exportStoryCategoryFilter, true, project.stories)}</select><strong>${visibleStories.length} shown</strong></label>${cards ? `<div class="story-picker-grid">${cards}</div>` : '<div class="story-picker-empty">No walkthroughs in this category.</div>'}</div>`;
-    return `<div class="scope-switcher${storyPickerOpen ? ' open' : ''}"><button class="scope-option ${exportScope === 'story' ? 'active':''}" data-action="export-scope" data-scope="story"><strong>Current walkthrough</strong>${esc(story?.name || 'No story')}${story ? ` · ${esc(normalizeStoryCategory(story.category))}` : ''}</button><button type="button" class="scope-chevron" data-action="toggle-story-picker" aria-expanded="${storyPickerOpen ? 'true' : 'false'}" aria-label="Choose a walkthrough">⌄</button>${storyPickerOpen ? picker : ''}</div>`;
+    const visibleStories = storiesForStage(project.stories, exportStoryStageFilter);
+    const cards = visibleStories.map(item => `<button type="button" class="story-pick${item.id === story?.id ? ' selected' : ''}" data-action="pick-export-story" data-id="${esc(item.id)}" aria-pressed="${item.id === story?.id ? 'true' : 'false'}"><span class="story-pick-thumb">${storyPickThumb(item)}</span><span class="story-pick-name">${esc(item.name)}</span>${storyStageBadge(item)}</button>`).join('');
+    const picker = `<div class="story-picker" role="dialog" aria-label="Choose a walkthrough"><label class="story-picker-filter"><span>STAGE</span><select class="select" data-action="filter-export-stories" aria-label="Filter export walkthroughs by stage">${storyStageOptions(exportStoryStageFilter, true, project.stories)}</select><strong>${visibleStories.length} shown</strong></label>${cards ? `<div class="story-picker-grid">${cards}</div>` : '<div class="story-picker-empty">No walkthroughs in this stage.</div>'}</div>`;
+    return `<div class="scope-switcher${storyPickerOpen ? ' open' : ''}"><button class="scope-option ${exportScope === 'story' ? 'active':''}" data-action="export-scope" data-scope="story"><strong>Current walkthrough</strong>${esc(story?.name || 'No story')}${story ? ` · ${esc(normalizeStoryStage(story.stage))}` : ''}</button><button type="button" class="scope-chevron" data-action="toggle-story-picker" aria-expanded="${storyPickerOpen ? 'true' : 'false'}" aria-label="Choose a walkthrough">⌄</button>${storyPickerOpen ? picker : ''}</div>`;
 }
 
 function renderExport() {

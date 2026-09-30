@@ -13,9 +13,12 @@ function renderStories() {
     const story = activeStory();
     if (!story) return `<section class="main-pane">${renderEmpty('No walkthrough yet','Create a story from any screenshot in the library.','screenshots','Open library')}</section>`;
     const step = activeStep();
+    const availableStepIds = new Set(story.steps.map(item => item.id));
+    [...selectedStoryStepIds].forEach(id => { if (!availableStepIds.has(id)) selectedStoryStepIds.delete(id); });
     const stepItems = story.steps.map((item,index) => {
         const screen = screenById(item.screenId);
-        return `<button class="step-item ${step?.id === item.id ? 'active':''}" data-action="select-step" data-id="${esc(item.id)}" draggable="true" aria-label="Step ${index + 1}: ${esc(item.title)}. Drag to reorder."><span class="step-grip" aria-hidden="true">⠿</span><span class="step-index">${index+1}</span><span class="step-thumb">${screen ? `<img src="${safeImage(screen.dataUrl)}" alt="" draggable="false">`:''}</span><span class="step-copy"><span class="step-title">${esc(item.title)}</span><span class="step-meta">${Number(item.transition?.duration || 0).toFixed(1)}s · ${esc(item.transition?.type || 'none')}</span></span></button>`;
+        const selected = selectedStoryStepIds.has(item.id);
+        return `<div class="step-item${step?.id === item.id ? ' active':''}${selected ? ' selected':''}" data-id="${esc(item.id)}" draggable="true"><span class="step-grip" aria-hidden="true">⠿</span><button type="button" class="step-pick" data-action="toggle-story-step-selection" data-id="${esc(item.id)}" aria-label="${selected ? 'Deselect' : 'Select'} step ${index + 1}" aria-pressed="${selected}">${selected ? '✓' : ''}</button><button type="button" class="step-open" data-action="select-step" data-id="${esc(item.id)}" aria-label="Step ${index + 1}: ${esc(item.title)}. Drag to reorder."><span class="step-index">${index+1}</span><span class="step-thumb">${screen ? `<img src="${safeImage(screen.dataUrl)}" alt="" draggable="false">`:''}</span><span class="step-copy"><span class="step-title">${esc(item.title)}</span><span class="step-meta">${Number(item.transition?.duration || 0).toFixed(1)}s · ${esc(item.transition?.type || 'none')}</span></span></button></div>`;
     }).join('');
     const storyOptions = project.stories.map(item => `<option value="${esc(item.id)}" ${item.id === story.id ? 'selected':''}>${esc(item.name)}</option>`).join('');
     if (!step) return `<section class="main-pane"><div class="story-layout ${storyPanelLayout}"><aside class="story-rail"><div class="panel-head"><h2>Walkthrough</h2></div>${storyChooser(storyOptions, story)}</aside><div class="story-stage-empty">${renderEmpty('This walkthrough has no steps','Add a photo from the library to start the sequence.','open-photo-picker','Add a photo')}</div><aside class="inspector"></aside></div></section>`;
@@ -66,25 +69,26 @@ function closeInfoNotes() {
     ['stepTitleInfo', 'transitionInfo', 'dwellInfo'].forEach(id => setInfoNote(id, false));
 }
 
-function storyCategoryOptions(selected, includeAll = false, stories = null) {
-    const current = includeAll ? normalizeStoryCategoryFilter(selected) : normalizeStoryCategory(selected);
-    const count = category => Array.isArray(stories) ? ` (${storiesForCategory(stories, category).length})` : '';
+function storyStageOptions(selected, includeAll = false, stories = null) {
+    const current = includeAll ? normalizeStoryStageFilter(selected) : normalizeStoryStage(selected);
+    const count = stage => Array.isArray(stories) ? ` (${storiesForStage(stories, stage).length})` : '';
     const options = includeAll
-        ? [`<option value="all" ${current === 'all' ? 'selected' : ''}>All categories${count('all')}</option>`]
+        ? [`<option value="all" ${current === 'all' ? 'selected' : ''}>All stages${count('all')}</option>`]
         : [];
-    STORY_CATEGORIES.forEach(category => {
-        options.push(`<option value="${esc(category)}" ${current === category ? 'selected' : ''}>${esc(category)}${count(category)}</option>`);
+    STORY_STAGES.forEach(stage => {
+        options.push(`<option value="${esc(stage)}" ${current === stage ? 'selected' : ''}>${esc(stage)}${count(stage)}</option>`);
     });
     return options.join('');
 }
 
-function storyCategoryBadge(story) {
-    const category = normalizeStoryCategory(story?.category);
-    return `<span class="story-category-badge ${storyCategoryTone(story)}">${esc(category)}</span>`;
+function storyStageBadge(story) {
+    const stage = normalizeStoryStage(story?.stage);
+    return `<span class="story-category-badge ${storyStageTone(story)}">${esc(stage)}</span>`;
 }
 
 function storyChooser(storyOptions, story) {
-    return `<div class="story-chooser"><label class="story-select-field primary"><span>WALKTHROUGH</span><select class="select" data-action="change-story">${storyOptions}</select></label><label class="story-select-field secondary"><span>CATEGORY</span><select class="select story-category-select ${storyCategoryTone(story)}" data-action="change-story-category">${storyCategoryOptions(story.category)}</select></label><div class="story-chooser-actions"><button class="button" data-action="new-story" title="New walkthrough">＋ New</button><button class="button" data-action="open-photo-picker">＋ Add photos</button><div class="story-more-menu"><button type="button" class="button story-more-button${storyMenuOpen ? ' active' : ''}" id="storyMenuButton" data-action="toggle-story-menu" aria-haspopup="menu" aria-expanded="${storyMenuOpen ? 'true' : 'false'}" aria-controls="storyMenu" aria-label="More walkthrough options">⋯</button><div class="sync-menu-panel story-more-panel" id="storyMenu" role="menu" ${storyMenuOpen ? '' : 'hidden'}><button type="button" class="sync-option" role="menuitem" data-action="rename-story">Rename walkthrough</button><button type="button" class="sync-option" role="menuitem" data-action="copy-story-photo-urls">Copy photo URLs</button><span class="story-more-divider" aria-hidden="true"></span><button type="button" class="sync-option danger" role="menuitem" data-action="delete-story">Delete walkthrough</button></div></div></div></div>`;
+    const selectedCount = story.steps.filter(step => selectedStoryStepIds.has(step.id)).length;
+    return `<div class="story-chooser"><label class="story-select-field primary"><span>WALKTHROUGH</span><select class="select" data-action="change-story">${storyOptions}</select></label><label class="story-select-field secondary"><span>SET STAGE</span><select class="select story-category-select ${storyStageTone(story)}" data-action="change-story-stage">${storyStageOptions(story.stage)}</select></label><div class="story-chooser-actions"><button class="button" data-action="new-story" title="New walkthrough">＋ New</button><button class="button" data-action="open-photo-picker">＋ Add photos</button><div class="story-more-menu"><button type="button" class="button story-more-button${storyMenuOpen ? ' active' : ''}" id="storyMenuButton" data-action="toggle-story-menu" aria-haspopup="menu" aria-expanded="${storyMenuOpen ? 'true' : 'false'}" aria-controls="storyMenu" aria-label="More walkthrough options">⋯</button><div class="sync-menu-panel story-more-panel" id="storyMenu" role="menu" ${storyMenuOpen ? '' : 'hidden'}><button type="button" class="sync-option" role="menuitem" data-action="reverse-selected-story-steps" ${selectedCount > 1 ? '' : 'disabled'}>Reverse selected order${selectedCount ? ` (${selectedCount})` : ''}</button><span class="story-more-divider" aria-hidden="true"></span><button type="button" class="sync-option" role="menuitem" data-action="rename-story">Rename walkthrough</button><button type="button" class="sync-option" role="menuitem" data-action="copy-story-photo-urls">Copy photo URLs</button><span class="story-more-divider" aria-hidden="true"></span><button type="button" class="sync-option danger" role="menuitem" data-action="delete-story">Delete walkthrough</button></div></div></div></div>`;
 }
 
 function photoTimestamp(screen) {

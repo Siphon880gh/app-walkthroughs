@@ -14,27 +14,32 @@ function upgradeSeedProjects(projectList) {
     }
     template.stories.forEach(templateStory => {
         const story = target.stories.find(item => item.id === templateStory.id);
-        if (story && !STORY_CATEGORIES.includes(story.category)) story.category = templateStory.category;
+        if (story && !STORY_STAGES.includes(story.stage)) story.stage = templateStory.stage;
     });
     target.demoSeedVersion = 3;
     target.updatedAt = Date.now();
     return true;
 }
 
-function normalizeProjectStoryCategories(project) {
+function normalizeProjectStoryStages(project) {
     let changed = false;
     project.stories.forEach(story => {
-        const category = normalizeStoryCategory(story.category);
-        if (story.category === category) return;
-        story.category = category;
-        changed = true;
+        const stage = normalizeStoryStage(story.stage ?? story.category);
+        if (story.stage !== stage) {
+            story.stage = stage;
+            changed = true;
+        }
+        if ('category' in story) {
+            delete story.category;
+            changed = true;
+        }
     });
     return changed;
 }
 
 function prepareProjects(projectList) {
     let changed = upgradeSeedProjects(projectList);
-    projectList.forEach(project => { changed = normalizeProjectStoryCategories(project) || changed; });
+    projectList.forEach(project => { changed = normalizeProjectStoryStages(project) || changed; });
     if (changed) saveJson(APP.storageKey, projectList);
     return projectList;
 }
@@ -110,7 +115,7 @@ function setView(view, historyMode = 'push') {
     if (view !== 'export') storyPickerOpen = false;
     if (view === 'player') {
         const story = activeStory();
-        if (playerStoryCategoryFilter !== 'all' && normalizeStoryCategory(story?.category) !== playerStoryCategoryFilter) playerStoryCategoryFilter = 'all';
+        if (playerStoryStageFilter !== 'all' && normalizeStoryStage(story?.stage) !== playerStoryStageFilter) playerStoryStageFilter = 'all';
     }
     currentView = view;
     if (view !== 'player') playerIndex = 0;

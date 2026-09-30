@@ -106,8 +106,8 @@ document.addEventListener('change', event => {
     if (target.id === 'projectSelect') {
         stopPlayback();
         activeProjectId = target.value; selectedFolder = null; playerIndex = 0;
-        playerStoryCategoryFilter = 'all'; exportStoryCategoryFilter = 'all';
-        selectedPhotoIds.clear(); selectedPickerScreenIds.clear(); persist(true);
+        playerStoryStageFilter = 'all'; exportStoryStageFilter = 'all';
+        selectedPhotoIds.clear(); selectedPickerScreenIds.clear(); selectedStoryStepIds.clear(); persist(true);
     } else if (target.dataset.screenName) {
         const screen = screenById(target.dataset.screenName);
         if (!screen) return;
@@ -131,19 +131,19 @@ document.addEventListener('change', event => {
     } else if (target.dataset.action === 'use-photo-metadata-dates') {
         usePhotoMetadataDates = target.checked;
         localStorage.setItem(APP.photoDateKey, String(usePhotoMetadataDates));
-    } else if (target.dataset.action === 'change-story-category') {
+    } else if (target.dataset.action === 'change-story-stage') {
         const story = activeStory();
-        const category = normalizeStoryCategory(target.value);
-        if (!story || story.category === category) return;
-        story.category = category;
+        const stage = normalizeStoryStage(target.value);
+        if (!story || story.stage === stage) return;
+        story.stage = stage;
         story.updatedAt = Date.now();
-        if (playerStoryCategoryFilter !== 'all' && playerStoryCategoryFilter !== category) playerStoryCategoryFilter = 'all';
+        if (playerStoryStageFilter !== 'all' && playerStoryStageFilter !== stage) playerStoryStageFilter = 'all';
         persist(true);
-        toast(`Walkthrough categorized as “${category}”.`);
+        toast(`Walkthrough stage set to “${stage}”.`);
     } else if (target.dataset.action === 'filter-player-stories') {
         stopPlayback();
-        playerStoryCategoryFilter = normalizeStoryCategoryFilter(target.value);
-        const visibleStories = storiesForCategory(activeProject().stories, playerStoryCategoryFilter);
+        playerStoryStageFilter = normalizeStoryStageFilter(target.value);
+        const visibleStories = storiesForStage(activeProject().stories, playerStoryStageFilter);
         const story = activeStory();
         const chosen = visibleStories.find(item => item.id === story?.id) || visibleStories[0];
         playerIndex = 0;
@@ -152,7 +152,7 @@ document.addEventListener('change', event => {
             persist(true);
         } else renderApp();
     } else if (target.dataset.action === 'filter-export-stories') {
-        exportStoryCategoryFilter = normalizeStoryCategoryFilter(target.value);
+        exportStoryStageFilter = normalizeStoryStageFilter(target.value);
         renderApp();
     } else if (target.dataset.action === 'photo-picker-sort') {
         photoPickerSort = ['recent','oldest','library'].includes(target.value) ? target.value : 'recent';
@@ -163,7 +163,7 @@ document.addEventListener('change', event => {
     } else if (target.dataset.action === 'change-story') {
         if (!activeProject().stories.some(story => story.id === target.value)) return;
         stopPlayback();
-        activeProject().activeStoryId = target.value; playerIndex = 0; persist(true);
+        activeProject().activeStoryId = target.value; playerIndex = 0; selectedStoryStepIds.clear(); persist(true);
     } else if (target.dataset.transitionField) {
         const step = activeStep(); step.transition[target.dataset.transitionField] = target.type === 'number' ? Number(target.value) : target.value; persist(true);
     } else if (target.dataset.audioField) {
