@@ -40,6 +40,57 @@ require dirname(__DIR__, 2) . '/guard.php';
     </form>
 </dialog>
 
+<dialog id="uploadDialog">
+    <form id="uploadForm" novalidate>
+        <div class="dialog-head">
+            <div><h2>Upload screens</h2><p id="uploadDialogDescription">Review the selected files and optionally tag the batch.</p></div>
+            <button type="button" class="button ghost icon-only" data-action="close-upload-dialog" aria-label="Close">×</button>
+        </div>
+        <div class="dialog-body">
+            <div class="upload-dialog-files" id="uploadDialogFiles"></div>
+            <label class="field">
+                <span class="field-label">TAGS <span>OPTIONAL</span></span>
+                <span class="tag-dialog-input"><span aria-hidden="true">#</span><input class="input" id="uploadTagInput" name="tags" autocomplete="off" maxlength="160" placeholder="checkout, approved, mobile"></span>
+            </label>
+            <p class="tag-dialog-help">Separate multiple tags with commas. Every tag is added to every selected photo.</p>
+            <div class="tag-suggestions">
+                <span class="field-label">USE EXISTING TAGS</span>
+                <div class="tag-suggestion-list" id="uploadTagSuggestions"></div>
+            </div>
+            <p class="sync-dialog-error" id="uploadDialogError" role="alert" hidden></p>
+        </div>
+        <div class="dialog-foot">
+            <button type="button" class="button" data-action="close-upload-dialog">Cancel</button>
+            <button type="submit" class="button primary" id="confirmUploadButton">Upload screens</button>
+        </div>
+    </form>
+</dialog>
+
+<dialog id="tagDialog">
+    <form id="tagForm" novalidate>
+        <div class="dialog-head">
+            <div><h2>Add a tag</h2><p id="tagDialogDescription">Apply one searchable tag to the selected photos.</p></div>
+            <button type="button" class="button ghost icon-only" data-action="close-tag-dialog" aria-label="Close">×</button>
+        </div>
+        <div class="dialog-body">
+            <label class="field">
+                <span class="field-label">TAG NAME</span>
+                <span class="tag-dialog-input"><span aria-hidden="true">#</span><input class="input" id="tagInput" name="tag" autocomplete="off" maxlength="40" placeholder="e.g. checkout-ready"></span>
+            </label>
+            <p class="tag-dialog-help">Spaces and punctuation become hyphens.</p>
+            <div class="tag-suggestions">
+                <span class="field-label">USE AN EXISTING TAG</span>
+                <div class="tag-suggestion-list" id="tagSuggestions"></div>
+            </div>
+            <p class="sync-dialog-error" id="tagError" role="alert" hidden></p>
+        </div>
+        <div class="dialog-foot">
+            <button type="button" class="button" data-action="close-tag-dialog">Cancel</button>
+            <button type="submit" class="button primary">Add tag</button>
+        </div>
+    </form>
+</dialog>
+
 <dialog id="photoDialog">
     <div class="dialog-head">
         <div><h2>Add photos to storyboard</h2><p>Add everything by recency, or sort, group, and choose individual photos.</p></div>

@@ -3,7 +3,7 @@ function bindDynamicUI() {
     if (dropZone) {
         ['dragenter','dragover'].forEach(type => dropZone.addEventListener(type, event => { event.preventDefault(); dropZone.classList.add('dragover'); }));
         ['dragleave','drop'].forEach(type => dropZone.addEventListener(type, event => { event.preventDefault(); dropZone.classList.remove('dragover'); }));
-        dropZone.addEventListener('drop', event => handleFiles([...event.dataTransfer.files]));
+        dropZone.addEventListener('drop', event => stageFilesForUpload([...event.dataTransfer.files]));
     }
     const canvas = $('#annotationCanvas');
     if (canvas) bindAnnotationCanvas(canvas);

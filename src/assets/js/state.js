@@ -73,13 +73,17 @@ let transferMenu = null;
 let folderMenuPath = null;
 let storyMenuOpen = false;
 let libraryListMode = false;
+let libraryPhotoGroup = 'none';
 let libraryStoryFilter = 'all';
+let libraryTagFilter = 'all';
 let pendingAnnotationScreenId = null;
+let pendingTagPhotoIds = [];
 const selectedPhotoIds = new Set();
 const selectedPickerScreenIds = new Set();
 const selectedStoryStepIds = new Set();
 let sessionUploadOpen = true;
 const sessionUploads = [];
+let pendingUploadFiles = [];
 
 const defaultAudio = {
     enabled: true,

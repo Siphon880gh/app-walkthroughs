@@ -42,6 +42,11 @@ document.addEventListener('focusout', event => {
 
 document.addEventListener('input', event => {
     const target = event.target;
+    if (target.id === 'tagInput') {
+        const error = $('#tagError');
+        if (error) error.hidden = true;
+        return;
+    }
     if (target.dataset.noteField) {
         const screen = activeScreen();
         const ann = selectedTextAnnotation(screen);
@@ -107,6 +112,7 @@ document.addEventListener('change', event => {
         stopPlayback();
         activeProjectId = target.value; selectedFolder = null; playerIndex = 0;
         libraryStoryFilter = 'all';
+        libraryTagFilter = 'all';
         playerStoryStageFilter = 'all'; exportStoryStageFilter = 'all';
         selectedPhotoIds.clear(); selectedPickerScreenIds.clear(); selectedStoryStepIds.clear(); persist(true);
     } else if (target.dataset.screenName) {
@@ -126,7 +132,7 @@ document.addEventListener('change', event => {
         persist(true);
         toast(`File renamed to “${name}”.`);
     } else if (target.id === 'fileInput') {
-        handleFiles([...target.files]); target.value = '';
+        stageFilesForUpload([...target.files]); target.value = '';
     } else if (target.id === 'jsonInput') {
         if (target.files[0]) importProjectData(target.files[0]); target.value = '';
     } else if (target.dataset.action === 'use-photo-metadata-dates') {
@@ -144,6 +150,13 @@ document.addEventListener('change', event => {
     } else if (target.dataset.action === 'filter-library-stories') {
         libraryStoryFilter = target.value;
         selectedPhotoIds.clear();
+        renderApp();
+    } else if (target.dataset.action === 'filter-library-tags') {
+        libraryTagFilter = target.value;
+        selectedPhotoIds.clear();
+        renderApp();
+    } else if (target.dataset.action === 'group-library-photos') {
+        libraryPhotoGroup = ['date','hour','tag','none'].includes(target.value) ? target.value : 'none';
         renderApp();
     } else if (target.dataset.action === 'filter-player-stories') {
         stopPlayback();

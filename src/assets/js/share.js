@@ -200,6 +200,7 @@ function importProjectData(file) {
             projects.unshift(project);
             activeProjectId = project.id;
             selectedFolder = null;
+            libraryTagFilter = 'all';
             playerStoryStageFilter = 'all';
             exportStoryStageFilter = 'all';
             selectedPhotoIds.clear();
@@ -409,6 +410,7 @@ async function confirmResetProfile() {
         activeProjectId = demoProjects[0].id;
         audioSettings = structuredClone(defaultAudio);
         selectedFolder = null;
+        libraryTagFilter = 'all';
         searchTerm = '';
         selectedTool = 'callout-pin';
         selectedColor = PALETTE[0];

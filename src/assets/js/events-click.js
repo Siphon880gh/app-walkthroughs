@@ -60,6 +60,15 @@ document.addEventListener('click', event => {
     else if (action === 'open-audio') openAudioDialog();
     else if (action === 'close-audio') $('#audioDialog').close();
     else if (action === 'upload') $('#fileInput').click();
+    else if (action === 'close-upload-dialog') closeUploadDialog();
+    else if (action === 'choose-upload-tag') {
+        const input = $('#uploadTagInput');
+        if (!input) return;
+        const tags = String(input.value || '').split(',').map(tag => tag.trim()).filter(Boolean);
+        if (!tags.includes(target.dataset.tag)) tags.push(target.dataset.tag);
+        input.value = tags.join(', ');
+        input.focus();
+    }
     else if (action === 'toggle-upload-menu') setUploadMenu(!uploadMenuOpen);
     else if (action === 'enter-url') { setUploadMenu(false); openUrlDialog(); }
     else if (action === 'toggle-url-list') { libraryListMode = !libraryListMode; renderApp(); }
@@ -92,6 +101,19 @@ document.addEventListener('click', event => {
         const screens = project.screenshots.filter(screen => selectedPhotoIds.has(screen.id));
         downloadPhotoArchive(screens, `${slug(project.name)}-photos.zip`, target);
     }
+    else if (action === 'tag-selected-photos') {
+        addTagToPhotos((target.dataset.ids || '').split(' ').filter(Boolean));
+    }
+    else if (action === 'tag-photo') addTagToPhotos([target.dataset.id]);
+    else if (action === 'close-tag-dialog') closePhotoTagDialog();
+    else if (action === 'choose-photo-tag') {
+        const input = $('#tagInput');
+        if (!input) return;
+        input.value = target.dataset.tag || '';
+        $('#tagError').hidden = true;
+        input.focus();
+    }
+    else if (action === 'remove-photo-tag') removeTagFromPhoto(target.dataset.id, target.dataset.tag);
     else if (action === 'open-transfer') {
         const mode = target.dataset.mode;
         const fromChooser = transferMenu === 'mode' && mode !== 'mode';
@@ -120,6 +142,7 @@ document.addEventListener('click', event => {
     else if (action === 'select-folder') {
         selectedFolder = target.dataset.folder || null;
         libraryStoryFilter = 'all';
+        libraryTagFilter = 'all';
         selectedPhotoIds.clear();
         renderApp();
     }
@@ -200,6 +223,7 @@ document.addEventListener('click', event => {
         activeProjectId = projects[Math.min(index, projects.length - 1)].id;
         selectedFolder = null;
         libraryStoryFilter = 'all';
+        libraryTagFilter = 'all';
         playerStoryStageFilter = 'all';
         exportStoryStageFilter = 'all';
         selectedPhotoIds.clear();

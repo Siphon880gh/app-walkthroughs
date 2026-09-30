@@ -156,9 +156,72 @@ function renderSessionTray() {
     tray.innerHTML = `<section class="upload-tray-panel" aria-label="Files uploaded this session"><header class="upload-tray-head"><strong>Last uploaded</strong><span class="count-pill">${count}</span>${copySelected}<button type="button" class="button ghost icon-only upload-tray-collapse" data-action="toggle-upload-tray" aria-expanded="true" aria-label="Collapse uploaded files">⌄</button></header><ul class="upload-tray-list">${rows}</ul></section>`;
 }
 
-async function handleFiles(files) {
+function uploadTagsFromInput(value) {
+    return [...new Set(String(value || '').split(',').map(tag => tag.trim()).filter(Boolean).map(tag => slug(tag.slice(0, 40))))];
+}
+
+function stageFilesForUpload(files) {
     const images = files.filter(file => file.type.startsWith('image/'));
     if (!images.length) { toast('Choose PNG, JPEG, WebP, GIF, or SVG images.', 'warn'); return; }
+    pendingUploadFiles = images;
+    const dialog = $('#uploadDialog');
+    const description = $('#uploadDialogDescription');
+    const list = $('#uploadDialogFiles');
+    const input = $('#uploadTagInput');
+    const suggestions = $('#uploadTagSuggestions');
+    const error = $('#uploadDialogError');
+    const button = $('#confirmUploadButton');
+    if (!dialog || !list || !input) return;
+    description.textContent = `${images.length} photo${images.length === 1 ? '' : 's'} selected. Optional tags will be applied to the entire batch.`;
+    list.innerHTML = images.map(file => `<div class="upload-dialog-file"><span aria-hidden="true">▧</span><strong title="${esc(file.name)}">${esc(file.name || 'Untitled image')}</strong><small>${formatBytes(file.size)}</small></div>`).join('');
+    input.value = '';
+    const tags = projectCustomTags(activeProject());
+    suggestions.innerHTML = tags.length
+        ? tags.map(tag => `<button type="button" class="tag-suggestion" data-action="choose-upload-tag" data-tag="${esc(tag)}">#${esc(tag)}</button>`).join('')
+        : '<span class="tag-suggestions-empty">Existing tags will appear here.</span>';
+    if (error) {
+        error.hidden = true;
+        error.textContent = '';
+    }
+    if (button) {
+        button.disabled = false;
+        button.removeAttribute('aria-busy');
+        button.textContent = `Upload ${images.length} photo${images.length === 1 ? '' : 's'}`;
+    }
+    dialog.showModal();
+    requestAnimationFrame(() => input.focus());
+}
+
+function closeUploadDialog() {
+    const dialog = $('#uploadDialog');
+    if (dialog?.open) dialog.close();
+    else pendingUploadFiles = [];
+}
+
+async function confirmFileUpload() {
+    const files = [...pendingUploadFiles];
+    if (!files.length) {
+        closeUploadDialog();
+        return;
+    }
+    const button = $('#confirmUploadButton');
+    if (button) {
+        button.disabled = true;
+        button.setAttribute('aria-busy', 'true');
+        button.textContent = `Uploading ${files.length}…`;
+    }
+    const added = await handleFiles(files, uploadTagsFromInput($('#uploadTagInput')?.value));
+    if (added.length) closeUploadDialog();
+    else if (button) {
+        button.disabled = false;
+        button.removeAttribute('aria-busy');
+        button.textContent = `Try uploading ${files.length} again`;
+    }
+}
+
+async function handleFiles(files, uploadTags = []) {
+    const images = files.filter(file => file.type.startsWith('image/'));
+    if (!images.length) { toast('Choose PNG, JPEG, WebP, GIF, or SVG images.', 'warn'); return []; }
     const folder = uploadFolder();
     toast(`Uploading ${images.length} screen${images.length === 1 ? '':'s'}…`);
     const settled = await Promise.all(images.map(async file => {
@@ -166,9 +229,16 @@ async function handleFiles(files) {
         catch (error) { toast(error.message || `Could not upload ${file.name || 'that image'}.`, 'warn'); return null; }
     }));
     const added = settled.filter(Boolean);
-    if (!added.length) return;
+    if (!added.length) return [];
+    if (uploadTags.length) {
+        added.forEach(screen => {
+            screen.tags = [...new Set([...(screen.tags || []), ...uploadTags])];
+        });
+    }
     commitScreens(added);
-    toast(`${added.length} screen${added.length === 1 ? '':'s'} added to ${folder}.`);
+    const tagDetail = uploadTags.length ? ` with ${uploadTags.length} tag${uploadTags.length === 1 ? '' : 's'}` : '';
+    toast(`${added.length} screen${added.length === 1 ? '':'s'} added to ${folder}${tagDetail}.`);
+    return added;
 }
 
 const URL_IMAGE_TYPES = ['image/png','image/jpeg','image/webp','image/gif','image/svg+xml'];
@@ -260,4 +330,19 @@ async function confirmUrlUpload() {
 $('#urlForm').addEventListener('submit', event => {
     event.preventDefault();
     confirmUrlUpload();
+});
+
+$('#uploadForm').addEventListener('submit', event => {
+    event.preventDefault();
+    confirmFileUpload();
+});
+
+$('#uploadDialog').addEventListener('close', () => {
+    pendingUploadFiles = [];
+    $('#uploadForm').reset();
+    const error = $('#uploadDialogError');
+    if (error) {
+        error.hidden = true;
+        error.textContent = '';
+    }
 });

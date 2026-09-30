@@ -10,6 +10,22 @@ dialog::backdrop { background: rgba(2,6,23,.78); backdrop-filter: blur(3px); }
 .dialog-head p { color: var(--muted); font-size: 10px; margin-top: 5px; }
 .dialog-body { padding: 18px 20px; }
 .dialog-foot { padding: 13px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+.tag-dialog-input { display: flex; align-items: center; height: 38px; border: 1px solid var(--border); border-radius: 7px; background: #060b14; transition: border-color .15s ease, box-shadow .15s ease; }
+.tag-dialog-input:focus-within { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(59,130,246,.12); }
+.tag-dialog-input > span { padding-left: 11px; color: #a78bfa; font: 700 13px/1 var(--mono); }
+.tag-dialog-input .input { height: 36px; border: 0; background: transparent; box-shadow: none; font: 12px/1 var(--mono); }
+.tag-dialog-help { margin: -3px 0 17px; color: var(--dim); font-size: 9px; }
+.tag-suggestions { padding-top: 14px; border-top: 1px solid var(--border); }
+.tag-suggestion-list { display: flex; flex-wrap: wrap; gap: 6px; min-height: 24px; }
+.tag-suggestion { min-height: 25px; padding: 4px 8px; border: 1px solid rgba(139,92,246,.3); border-radius: 999px; background: rgba(139,92,246,.1); color: #c4b5fd; font: 9px/1 var(--mono); }
+.tag-suggestion:hover, .tag-suggestion:focus-visible { border-color: rgba(167,139,250,.7); background: rgba(139,92,246,.2); color: #ede9fe; }
+.tag-suggestions-empty { color: var(--dim); font-size: 10px; }
+.upload-dialog-files { max-height: 154px; margin-bottom: 17px; overflow: auto; border: 1px solid var(--border); border-radius: 7px; background: #080e19; }
+.upload-dialog-file { min-height: 38px; display: grid; grid-template-columns: 24px minmax(0,1fr) auto; gap: 8px; align-items: center; padding: 7px 10px; border-bottom: 1px solid var(--border); }
+.upload-dialog-file:last-child { border-bottom: 0; }
+.upload-dialog-file > span:first-child { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 5px; background: var(--blue-soft); color: #93c5fd; font: 10px/1 var(--mono); }
+.upload-dialog-file strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; }
+.upload-dialog-file small { color: var(--dim); font: 9px/1 var(--mono); }
 .annotation-story-choices { display: grid; gap: 8px; }
 .annotation-story-choice { width: 100%; min-height: 54px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: #080e19; color: var(--text); text-align: left; transition: border-color .14s ease, background .14s ease; }
 .annotation-story-choice:hover, .annotation-story-choice:focus-visible { border-color: rgba(59,130,246,.55); background: var(--blue-soft); }
