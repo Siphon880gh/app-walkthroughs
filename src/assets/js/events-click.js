@@ -61,6 +61,7 @@ document.addEventListener('click', event => {
     if (transferMenu && !event.target.closest('.transfer-menu')) setTransferMenu(null);
     if (folderMenuPath !== null && !event.target.closest('.folder-menu')) setFolderMenu(null);
     if (storyMenuOpen && !event.target.closest('.story-more-menu')) setStoryMenu(false);
+    if ((pickerMenu || pickerAssocId) && !event.target.closest('.picker-menu, .picker-assoc-drawer')) closePickerContext();
     if (assocDrawerId && !event.target.closest('.assoc-anchor')) {
         assocDrawerId = null;
         $$('.assoc-anchor.is-open').forEach(node => {
@@ -128,6 +129,9 @@ document.addEventListener('click', event => {
         project.activeStoryId = story.id;
         if (story.steps.some(step => step.id === target.dataset.stepId)) story.activeStepId = target.dataset.stepId;
         assocDrawerId = null;
+        pickerMenu = null;
+        pickerAssocId = null;
+        if ($('#photoDialog')?.open) $('#photoDialog').close();
         persist(true);
         setView('stories');
     }
@@ -305,32 +309,20 @@ document.addEventListener('click', event => {
         const copy = structuredClone(original); copy.id = uid('screen'); copy.name = original.name.replace(/(\.[^.]+)$/, ' copy$1'); copy.uploadedAt = Date.now();
         project.screenshots.push(copy); project.activeScreenshotId = copy.id; persist(true); toast('Screen duplicated.');
     }
-    else if (action === 'delete-screen') {
-        const screen = screenById(target.dataset.id);
-        if (!screen || !confirm(`Delete “${screen.name}”? Linked walkthrough steps will also be removed.`)) return;
-        project.screenshots = project.screenshots.filter(item => item.id !== screen.id);
-        project.stories.forEach(story => {
-            story.steps = story.steps.filter(step => step.screenId !== screen.id);
-            if (!story.steps.some(step => step.id === story.activeStepId)) story.activeStepId = story.steps[0]?.id || '';
-        });
-        project.activeScreenshotId = project.screenshots[0]?.id || '';
-        selectedPhotoIds.delete(screen.id);
-        selectedPickerScreenIds.delete(screen.id);
-        forgetAnnotationHistory(screen.id);
-        persist(true);
-        toast('Screen and linked steps deleted.');
-    }
+    else if (action === 'delete-screen') deleteLibraryScreen(screenById(target.dataset.id));
     else if (action === 'add-to-story') { addScreenToStory(target.dataset.id); setView('stories'); }
     else if (action === 'open-photo-picker') {
         pickerShowAnnotated = true;
         pickerUploadOpen = false;
         pickerUploadBusy = false;
         pendingPickerUpload = null;
+        pickerMenu = null;
+        pickerAssocId = null;
         selectedPickerScreenIds.clear();
         renderPhotoPicker();
         $('#photoDialog').showModal();
     }
-    else if (action === 'close-photo-picker') { selectedPickerScreenIds.clear(); pickerUploadOpen = false; $('#photoDialog').close(); }
+    else if (action === 'close-photo-picker') { selectedPickerScreenIds.clear(); pickerUploadOpen = false; closePickerContext(); $('#photoDialog').close(); }
     else if (action === 'toggle-picker-upload') {
         pickerUploadOpen = !pickerUploadOpen;
         if (pickerUploadOpen) {
@@ -342,6 +334,23 @@ document.addEventListener('click', event => {
         (pickerUploadOpen ? $('[data-action="picker-upload-folder"]') : $('[data-action="toggle-picker-upload"]'))?.focus();
     }
     else if (action === 'choose-picker-upload') choosePickerUpload();
+    else if (action === 'picker-open-photo') {
+        openZoomedPhoto(screenById(target.dataset.id));
+        closePickerContext();
+    }
+    else if (action === 'picker-show-assoc') {
+        const screen = screenById(target.dataset.id);
+        if (!screen || !assocConnectionsMarkup(project, screen)) return;
+        pickerAssocId = screen.id;
+        pickerMenu = null;
+        renderPickerContext();
+    }
+    else if (action === 'picker-delete-photo') {
+        const screen = screenById(target.dataset.id);
+        closePickerContext();
+        if (!deleteLibraryScreen(screen)) return;
+        renderPhotoPicker();
+    }
     else if (action === 'toggle-picker-annotated') { pickerShowAnnotated = !pickerShowAnnotated; renderPhotoPicker(); }
     else if (action === 'pick-photo') {
         const id = target.dataset.id;
@@ -605,3 +614,40 @@ document.addEventListener('click', event => {
     else if (action === 'import-json') $('#jsonInput').click();
     else if (action === 'audio-toggle') { audioSettings[target.dataset.key] = !audioSettings[target.dataset.key]; saveJson(APP.audioKey,audioSettings); renderAudioSettings(); }
 });
+
+document.addEventListener('contextmenu', event => {
+    const dialog = $('#photoDialog');
+    if (!dialog?.open) return;
+    if (event.target.closest('.picker-menu, .picker-assoc-drawer')) {
+        event.preventDefault();
+        return;
+    }
+    const card = event.target.closest('.photo-pick');
+    if (!card || !dialog.contains(card)) return;
+    event.preventDefault();
+    const screen = screenById(card.dataset.id);
+    if (!screen) return;
+    pickerAssocId = null;
+    pickerMenu = {id:screen.id, x:event.clientX, y:event.clientY};
+    renderPickerContext();
+});
+
+$('#photoDialog')?.addEventListener('cancel', event => {
+    if (!pickerMenu && !pickerAssocId) return;
+    event.preventDefault();
+    if (pickerAssocId) pickerAssocId = null;
+    else pickerMenu = null;
+    renderPickerContext();
+});
+
+$('#photoDialog')?.addEventListener('close', () => {
+    pickerMenu = null;
+    pickerAssocId = null;
+    const host = $('#pickerContextHost');
+    if (host) host.innerHTML = '';
+});
+
+document.addEventListener('scroll', event => {
+    if (!(pickerMenu || pickerAssocId)) return;
+    if (event.target === document || event.target?.closest?.('#photoPickerBody')) closePickerContext();
+}, true);

@@ -368,6 +368,70 @@ function renderPhotoPicker() {
         add.disabled = selectedCount === 0;
         add.textContent = selectedCount ? `Add ${selectedCount} photo${selectedCount === 1 ? '' : 's'}` : 'Add photos';
     }
+    renderPickerContext();
+}
+
+function closePickerContext() {
+    pickerMenu = null;
+    pickerAssocId = null;
+    renderPickerContext();
+}
+
+function placePickerLayer(node, x, y) {
+    const rect = node.getBoundingClientRect();
+    const left = Math.max(8, Math.min(x, window.innerWidth - rect.width - 8));
+    const top = Math.max(8, Math.min(y, window.innerHeight - rect.height - 8));
+    node.style.left = `${left}px`;
+    node.style.top = `${top}px`;
+}
+
+function renderPickerContext() {
+    const host = $('#pickerContextHost');
+    if (!host) return;
+    $$('#photoDialog .photo-pick.is-context').forEach(node => node.classList.remove('is-context'));
+    const screenId = pickerAssocId || pickerMenu?.id || '';
+    const screen = screenId ? screenById(screenId) : null;
+    if (!screen || !$('#photoDialog')?.open) {
+        pickerMenu = null;
+        pickerAssocId = null;
+        host.innerHTML = '';
+        return;
+    }
+    $(`#photoDialog .photo-pick[data-id="${CSS.escape(screen.id)}"]`)?.classList.add('is-context');
+    const project = activeProject();
+    const connections = assocConnectionsMarkup(project, screen);
+    const menu = pickerMenu ? `<div class="picker-menu sync-menu-panel" role="menu" style="left:${pickerMenu.x}px;top:${pickerMenu.y}px"><button type="button" class="sync-option" role="menuitem" data-action="picker-open-photo" data-id="${esc(screen.id)}">Open zoomed in new tab</button>${connections ? `<button type="button" class="sync-option" role="menuitem" data-action="picker-show-assoc" data-id="${esc(screen.id)}">Associations</button>` : ''}<button type="button" class="sync-option danger" role="menuitem" data-action="picker-delete-photo" data-id="${esc(screen.id)}">Delete from library</button></div>` : '';
+    const drawer = pickerAssocId && connections ? `<div class="picker-assoc-drawer" role="region" aria-label="Walkthrough connections for ${esc(screen.name)}"><div class="assoc-drawer-title">Connections</div>${connections}</div>` : '';
+    host.innerHTML = menu + drawer;
+    const menuNode = $('.picker-menu', host);
+    if (menuNode && pickerMenu) placePickerLayer(menuNode, pickerMenu.x, pickerMenu.y);
+    const drawerNode = $('.picker-assoc-drawer', host);
+    if (drawerNode) {
+        const card = $(`#photoDialog .photo-pick[data-id="${CSS.escape(screen.id)}"]`);
+        const cardRect = card?.getBoundingClientRect();
+        const width = drawerNode.offsetWidth || 248;
+        const openLeft = cardRect && cardRect.right + width + 16 > window.innerWidth;
+        const x = cardRect ? (openLeft ? cardRect.left - width - 8 : cardRect.right + 8) : (pickerMenu?.x || 24);
+        const y = cardRect ? cardRect.top : (pickerMenu?.y || 24);
+        placePickerLayer(drawerNode, x, y);
+    }
+    if (menuNode && !drawerNode) $('.sync-option', menuNode)?.focus();
+    else $('.assoc-step', drawerNode)?.focus();
+}
+
+function openZoomedPhoto(screen) {
+    const source = String(screen?.dataUrl || '');
+    const src = STORED_IMAGE.test(source) ? screenUrl(source) : (DATA_IMAGE.test(source) ? source : '');
+    if (!src) { toast('That photo cannot be opened.', 'warn'); return; }
+    const page = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(screen.name)}</title><style>html,body{margin:0;height:100%;background:#050913}body{display:grid;place-items:center}img{max-width:100vw;max-height:100vh;object-fit:contain}</style></head><body><img src="${esc(src)}" alt="${esc(screen.name)}"></body></html>`;
+    const url = URL.createObjectURL(new Blob([page], {type:'text/html'}));
+    const tab = window.open(url, '_blank', 'noopener');
+    if (!tab) {
+        URL.revokeObjectURL(url);
+        toast('Allow pop-ups to open the photo.', 'warn');
+        return;
+    }
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 
 function deviceFrameName(screen) {

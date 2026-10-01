@@ -98,6 +98,7 @@ require dirname(__DIR__, 2) . '/guard.php';
         <button type="button" class="button ghost icon-only" data-action="close-photo-picker" aria-label="Close">×</button>
     </div>
     <div class="dialog-body" id="photoPickerBody"></div>
+    <div id="pickerContextHost"></div>
     <div class="dialog-foot photo-picker-foot"><span id="photoPickerSelection" aria-live="polite">Choose one or more photos</span><button type="button" class="button" data-action="close-photo-picker">Cancel</button><button type="button" class="button primary" id="addSelectedPhotos" data-action="add-selected-photos" disabled>Add photos</button></div>
 </dialog>
 

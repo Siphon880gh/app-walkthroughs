@@ -318,11 +318,8 @@ function storiesContainingScreen(project, screenId) {
     return project.stories.filter(story => story.steps.some(step => step.screenId === screenId));
 }
 
-function screenAssocControl(project, screen, placement) {
-    const references = storyReferencesForScreen(project, screen.id);
-    if (!references.length) return '';
-    const open = assocDrawerId === screen.id;
-    const items = references.map(({story, steps}) => {
+function assocConnectionsMarkup(project, screen) {
+    return storyReferencesForScreen(project, screen.id).map(({story, steps}) => {
         const links = steps.map(step => {
             const number = story.steps.findIndex(item => item.id === step.id) + 1;
             const title = String(step.title || '').trim();
@@ -331,8 +328,31 @@ function screenAssocControl(project, screen, placement) {
         }).join('');
         return `<div class="assoc-story"><div class="assoc-story-head"><span class="assoc-story-name">${esc(story.name)}</span>${storyStageBadge(story)}</div><div class="assoc-steps">${links}</div></div>`;
     }).join('');
+}
+
+function screenAssocControl(project, screen, placement) {
+    const items = assocConnectionsMarkup(project, screen);
+    if (!items) return '';
+    const open = assocDrawerId === screen.id;
     const panelClass = placement === 'card' ? 'assoc-drawer' : 'assoc-panel';
     return `<div class="assoc-anchor assoc-${placement}${open ? ' is-open' : ''}"><button type="button" class="assoc-chip" data-action="toggle-assoc" data-id="${esc(screen.id)}" aria-expanded="${open ? 'true' : 'false'}" aria-controls="assoc-${esc(screen.id)}" title="Walkthrough connections">ASSOC</button><div class="${panelClass}" id="assoc-${esc(screen.id)}" role="region" aria-label="Walkthrough connections for ${esc(screen.name)}"><div class="assoc-drawer-title">Connections</div>${items}</div></div>`;
+}
+
+function deleteLibraryScreen(screen) {
+    if (!screen || !confirm(`Delete “${screen.name}” from the library? Linked walkthrough steps will also be removed.`)) return false;
+    const project = activeProject();
+    project.screenshots = project.screenshots.filter(item => item.id !== screen.id);
+    project.stories.forEach(story => {
+        story.steps = story.steps.filter(step => step.screenId !== screen.id);
+        if (!story.steps.some(step => step.id === story.activeStepId)) story.activeStepId = story.steps[0]?.id || '';
+    });
+    if (project.activeScreenshotId === screen.id) project.activeScreenshotId = project.screenshots[0]?.id || '';
+    selectedPhotoIds.delete(screen.id);
+    selectedPickerScreenIds.delete(screen.id);
+    forgetAnnotationHistory(screen.id);
+    persist(true);
+    toast('Removed from the library.');
+    return true;
 }
 
 function placeAssocDrawer(anchor) {
