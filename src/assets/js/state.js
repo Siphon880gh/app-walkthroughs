@@ -7,7 +7,8 @@ const APP = {
     audioKey: 'storyflow_audio_settings_v1',
     storyLayoutKey: 'storyflow_story_layout_v1',
     photoDateKey: 'storyflow_photo_date_metadata_v1',
-    libraryViewKey: 'storyflow_library_view_v1'
+    libraryViewKey: 'storyflow_library_view_v1',
+    recentSlideCopyKey: 'storyflow_recent_slide_copies_v1'
 };
 
 const PALETTE = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
@@ -73,6 +74,7 @@ let usePhotoMetadataDates = localStorage.getItem(APP.photoDateKey) !== 'false';
 let transferMenu = null;
 let folderMenuPath = null;
 let storyMenuOpen = false;
+let copyPreviousOpen = false;
 const storedLibraryView = localStorage.getItem(APP.libraryViewKey);
 let libraryView = storedLibraryView === 'list' || storedLibraryView === 'urls' ? storedLibraryView : 'grid';
 let librarySelectAnchor = null;

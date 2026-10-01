@@ -25,7 +25,162 @@ function renderStories() {
     const screen = screenById(step.screenId);
     const index = story.steps.findIndex(item => item.id === step.id);
     const storyScreenCount = new Set(story.steps.map(item => item.screenId).filter(id => screenById(id))).size;
-    return `<section class="main-pane"><div class="story-layout ${storyPanelLayout}"><aside class="story-rail"><div class="panel-head"><h2>Walkthrough steps</h2><div class="story-rail-tools"><button class="button ghost small photo-download" data-action="download-story-photos" title="Download this walkthrough’s photos as a ZIP file" ${storyScreenCount ? '' : 'disabled'}>↓ Photos</button><span class="eyebrow">${story.steps.length}</span></div></div>${storyChooser(storyOptions, story)}<div class="step-list" aria-label="Reorderable walkthrough steps">${stepItems}</div></aside><div class="flow-stage"><div class="stage-toolbar story-stage-toolbar"><div class="story-step-heading"><strong style="font-size:11px">${esc(step.title)}</strong><span style="color:var(--dim);font:9px/1 var(--mono);margin-left:8px">STEP ${index+1} / ${story.steps.length}</span></div><div class="tool-group story-preview-tools"><span class="tag">${esc(screen?.deviceFrame || 'none')}</span><button class="button small" data-action="preview-story">▶ Preview</button></div>${storyLayoutToggle()}</div><div class="step-canvas"><div class="device-mini">${deviceMarkup(screen, step, false)}</div></div><div class="story-bottom"><div class="step-reorder"><button class="button small" data-action="move-step" data-direction="-1" ${index === 0 ? 'disabled':''}>← Earlier</button><button class="button small" data-action="move-step" data-direction="1" ${index === story.steps.length-1 ? 'disabled':''}>Later →</button></div><div class="cluster" style="gap:6px"><button class="button small" data-action="duplicate-step">⧉ Duplicate</button><button class="button small danger" data-action="delete-step" aria-label="Delete slide ${index + 1}">Delete slide</button></div></div></div><aside class="inspector"><div class="panel-head"><h2>Step inspector</h2><span class="tag">${index+1}/${story.steps.length}</span></div><div class="panel-scroll" style="padding:0"><div class="section"><label class="field"><span class="field-label">FILE NAME</span><input class="input" data-screen-name="${esc(screen?.id || '')}" value="${esc(screen?.name || '')}" maxlength="120" ${screen ? '' : 'disabled'}></label>${stepTitleControl(step)}<label class="field"><span class="field-label"><span class="title-with-info">DWELL TIME<button type="button" class="info-dot" data-action="toggle-info" data-info="dwellInfo" aria-expanded="false" aria-controls="dwellInfo" aria-label="About dwell time"><span aria-hidden="true">i</span></button><div class="info-popover" id="dwellInfo" role="note" hidden>How long this step stays up during playback before the walkthrough moves on.</div></span><span data-dwell-readout>${Number(step.dwellSeconds).toFixed(1)}s</span></span><input type="range" data-step-field="dwellSeconds" min="1" max="10" step=".5" value="${Number(step.dwellSeconds)}" aria-label="Dwell time" style="width:100%"></label></div>${transitionInspector(step, index)}<div class="section"><div class="section-title"><span>INTERACTION HOTSPOT</span><button class="switch ${step.interaction.enabled ? 'on':''}" data-action="toggle-hotspot" aria-label="Toggle hotspot"></button></div>${step.interaction.enabled ? `<label class="field"><span class="field-label">LABEL</span><input class="input" data-interaction-field="label" value="${esc(step.interaction.label || '')}"></label><div class="field-grid"><label class="field"><span class="field-label">X POSITION</span><input class="input" type="number" data-interaction-field="xPercent" min="0" max="100" value="${Number(step.interaction.xPercent)}"></label><label class="field"><span class="field-label">Y POSITION</span><input class="input" type="number" data-interaction-field="yPercent" min="0" max="100" value="${Number(step.interaction.yPercent)}"></label></div><p style="color:var(--dim);font-size:10px;line-height:1.5">Drag the marker on the screen to place it.</p>` : '<p style="color:var(--dim);font-size:10px;line-height:1.5">Enable a hotspot to let viewers advance by clicking the target.</p>'}</div>${narrativeInspector(step)}</div></aside></div></section>`;
+    return `<section class="main-pane"><div class="story-layout ${storyPanelLayout}"><aside class="story-rail"><div class="panel-head"><h2>Walkthrough steps</h2><div class="story-rail-tools"><button class="button ghost small photo-download" data-action="download-story-photos" title="Download this walkthrough’s photos as a ZIP file" ${storyScreenCount ? '' : 'disabled'}>↓ Photos</button><span class="eyebrow">${story.steps.length}</span></div></div>${storyChooser(storyOptions, story)}<div class="step-list" aria-label="Reorderable walkthrough steps">${stepItems}</div></aside><div class="flow-stage"><div class="stage-toolbar story-stage-toolbar"><div class="story-step-heading"><strong style="font-size:11px">${esc(step.title)}</strong><span style="color:var(--dim);font:9px/1 var(--mono);margin-left:8px">STEP ${index+1} / ${story.steps.length}</span></div><div class="tool-group story-preview-tools"><span class="tag">${esc(screen?.deviceFrame || 'none')}</span><button class="button small" data-action="preview-story">▶ Preview</button></div>${storyLayoutToggle()}</div><div class="step-canvas"><div class="device-mini">${deviceMarkup(screen, step, false)}</div></div><div class="story-bottom"><div class="step-reorder"><button class="button small" data-action="move-step" data-direction="-1" ${index === 0 ? 'disabled':''}>← Earlier</button><button class="button small" data-action="move-step" data-direction="1" ${index === story.steps.length-1 ? 'disabled':''}>Later →</button></div><div class="cluster" style="gap:6px"><button class="button small" data-action="duplicate-step">⧉ Duplicate</button><button class="button small danger" data-action="delete-step" aria-label="Delete slide ${index + 1}">Delete slide</button></div></div></div><aside class="inspector"><div class="panel-head"><h2>Step inspector</h2><span class="tag">${index+1}/${story.steps.length}</span></div><div class="panel-scroll" style="padding:0">${copyFromPreviousSection(step, index)}<div class="section"><label class="field"><span class="field-label">FILE NAME</span><input class="input" data-screen-name="${esc(screen?.id || '')}" value="${esc(screen?.name || '')}" maxlength="120" ${screen ? '' : 'disabled'}></label>${stepTitleControl(step)}<label class="field"><span class="field-label"><span class="title-with-info">DWELL TIME<button type="button" class="info-dot" data-action="toggle-info" data-info="dwellInfo" aria-expanded="false" aria-controls="dwellInfo" aria-label="About dwell time"><span aria-hidden="true">i</span></button><div class="info-popover" id="dwellInfo" role="note" hidden>How long this step stays up during playback before the walkthrough moves on.</div></span><span data-dwell-readout>${Number(step.dwellSeconds).toFixed(1)}s</span></span><input type="range" data-step-field="dwellSeconds" min="1" max="10" step=".5" value="${Number(step.dwellSeconds)}" aria-label="Dwell time" style="width:100%"></label></div>${transitionInspector(step, index)}<div class="section"><div class="section-title"><span>INTERACTION HOTSPOT</span><button class="switch ${step.interaction.enabled ? 'on':''}" data-action="toggle-hotspot" aria-label="Toggle hotspot"></button></div>${step.interaction.enabled ? `<label class="field"><span class="field-label">LABEL</span><input class="input" data-interaction-field="label" value="${esc(step.interaction.label || '')}"></label><div class="field-grid"><label class="field"><span class="field-label">X POSITION</span><input class="input" type="number" data-interaction-field="xPercent" min="0" max="100" value="${Number(step.interaction.xPercent)}"></label><label class="field"><span class="field-label">Y POSITION</span><input class="input" type="number" data-interaction-field="yPercent" min="0" max="100" value="${Number(step.interaction.yPercent)}"></label></div><p style="color:var(--dim);font-size:10px;line-height:1.5">Drag the marker on the screen to place it.</p>` : '<p style="color:var(--dim);font-size:10px;line-height:1.5">Enable a hotspot to let viewers advance by clicking the target.</p>'}</div>${narrativeInspector(step)}</div></aside></div></section>`;
+}
+
+const COPY_PREVIOUS_GROUPS = [
+    {title:'TRANSITION', options:[
+        {scope:'transition', key:'type', label:'Type'},
+        {scope:'transition', key:'duration', label:'Duration'},
+        {scope:'transition', key:'easing', label:'Easing'}
+    ]},
+    {title:'DWELL', options:[
+        {scope:'step', key:'dwellSeconds', label:'Dwell time'}
+    ]},
+    {title:'HOTSPOT', options:[
+        {scope:'interaction', key:'enabled', label:'On or off'},
+        {scope:'interaction', key:'label', label:'Label'},
+        {scope:'interaction', key:'xPercent', label:'X position'},
+        {scope:'interaction', key:'yPercent', label:'Y position'}
+    ]},
+    {title:'TEXT', options:[
+        {scope:'step', key:'title', label:'Step title'},
+        {scope:'step', key:'userAction', label:'User action'},
+        {scope:'step', key:'screenContent', label:'Visible state'},
+        {scope:'step', key:'nextAction', label:'Next action'},
+        {scope:'step', key:'narrateBefore', label:'Narrate before'},
+        {scope:'step', key:'narrateAfter', label:'Narrate after'},
+        {scope:'step', key:'comment', label:'Comment'}
+    ]}
+];
+const NUMERIC_SLIDE_OPTIONS = new Set(['dwellSeconds', 'duration', 'xPercent', 'yPercent']);
+const RECENT_SLIDE_COPY_LIMIT = 4;
+
+function slideCopyOptions() {
+    return COPY_PREVIOUS_GROUPS.flatMap(group => group.options);
+}
+
+function recentSlideCopyId(item) {
+    return `${item?.scope}:${item?.key}`;
+}
+
+function normalizeRecentSlideCopies(items) {
+    const allowed = new Set(slideCopyOptions().map(recentSlideCopyId));
+    const seen = new Set();
+    const next = [];
+    (Array.isArray(items) ? items : []).forEach(item => {
+        const id = recentSlideCopyId(item);
+        if (!allowed.has(id) || seen.has(id)) return;
+        seen.add(id);
+        next.push({scope: item.scope, key: item.key});
+    });
+    return next.slice(0, RECENT_SLIDE_COPY_LIMIT);
+}
+
+let recentSlideCopies = normalizeRecentSlideCopies(loadJson(APP.recentSlideCopyKey, []));
+
+function rememberRecentSlideCopy(spec) {
+    recentSlideCopies = normalizeRecentSlideCopies([{scope: spec.scope, key: spec.key}, ...recentSlideCopies]);
+    saveJson(APP.recentSlideCopyKey, recentSlideCopies);
+}
+
+function removeRecentSlideCopy(scope, key) {
+    const next = recentSlideCopies.filter(item => item.scope !== scope || item.key !== key);
+    if (next.length === recentSlideCopies.length) return;
+    recentSlideCopies = next;
+    saveJson(APP.recentSlideCopyKey, recentSlideCopies);
+    const focus = next.length
+        ? `[data-action="remove-recent-copy"][data-copy-scope="${next[0].scope}"][data-copy-key="${next[0].key}"]`
+        : '[data-action="toggle-copy-previous"]';
+    withStoryScroll(() => renderApp(), focus);
+}
+
+function readSlideOption(step, spec) {
+    const source = spec.scope === 'step' ? step : step?.[spec.scope];
+    const value = source?.[spec.key];
+    if (spec.scope === 'interaction' && spec.key === 'enabled') return Boolean(value);
+    if (NUMERIC_SLIDE_OPTIONS.has(spec.key)) {
+        const number = Number(value);
+        return Number.isFinite(number) ? number : 0;
+    }
+    return value == null ? '' : String(value);
+}
+
+function writeSlideOption(step, spec, value) {
+    if (spec.scope === 'step') {
+        step[spec.key] = value;
+        return;
+    }
+    if (!step[spec.scope] || typeof step[spec.scope] !== 'object') step[spec.scope] = {};
+    step[spec.scope][spec.key] = value;
+}
+
+function slideOptionsMatch(current, prior) {
+    if (typeof current === 'boolean' || typeof prior === 'boolean') return Boolean(current) === Boolean(prior);
+    if (typeof current === 'number' || typeof prior === 'number') return Number(current) === Number(prior);
+    return String(current ?? '') === String(prior ?? '');
+}
+
+function formatSlideOption(spec, value) {
+    if (spec.key === 'enabled') return value ? 'On' : 'Off';
+    if (spec.key === 'duration' || spec.key === 'dwellSeconds') return `${Number(value).toFixed(1)}s`;
+    if (spec.key === 'xPercent' || spec.key === 'yPercent') return `${Number(value)}%`;
+    if (spec.key === 'type') return String(value || 'none').replaceAll('-', ' ');
+    const text = String(value || '').replace(/\s+/g, ' ').trim();
+    return text || 'Empty';
+}
+
+function withStoryScroll(render, focusSelector) {
+    const inspector = $('.story-layout .inspector .panel-scroll');
+    const list = $('.step-list');
+    const inspectorTop = inspector?.scrollTop || 0;
+    const listTop = list?.scrollTop || 0;
+    render();
+    const nextInspector = $('.story-layout .inspector .panel-scroll');
+    const nextList = $('.step-list');
+    if (nextInspector) nextInspector.scrollTop = inspectorTop;
+    if (nextList) nextList.scrollTop = listTop;
+    if (focusSelector) document.querySelector(focusSelector)?.focus();
+}
+
+function copyPrevRow(spec, step, previous) {
+    const prior = readSlideOption(previous, spec);
+    const matches = slideOptionsMatch(readSlideOption(step, spec), prior);
+    const preview = formatSlideOption(spec, prior);
+    const title = matches
+        ? `${spec.label} already matches the previous slide`
+        : `Copy ${spec.label.toLowerCase()} from the previous slide: ${preview}`;
+    return {matches, markup: `<button type="button" class="copy-prev-row${matches ? ' is-same' : ''}" data-action="copy-prev-option" data-copy-scope="${spec.scope}" data-copy-key="${spec.key}" title="${esc(title)}" aria-label="${esc(title)}"><span class="copy-prev-name">${esc(spec.label)}</span><span class="copy-prev-value">${esc(preview)}</span><span class="copy-prev-apply">${matches ? 'Same' : 'Copy'}</span></button>`};
+}
+
+function recentCopiedMarkup(step, previous) {
+    const rows = recentSlideCopies.map(item => {
+        const spec = slideCopyOptions().find(option => option.scope === item.scope && option.key === item.key);
+        if (!spec) return '';
+        return `<div class="copy-prev-recent">${copyPrevRow(spec, step, previous).markup}<button type="button" class="copy-prev-recent-remove" data-action="remove-recent-copy" data-copy-scope="${spec.scope}" data-copy-key="${spec.key}" aria-label="Remove ${esc(spec.label)} from recently copied" title="Remove from recently copied">×</button></div>`;
+    }).join('');
+    return rows ? `<div class="copy-prev-group">Recently copied</div>${rows}` : '';
+}
+
+function copyFromPreviousSection(step, index) {
+    if (index < 1) return '';
+    const previous = activeStory()?.steps[index - 1];
+    if (!previous) return '';
+    let different = 0;
+    const rows = COPY_PREVIOUS_GROUPS.map(group => {
+        const items = group.options.map(spec => {
+            const row = copyPrevRow(spec, step, previous);
+            if (!row.matches) different += 1;
+            return row.markup;
+        }).join('');
+        return `<div class="copy-prev-group">${group.title}</div>${items}`;
+    }).join('');
+    const sourceTitle = previous.title ? `, ${previous.title}` : '';
+    const count = different ? `<span class="count-pill">${different}</span>` : '';
+    const summary = different
+        ? `${different} setting${different === 1 ? '' : 's'} differ from the previous slide`
+        : 'Every listed setting matches the previous slide';
+    return `<div class="section copy-from-previous"><button type="button" class="copy-prev-toggle" data-action="toggle-copy-previous" aria-expanded="${copyPreviousOpen ? 'true' : 'false'}" title="${esc(summary)}"><span class="copy-prev-toggle-label">Copy from previous slide${count}</span><span class="copy-prev-chevron" aria-hidden="true">▾</span></button><div class="copy-prev-list" ${copyPreviousOpen ? '' : 'hidden'}>${recentCopiedMarkup(step, previous)}<p class="copy-prev-source">From step ${index}${esc(sourceTitle)}</p>${rows}</div></div>`;
 }
 
 function narrativeField(step, label, key, placeholder = '') {

@@ -78,3 +78,26 @@ function reorderStoryStep(stepId, targetId, placeAfter = false) {
     persist(true);
     return true;
 }
+
+function copyPreviousSlideOption(scope, key) {
+    const story = activeStory();
+    const step = activeStep();
+    const spec = slideCopyOptions().find(item => item.scope === scope && item.key === key);
+    if (!story || !step || !spec) return;
+    const index = story.steps.findIndex(item => item.id === step.id);
+    const previous = story.steps[index - 1];
+    if (!previous) return;
+    const prior = readSlideOption(previous, spec);
+    if (slideOptionsMatch(readSlideOption(step, spec), prior)) {
+        toast(`${spec.label} already matches the previous slide.`, 'warn');
+        return;
+    }
+    writeSlideOption(step, spec, prior);
+    rememberRecentSlideCopy(spec);
+    if ((key === 'narrateBefore' || key === 'narrateAfter') && String(prior || '').trim()) expandedNarration.add(`${step.id}:${key}`);
+    withStoryScroll(
+        () => persist(true),
+        `[data-action="copy-prev-option"][data-copy-scope="${scope}"][data-copy-key="${key}"]`
+    );
+    toast(`Copied ${spec.label.toLowerCase()} from the previous slide.`);
+}

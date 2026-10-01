@@ -468,6 +468,13 @@ document.addEventListener('click', event => {
         persist(true);
         toast(`Slide “${step.title}” deleted.`);
     }
+    else if (action === 'toggle-copy-previous') {
+        if ((activeStory()?.steps.findIndex(item => item.id === activeStep()?.id) ?? -1) < 1) return;
+        copyPreviousOpen = !copyPreviousOpen;
+        withStoryScroll(() => renderApp(), '[data-action="toggle-copy-previous"]');
+    }
+    else if (action === 'copy-prev-option') copyPreviousSlideOption(target.dataset.copyScope, target.dataset.copyKey);
+    else if (action === 'remove-recent-copy') removeRecentSlideCopy(target.dataset.copyScope, target.dataset.copyKey);
     else if (action === 'clear-step-title') {
         const step = activeStep();
         if (!step || !step.title) return;

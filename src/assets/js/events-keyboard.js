@@ -30,6 +30,11 @@ document.addEventListener('keydown', event => {
         $('#storyMenuButton')?.focus();
         return;
     }
+    if (event.key === 'Escape' && copyPreviousOpen && !['INPUT','TEXTAREA','SELECT'].includes(event.target.tagName)) {
+        copyPreviousOpen = false;
+        withStoryScroll(() => renderApp(), '[data-action="toggle-copy-previous"]');
+        return;
+    }
     if (event.key === 'Escape' && (['stepTitleInfo', 'transitionInfo', 'dwellInfo'].some(id => { const note = document.getElementById(id); return note && !note.hidden; }))) {
         closeInfoNotes();
         return;
