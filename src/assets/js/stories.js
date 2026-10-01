@@ -25,7 +25,7 @@ function renderStories() {
     const screen = screenById(step.screenId);
     const index = story.steps.findIndex(item => item.id === step.id);
     const storyScreenCount = new Set(story.steps.map(item => item.screenId).filter(id => screenById(id))).size;
-    return `<section class="main-pane"><div class="story-layout ${storyPanelLayout}"><aside class="story-rail"><div class="panel-head"><h2>Walkthrough steps</h2><div class="story-rail-tools"><button class="button ghost small photo-download" data-action="download-story-photos" title="Download this walkthrough’s photos as a ZIP file" ${storyScreenCount ? '' : 'disabled'}>↓ Photos</button><span class="eyebrow">${story.steps.length}</span></div></div>${storyChooser(storyOptions, story)}<div class="step-list" aria-label="Reorderable walkthrough steps">${stepItems}</div></aside><div class="flow-stage"><div class="stage-toolbar story-stage-toolbar"><div class="story-step-heading"><strong style="font-size:11px">${esc(step.title)}</strong><span style="color:var(--dim);font:9px/1 var(--mono);margin-left:8px">STEP ${index+1} / ${story.steps.length}</span></div><div class="tool-group story-preview-tools"><span class="tag">${esc(screen?.deviceFrame || 'none')}</span><button class="button small" data-action="preview-story">▶ Preview</button></div>${storyLayoutToggle()}</div><div class="step-canvas"><div class="device-mini">${deviceMarkup(screen, step, false)}</div></div><div class="story-bottom"><div class="step-reorder"><button class="button small" data-action="move-step" data-direction="-1" ${index === 0 ? 'disabled':''}>← Earlier</button><button class="button small" data-action="move-step" data-direction="1" ${index === story.steps.length-1 ? 'disabled':''}>Later →</button></div><div class="cluster" style="gap:6px"><button class="button small" data-action="duplicate-step">⧉ Duplicate</button><button class="button small danger" data-action="delete-step" aria-label="Delete slide ${index + 1}">Delete slide</button></div></div></div><aside class="inspector"><div class="panel-head"><h2>Step inspector</h2><span class="tag">${index+1}/${story.steps.length}</span></div><div class="panel-scroll" style="padding:0">${copyFromPreviousSection(step, index)}<div class="section"><label class="field"><span class="field-label">FILE NAME</span><input class="input" data-screen-name="${esc(screen?.id || '')}" value="${esc(screen?.name || '')}" maxlength="120" ${screen ? '' : 'disabled'}></label>${stepTitleControl(step)}<label class="field"><span class="field-label"><span class="title-with-info">DWELL TIME<button type="button" class="info-dot" data-action="toggle-info" data-info="dwellInfo" aria-expanded="false" aria-controls="dwellInfo" aria-label="About dwell time"><span aria-hidden="true">i</span></button><div class="info-popover" id="dwellInfo" role="note" hidden>How long this step stays up during playback before the walkthrough moves on.</div></span><span data-dwell-readout>${Number(step.dwellSeconds).toFixed(1)}s</span></span><input type="range" data-step-field="dwellSeconds" min="1" max="10" step=".5" value="${Number(step.dwellSeconds)}" aria-label="Dwell time" style="width:100%"></label></div>${transitionInspector(step, index)}<div class="section"><div class="section-title"><span>INTERACTION HOTSPOT</span><button class="switch ${step.interaction.enabled ? 'on':''}" data-action="toggle-hotspot" aria-label="Toggle hotspot"></button></div>${step.interaction.enabled ? `<label class="field"><span class="field-label">LABEL</span><input class="input" data-interaction-field="label" value="${esc(step.interaction.label || '')}"></label><div class="field-grid"><label class="field"><span class="field-label">X POSITION</span><input class="input" type="number" data-interaction-field="xPercent" min="0" max="100" value="${Number(step.interaction.xPercent)}"></label><label class="field"><span class="field-label">Y POSITION</span><input class="input" type="number" data-interaction-field="yPercent" min="0" max="100" value="${Number(step.interaction.yPercent)}"></label></div><p style="color:var(--dim);font-size:10px;line-height:1.5">Drag the marker on the screen to place it.</p>` : '<p style="color:var(--dim);font-size:10px;line-height:1.5">Enable a hotspot to let viewers advance by clicking the target.</p>'}</div>${narrativeInspector(step)}</div></aside></div></section>`;
+    return `<section class="main-pane"><div class="story-layout ${storyPanelLayout}"><aside class="story-rail"><div class="panel-head"><h2>Walkthrough steps</h2><div class="story-rail-tools"><button class="button ghost small photo-download" data-action="download-story-photos" title="Download this walkthrough’s photos as a ZIP file" ${storyScreenCount ? '' : 'disabled'}>↓ Photos</button><span class="eyebrow">${story.steps.length}</span></div></div>${storyChooser(storyOptions, story)}<div class="step-list" aria-label="Reorderable walkthrough steps">${stepItems}</div></aside><div class="flow-stage"><div class="stage-toolbar story-stage-toolbar"><div class="story-step-heading"><strong style="font-size:11px">${esc(step.title)}</strong><span style="color:var(--dim);font:9px/1 var(--mono);margin-left:8px">STEP ${index+1} / ${story.steps.length}</span></div><div class="tool-group story-preview-tools"><span class="tag">${esc(screen?.deviceFrame || 'none')}</span><button class="button small" data-action="preview-story">▶ Preview</button></div>${storyLayoutToggle()}</div><div class="step-canvas"><div class="device-mini">${deviceMarkup(screen, step, false)}</div></div><div class="story-bottom"><div class="step-reorder"><button class="button small" data-action="move-step" data-direction="-1" ${index === 0 ? 'disabled':''}>← Earlier</button><button class="button small" data-action="move-step" data-direction="1" ${index === story.steps.length-1 ? 'disabled':''}>Later →</button></div><div class="cluster" style="gap:6px"><button class="button small" data-action="duplicate-step">⧉ Duplicate</button><button class="button small danger" data-action="delete-step" aria-label="Delete slide ${index + 1}">Delete slide</button></div></div></div><aside class="inspector"><div class="panel-head"><h2>Step inspector</h2><span class="tag">${index+1}/${story.steps.length}</span></div><div class="panel-scroll" style="padding:0">${copyFromPreviousSection(step, index)}<div class="section"><label class="field"><span class="field-label">FILE NAME</span><input class="input" data-screen-name="${esc(screen?.id || '')}" value="${esc(screen?.name || '')}" maxlength="120" ${screen ? '' : 'disabled'}></label>${stepTitleControl(step)}<label class="field"><span class="field-label"><span class="title-with-info">DWELL TIME<button type="button" class="info-dot" data-action="toggle-info" data-info="dwellInfo" aria-expanded="false" aria-controls="dwellInfo" aria-label="About dwell time"><span aria-hidden="true">i</span></button><div class="info-popover" id="dwellInfo" role="note" hidden>How long this step stays up during playback before the walkthrough moves on.</div></span><span data-dwell-readout>${Number(step.dwellSeconds).toFixed(1)}s</span></span><input type="range" data-step-field="dwellSeconds" min="1" max="10" step=".5" value="${Number(step.dwellSeconds)}" aria-label="Dwell time" style="width:100%"></label></div>${transitionInspector(step, index)}<div class="section"><div class="section-title"><span>INTERACTION HOTSPOT</span><button class="switch ${step.interaction.enabled ? 'on':''}" data-action="toggle-hotspot" aria-label="Toggle hotspot"></button></div>${step.interaction.enabled ? `${hotspotGestureControls(step)}<label class="field"><span class="field-label">LABEL</span><input class="input" data-interaction-field="label" value="${esc(step.interaction.label || '')}"></label><div class="field-grid"><label class="field"><span class="field-label">X POSITION</span><input class="input" type="number" data-interaction-field="xPercent" min="0" max="100" value="${Number(step.interaction.xPercent)}"></label><label class="field"><span class="field-label">Y POSITION</span><input class="input" type="number" data-interaction-field="yPercent" min="0" max="100" value="${Number(step.interaction.yPercent)}"></label></div><p style="color:var(--dim);font-size:10px;line-height:1.5">Drag the marker on the screen to place it.</p>` : '<p style="color:var(--dim);font-size:10px;line-height:1.5">Enable a hotspot to let viewers advance by clicking the target.</p>'}</div>${narrativeInspector(step)}</div></aside></div></section>`;
 }
 
 const COPY_PREVIOUS_GROUPS = [
@@ -39,6 +39,8 @@ const COPY_PREVIOUS_GROUPS = [
     ]},
     {title:'HOTSPOT', options:[
         {scope:'interaction', key:'enabled', label:'On or off'},
+        {scope:'interaction', key:'type', label:'Gesture'},
+        {scope:'interaction', key:'direction', label:'Direction'},
         {scope:'interaction', key:'label', label:'Label'},
         {scope:'interaction', key:'xPercent', label:'X position'},
         {scope:'interaction', key:'yPercent', label:'Y position'}
@@ -125,6 +127,8 @@ function formatSlideOption(spec, value) {
     if (spec.key === 'enabled') return value ? 'On' : 'Off';
     if (spec.key === 'duration' || spec.key === 'dwellSeconds') return `${Number(value).toFixed(1)}s`;
     if (spec.key === 'xPercent' || spec.key === 'yPercent') return `${Number(value)}%`;
+    if (spec.scope === 'interaction' && spec.key === 'type') return hotspotGesture(value).name;
+    if (spec.scope === 'interaction' && spec.key === 'direction') return hotspotDirection(value).name;
     if (spec.key === 'type') return String(value || 'none').replaceAll('-', ' ');
     const text = String(value || '').replace(/\s+/g, ' ').trim();
     return text || 'Empty';
@@ -469,12 +473,80 @@ function deviceFrameName(screen) {
     return story?.settings?.deviceType || screen?.deviceFrame || 'none';
 }
 
+const HOTSPOT_GESTURES = [
+    {id:'tap', name:'Circle', hint:'Tap', arrow:false},
+    {id:'chevron-chase', name:'Chasing chevrons', hint:'Slow swipe', arrow:true},
+    {id:'chevron', name:'Chevron', hint:'Quick swipe', arrow:true},
+    {id:'arrow', name:'Animated arrow', hint:'Scrolling', arrow:true}
+];
+const HOTSPOT_DIRECTIONS = [
+    {id:'up', name:'Up', angle:'-90deg'},
+    {id:'right', name:'Right', angle:'0deg'},
+    {id:'down', name:'Down', angle:'90deg'},
+    {id:'left', name:'Left', angle:'180deg'}
+];
+
+function hotspotGesture(type) {
+    return HOTSPOT_GESTURES.find(item => item.id === type) || HOTSPOT_GESTURES[0];
+}
+
+function hotspotDirection(value) {
+    return HOTSPOT_DIRECTIONS.find(item => item.id === value) || HOTSPOT_DIRECTIONS[1];
+}
+
+function rememberedHotspotDirection() {
+    return hotspotDirection(localStorage.getItem(APP.hotspotDirectionKey)).id;
+}
+
+function rememberHotspotDirection(direction) {
+    const next = hotspotDirection(direction).id;
+    localStorage.setItem(APP.hotspotDirectionKey, next);
+    return next;
+}
+
+function hotspotChevronSvg() {
+    return `<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2.5 11.5 8 5 13.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+
+function hotspotChoiceIcon(id) {
+    if (id === 'tap') return '<span class="hotspot-choice-tap" aria-hidden="true"></span>';
+    if (id === 'chevron-chase') return `<span class="hotspot-choice-mark is-chase" aria-hidden="true">${hotspotChevronSvg()}${hotspotChevronSvg()}${hotspotChevronSvg()}</span>`;
+    if (id === 'arrow') return '<span class="hotspot-choice-mark is-arrow" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M1.5 8h10M8.5 4.5 12.5 8l-4 3.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
+    return `<span class="hotspot-choice-mark" aria-hidden="true">${hotspotChevronSvg()}</span>`;
+}
+
+function hotspotGestureControls(step) {
+    const current = hotspotGesture(step.interaction.type);
+    const choices = HOTSPOT_GESTURES.map(item => {
+        const pressed = current.id === item.id;
+        return `<button type="button" class="hotspot-choice${pressed ? ' is-selected' : ''}" data-action="hotspot-gesture" data-gesture="${item.id}" aria-pressed="${pressed}" aria-label="${esc(item.name)}, ${esc(item.hint)}">${hotspotChoiceIcon(item.id)}<span class="hotspot-choice-pop" role="tooltip"><strong>${esc(item.name)}</strong><span>${esc(item.hint)}</span></span></button>`;
+    }).join('');
+    const direction = hotspotDirection(step.interaction.direction);
+    const directions = current.arrow ? `<div class="field-label">DIRECTION</div><div class="hotspot-direction" role="group" aria-label="Arrow direction">${HOTSPOT_DIRECTIONS.map(item => {
+        const pressed = direction.id === item.id;
+        return `<button type="button" class="hotspot-choice hotspot-direction-choice${pressed ? ' is-selected' : ''}" data-action="hotspot-direction" data-direction="${item.id}" aria-pressed="${pressed}" aria-label="${esc(item.name)}" style="--dir:${item.angle}"><span class="hotspot-choice-mark" aria-hidden="true">${hotspotChevronSvg()}</span><span class="hotspot-choice-pop" role="tooltip"><strong>${esc(item.name)}</strong></span></button>`;
+    }).join('')}</div>` : '';
+    return `<div class="hotspot-gesture-grid" role="group" aria-label="Hotspot gesture">${choices}</div>${directions}`;
+}
+
+function hotspotGlyph(step) {
+    const gesture = hotspotGesture(step.interaction.type);
+    if (!gesture.arrow) return '';
+    const angle = hotspotDirection(step.interaction.direction).angle;
+    if (gesture.id === 'chevron-chase') return `<span class="hotspot-glyph" style="--dir:${angle}"><span class="hotspot-chase">${hotspotChevronSvg()}${hotspotChevronSvg()}${hotspotChevronSvg()}</span></span>`;
+    if (gesture.id === 'arrow') return `<span class="hotspot-glyph" style="--dir:${angle}"><span class="hotspot-arrow"><span class="hotspot-arrow-shaft"></span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 8h9.5M7.5 4.5 11.5 8 7.5 11.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>`;
+    return `<span class="hotspot-glyph" style="--dir:${angle}"><span class="hotspot-chevron">${hotspotChevronSvg()}</span></span>`;
+}
+
 function hotspotMarkup(step, player = false) {
     if (!step?.interaction?.enabled) return '';
+    const gesture = hotspotGesture(step.interaction.type);
+    const direction = gesture.arrow ? ` data-direction="${hotspotDirection(step.interaction.direction).id}"` : '';
     const style = `--x:${Number(step.interaction.xPercent)}%;--y:${Number(step.interaction.yPercent)}%`;
     const label = esc(step.interaction.label || (player ? 'Tap' : 'Hotspot'));
-    if (player) return `<button class="hotspot" data-action="hotspot-next" style="${style}" aria-label="${esc(step.interaction.label || 'Advance to next step')}"><span class="hotspot-label">${label}</span></button>`;
-    return `<button type="button" class="hotspot hotspot-edit" style="${style}" aria-label="Drag to place the hotspot"><span class="hotspot-label">${label}</span></button>`;
+    const glyph = hotspotGlyph(step);
+    if (player) return `<button class="hotspot" data-gesture="${gesture.id}"${direction} data-action="hotspot-next" style="${style}" aria-label="${esc(step.interaction.label || 'Advance to next step')}">${glyph}<span class="hotspot-label">${label}</span></button>`;
+    return `<button type="button" class="hotspot hotspot-edit" data-gesture="${gesture.id}"${direction} style="${style}" aria-label="Drag to place the hotspot">${glyph}<span class="hotspot-label">${label}</span></button>`;
 }
 
 function screenInnerMarkup(screen, step, player = false) {

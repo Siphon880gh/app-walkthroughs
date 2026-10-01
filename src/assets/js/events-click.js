@@ -576,6 +576,21 @@ document.addEventListener('click', event => {
         if (expandedNarration.has(id)) document.querySelector(`[data-step-field="${key}"]`)?.focus();
     }
     else if (action === 'toggle-hotspot') { const step = activeStep(); step.interaction.enabled = !step.interaction.enabled; persist(true); }
+    else if (action === 'hotspot-gesture') {
+        const step = activeStep();
+        const gesture = HOTSPOT_GESTURES.find(item => item.id === target.dataset.gesture);
+        if (!step?.interaction || !gesture || step.interaction.type === gesture.id) return;
+        step.interaction.type = gesture.id;
+        if (gesture.arrow) step.interaction.direction = rememberedHotspotDirection();
+        withStoryScroll(() => persist(true), `[data-action="hotspot-gesture"][data-gesture="${gesture.id}"]`);
+    }
+    else if (action === 'hotspot-direction') {
+        const step = activeStep();
+        const direction = HOTSPOT_DIRECTIONS.find(item => item.id === target.dataset.direction);
+        if (!step?.interaction || !direction || !hotspotGesture(step.interaction.type).arrow) return;
+        step.interaction.direction = rememberHotspotDirection(direction.id);
+        withStoryScroll(() => persist(true), `[data-action="hotspot-direction"][data-direction="${direction.id}"]`);
+    }
     else if (action === 'preview-story') setView('player');
     else if (action === 'story-panel-layout') {
         const layout = target.dataset.layout === 'files-right' ? 'files-right' : 'files-left';
