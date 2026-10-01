@@ -381,6 +381,14 @@ document.addEventListener('click', event => {
     else if (action === 'toggle-picker-annotated') { pickerShowAnnotated = !pickerShowAnnotated; renderPhotoPicker(); }
     else if (action === 'pick-photo') {
         const id = target.dataset.id;
+        const now = performance.now();
+        const previous = pickerThumbGesture;
+        const repeated = previous && previous.id === id && now - previous.at <= PICKER_THUMB_GESTURE_MS && Math.hypot(event.clientX - previous.x, event.clientY - previous.y) <= 40;
+        if (repeated) {
+            openPickerThumbMenu(id, event.clientX, event.clientY);
+            return;
+        }
+        pickerThumbGesture = {id, at: now, x: event.clientX, y: event.clientY};
         if (selectedPickerScreenIds.has(id)) selectedPickerScreenIds.delete(id);
         else selectedPickerScreenIds.add(id);
         renderPhotoPicker();
@@ -657,6 +665,18 @@ document.addEventListener('click', event => {
     else if (action === 'audio-toggle') { audioSettings[target.dataset.key] = !audioSettings[target.dataset.key]; saveJson(APP.audioKey,audioSettings); renderAudioSettings(); }
 });
 
+const PICKER_THUMB_GESTURE_MS = 400;
+let pickerThumbGesture = null;
+
+function openPickerThumbMenu(screenId, x, y) {
+    const screen = screenById(screenId);
+    if (!screen || !$('#photoDialog')?.open) return;
+    pickerThumbGesture = null;
+    pickerAssocId = null;
+    pickerMenu = {id: screen.id, x, y};
+    renderPickerContext();
+}
+
 document.addEventListener('contextmenu', event => {
     const dialog = $('#photoDialog');
     if (!dialog?.open) return;
@@ -667,11 +687,7 @@ document.addEventListener('contextmenu', event => {
     const card = event.target.closest('.photo-pick');
     if (!card || !dialog.contains(card)) return;
     event.preventDefault();
-    const screen = screenById(card.dataset.id);
-    if (!screen) return;
-    pickerAssocId = null;
-    pickerMenu = {id:screen.id, x:event.clientX, y:event.clientY};
-    renderPickerContext();
+    openPickerThumbMenu(card.dataset.id, event.clientX, event.clientY);
 });
 
 $('#photoDialog')?.addEventListener('cancel', event => {
@@ -685,6 +701,7 @@ $('#photoDialog')?.addEventListener('cancel', event => {
 $('#photoDialog')?.addEventListener('close', () => {
     pickerMenu = null;
     pickerAssocId = null;
+    pickerThumbGesture = null;
     $('#photoDialog')?.classList.remove('picker-scroll-locked');
     const host = $('#pickerContextHost');
     if (host) host.innerHTML = '';

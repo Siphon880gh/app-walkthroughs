@@ -359,6 +359,7 @@ function renderPhotoPicker() {
     }
     const body = $('#photoPickerBody');
     if (!body) return;
+    const pickerScroll = body.scrollTop;
     const availableIds = new Set((project?.screenshots || []).map(screen => screen.id));
     [...selectedPickerScreenIds].forEach(id => { if (!availableIds.has(id)) selectedPickerScreenIds.delete(id); });
     const selectedCount = selectedPickerScreenIds.size;
@@ -367,6 +368,7 @@ function renderPhotoPicker() {
     body.innerHTML = `<div class="photo-picker-controls"><div class="photo-picker-fields"><label><span>SORT</span><select class="select" data-action="photo-picker-sort"><option value="recent" ${photoPickerSort === 'recent' ? 'selected' : ''}>Most recent</option><option value="oldest" ${photoPickerSort === 'oldest' ? 'selected' : ''}>Oldest first</option><option value="library" ${photoPickerSort === 'library' ? 'selected' : ''}>Library order</option></select></label><label><span>GROUP</span><select class="select" data-action="photo-picker-group"><option value="date" ${photoPickerGroup === 'date' ? 'selected' : ''}>Date</option><option value="hour" ${photoPickerGroup === 'hour' ? 'selected' : ''}>Date and hour</option><option value="tag" ${photoPickerGroup === 'tag' ? 'selected' : ''}>Tag</option><option value="none" ${photoPickerGroup === 'none' ? 'selected' : ''}>No groups</option></select></label></div><div class="photo-picker-actions"><button type="button" class="button ${pickerUploadOpen ? 'active' : ''}" data-action="toggle-picker-upload" aria-expanded="${pickerUploadOpen ? 'true' : 'false'}">↑ Upload</button><button type="button" class="button primary" data-action="add-all-recent-photos" ${project?.screenshots?.length ? '' : 'disabled'}>＋ Add all recent</button></div></div>${pickerUploadMarkup(project)}<div class="photo-picker-zone">Times shown in ${esc(zone.label)} (UTC${esc(zone.utcOffset.slice(0, 3))}:${esc(zone.utcOffset.slice(3))}).</div><div class="photo-picker-bar"><span>${screens.length} photo${screens.length === 1 ? '' : 's'} · added in displayed order</span><span class="photo-picker-tools"><button type="button" class="button ghost small" data-action="toggle-all-picker-photos" data-ids="${esc(screens.map(screen => screen.id).join(' '))}">${allVisiblePicked ? 'Clear visible' : 'Select visible'}</button><button type="button" class="button small ${pickerShowAnnotated ? 'active' : ''}" data-action="toggle-picker-annotated" aria-pressed="${pickerShowAnnotated ? 'true' : 'false'}" title="Show or hide annotated pictures">Annotated <span class="count-pill">${annotated.length}</span></button></span></div>${cards || '<p class="photo-picker-empty">No photos match this filter.</p>'}`;
     const count = $('#photoPickerSelection');
     const add = $('#addSelectedPhotos');
+    body.scrollTop = pickerScroll;
     if (count) count.textContent = selectedCount ? `${selectedCount} selected` : 'Choose one or more photos';
     if (add) {
         add.disabled = selectedCount === 0;
