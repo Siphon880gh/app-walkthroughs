@@ -133,6 +133,12 @@ document.addEventListener('change', event => {
         toast(`File renamed to “${name}”.`);
     } else if (target.id === 'fileInput') {
         stageFilesForUpload([...target.files]); target.value = '';
+    } else if (target.id === 'storyUploadInput') {
+        uploadPickerFiles([...target.files]); target.value = '';
+    } else if (target.dataset.action === 'picker-upload-folder') {
+        pickerUploadFolder = target.value === '__new__' || (activeProject().folders || []).some(folder => folder.fullPath === target.value) ? target.value : '__new__';
+        renderPhotoPicker();
+        if (pickerUploadFolder === '__new__') $('#pickerUploadName')?.focus();
     } else if (target.id === 'jsonInput') {
         if (target.files[0]) importProjectData(target.files[0]); target.value = '';
     } else if (target.dataset.action === 'use-photo-metadata-dates') {

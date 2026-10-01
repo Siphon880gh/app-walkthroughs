@@ -58,6 +58,8 @@
     .screen-preview { height: 190px; }
     .card-actions { opacity: 1; transform: none; }
     .photo-picker-controls, .photo-picker-bar { align-items: stretch; flex-direction: column; }
+    .photo-picker-actions { display: grid; grid-template-columns: 1fr 1fr; }
+    .picker-upload-panel, .picker-upload-panel.is-new { grid-template-columns: 1fr; }
     .photo-picker-fields { display: grid; grid-template-columns: 1fr 1fr; }
     .photo-picker-fields .select { width: 100%; min-width: 0; }
     .photo-picker-grid { grid-template-columns: 1fr 1fr; }

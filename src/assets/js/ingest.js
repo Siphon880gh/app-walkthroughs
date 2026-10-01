@@ -219,10 +219,9 @@ async function confirmFileUpload() {
     }
 }
 
-async function handleFiles(files, uploadTags = []) {
+async function handleFiles(files, uploadTags = [], folder = uploadFolder()) {
     const images = files.filter(file => file.type.startsWith('image/'));
     if (!images.length) { toast('Choose PNG, JPEG, WebP, GIF, or SVG images.', 'warn'); return []; }
-    const folder = uploadFolder();
     toast(`Uploading ${images.length} screen${images.length === 1 ? '':'s'}…`);
     const settled = await Promise.all(images.map(async file => {
         try { return await fileToScreen(file, folder); }
@@ -239,6 +238,51 @@ async function handleFiles(files, uploadTags = []) {
     const tagDetail = uploadTags.length ? ` with ${uploadTags.length} tag${uploadTags.length === 1 ? '' : 's'}` : '';
     toast(`${added.length} screen${added.length === 1 ? '':'s'} added to ${folder}${tagDetail}.`);
     return added;
+}
+
+function pickerUploadDestination() {
+    const project = activeProject();
+    const folders = project?.folders || [];
+    if (pickerUploadFolder === '__new__' || !folders.length) {
+        const name = ($('#pickerUploadName')?.value || '').trim();
+        if (!name) return {error:'Name the new folder before choosing photos.'};
+        const app = project.name.split('—')[0].trim();
+        const fullPath = `${app} / ${name}`;
+        return {fullPath, create:!folders.some(folder => folder.fullPath === fullPath), app, platform:name};
+    }
+    if (!folders.some(folder => folder.fullPath === pickerUploadFolder)) return {error:'Choose a library folder.'};
+    return {fullPath:pickerUploadFolder, create:false};
+}
+
+function choosePickerUpload() {
+    if (pickerUploadBusy) return;
+    const destination = pickerUploadDestination();
+    if (destination.error) { toast(destination.error, 'warn'); $('#pickerUploadName')?.focus(); return; }
+    pendingPickerUpload = destination;
+    $('#storyUploadInput')?.click();
+}
+
+async function uploadPickerFiles(files) {
+    const destination = pendingPickerUpload;
+    pendingPickerUpload = null;
+    const images = [...files].filter(file => file.type.startsWith('image/'));
+    if (!destination || !images.length) {
+        if (destination && !images.length) toast('Choose PNG, JPEG, WebP, GIF, or SVG images.', 'warn');
+        return;
+    }
+    const project = activeProject();
+    if (destination.create && !project.folders.some(folder => folder.fullPath === destination.fullPath)) {
+        project.folders.push({id:uid('folder'), app:destination.app, platform:destination.platform, fullPath:destination.fullPath});
+    }
+    pickerUploadBusy = true;
+    pickerUploadFolder = destination.fullPath;
+    renderPhotoPicker();
+    const added = await handleFiles(images, [], destination.fullPath);
+    pickerUploadBusy = false;
+    if (!added.length) { renderPhotoPicker(); return; }
+    added.forEach(screen => selectedPickerScreenIds.add(screen.id));
+    renderPhotoPicker();
+    $(`[data-action="pick-photo"][data-id="${CSS.escape(added[0].id)}"]`)?.focus();
 }
 
 const URL_IMAGE_TYPES = ['image/png','image/jpeg','image/webp','image/gif','image/svg+xml'];

@@ -4,6 +4,7 @@ declare(strict_types=1);
 require dirname(__DIR__, 2) . '/guard.php';
 ?>
 <input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" multiple hidden>
+<input id="storyUploadInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" multiple hidden>
 <input id="jsonInput" type="file" accept="application/json,.json" hidden>
 
 <dialog id="projectDialog">

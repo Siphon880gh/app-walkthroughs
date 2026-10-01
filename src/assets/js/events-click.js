@@ -323,11 +323,25 @@ document.addEventListener('click', event => {
     else if (action === 'add-to-story') { addScreenToStory(target.dataset.id); setView('stories'); }
     else if (action === 'open-photo-picker') {
         pickerShowAnnotated = true;
+        pickerUploadOpen = false;
+        pickerUploadBusy = false;
+        pendingPickerUpload = null;
         selectedPickerScreenIds.clear();
         renderPhotoPicker();
         $('#photoDialog').showModal();
     }
-    else if (action === 'close-photo-picker') { selectedPickerScreenIds.clear(); $('#photoDialog').close(); }
+    else if (action === 'close-photo-picker') { selectedPickerScreenIds.clear(); pickerUploadOpen = false; $('#photoDialog').close(); }
+    else if (action === 'toggle-picker-upload') {
+        pickerUploadOpen = !pickerUploadOpen;
+        if (pickerUploadOpen) {
+            const folders = project.folders || [];
+            const current = folders.some(folder => folder.fullPath === pickerUploadFolder) ? pickerUploadFolder : (selectedFolder && folders.some(folder => folder.fullPath === selectedFolder) ? selectedFolder : (folders[0]?.fullPath || '__new__'));
+            pickerUploadFolder = current;
+        }
+        renderPhotoPicker();
+        (pickerUploadOpen ? $('[data-action="picker-upload-folder"]') : $('[data-action="toggle-picker-upload"]'))?.focus();
+    }
+    else if (action === 'choose-picker-upload') choosePickerUpload();
     else if (action === 'toggle-picker-annotated') { pickerShowAnnotated = !pickerShowAnnotated; renderPhotoPicker(); }
     else if (action === 'pick-photo') {
         const id = target.dataset.id;
