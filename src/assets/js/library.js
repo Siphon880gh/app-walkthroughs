@@ -245,7 +245,7 @@ function renderPhotoList(screens, project) {
     return `<div class="photo-list">${screens.map(screen => {
         const picked = selectedPhotoIds.has(screen.id);
         const kind = screen.annotated ? '<span class="tag">Annotated</span>' : `<span class="tag">${esc(screen.platform)}</span>`;
-        return `<div class="photo-row ${project.activeScreenshotId === screen.id ? 'selected' : ''}${picked ? ' picked' : ''}" data-screen-id="${esc(screen.id)}"><label class="photo-row-check" title="Select for bulk actions. Shift-click to select a range."><input class="url-check" type="checkbox" data-action="toggle-photo-select" data-id="${esc(screen.id)}" aria-label="Select ${esc(screen.name)} for bulk actions" ${picked ? 'checked' : ''}></label><img class="photo-thumb" src="${safeImage(screen.dataUrl)}" alt=""><div class="photo-row-copy"><input class="photo-row-name" data-screen-name="${esc(screen.id)}" value="${esc(screen.name)}" maxlength="120" aria-label="Rename file ${esc(screen.name)}"><div class="photo-row-sub">${kind}<span>${screen.width}×${screen.height}</span></div>${screenTagMarkup(screen)}</div><div class="photo-row-actions"><button type="button" class="card-action" data-action="tag-photo" data-id="${esc(screen.id)}" aria-label="Tag screen" data-tooltip="Tag">#</button><button type="button" class="card-action" data-action="edit-screen" data-id="${esc(screen.id)}" aria-label="Annotate screen" data-tooltip="Annotate">⌖</button><button type="button" class="card-action" data-action="add-to-story" data-id="${esc(screen.id)}" aria-label="Add to story" data-tooltip="Add to story">＋</button><button type="button" class="card-action" data-action="duplicate-screen" data-id="${esc(screen.id)}" aria-label="Duplicate screen" data-tooltip="Duplicate">⧉</button><button type="button" class="card-action" data-action="delete-screen" data-id="${esc(screen.id)}" aria-label="Delete screen" data-tooltip="Delete">×</button></div></div>`;
+        return `<div class="photo-row ${project.activeScreenshotId === screen.id ? 'selected' : ''}${picked ? ' picked' : ''}" data-screen-id="${esc(screen.id)}"><label class="photo-row-check" title="Select for bulk actions. Shift-click to select a range."><input class="url-check" type="checkbox" data-action="toggle-photo-select" data-id="${esc(screen.id)}" aria-label="Select ${esc(screen.name)} for bulk actions" ${picked ? 'checked' : ''}></label><img class="photo-thumb" src="${safeImage(screen.dataUrl)}" alt=""><div class="photo-row-copy"><input class="photo-row-name" data-screen-name="${esc(screen.id)}" value="${esc(screen.name)}" maxlength="120" aria-label="Rename file ${esc(screen.name)}"><div class="photo-row-sub">${kind}<span>${screen.width}×${screen.height}</span></div>${screenTagMarkup(screen)}${screenAssocControl(project, screen, 'list')}</div><div class="photo-row-actions"><button type="button" class="card-action" data-action="tag-photo" data-id="${esc(screen.id)}" aria-label="Tag screen" data-tooltip="Tag">#</button><button type="button" class="card-action" data-action="edit-screen" data-id="${esc(screen.id)}" aria-label="Annotate screen" data-tooltip="Annotate">⌖</button><button type="button" class="card-action" data-action="add-to-story" data-id="${esc(screen.id)}" aria-label="Add to story" data-tooltip="Add to story">＋</button><button type="button" class="card-action" data-action="duplicate-screen" data-id="${esc(screen.id)}" aria-label="Duplicate screen" data-tooltip="Duplicate">⧉</button><button type="button" class="card-action" data-action="delete-screen" data-id="${esc(screen.id)}" aria-label="Delete screen" data-tooltip="Delete">×</button></div></div>`;
     }).join('')}</div>`;
 }
 
@@ -253,7 +253,7 @@ function renderUrlList(screens, project) {
     return `<div class="url-list">${screens.map(screen => {
         const url = screenUrl(screen.dataUrl);
         const picked = selectedPhotoIds.has(screen.id);
-        return `<div class="url-row ${project.activeScreenshotId === screen.id ? 'selected' : ''}${picked ? ' picked' : ''}"><img class="url-thumb" src="${safeImage(screen.dataUrl)}" alt=""><div class="url-copy"><input class="url-name" data-screen-name="${esc(screen.id)}" value="${esc(screen.name)}" maxlength="120" aria-label="Rename file ${esc(screen.name)}"><div class="url-value">${url ? esc(url) : 'Stored in this project'}</div>${screenTagMarkup(screen)}</div><div class="url-actions"><button type="button" class="button small" data-action="tag-photo" data-id="${esc(screen.id)}">Tag</button><button type="button" class="button small" data-action="copy-screen-url" data-url="${esc(url)}" ${url ? '' : 'disabled'}>Copy URL</button><span class="url-actions-sep" aria-hidden="true"></span><input class="url-check" type="checkbox" data-action="toggle-photo-select" data-id="${esc(screen.id)}" aria-label="Select ${esc(screen.name)} for bulk actions" ${picked ? 'checked' : ''}></div></div>`;
+        return `<div class="url-row ${project.activeScreenshotId === screen.id ? 'selected' : ''}${picked ? ' picked' : ''}"><img class="url-thumb" src="${safeImage(screen.dataUrl)}" alt=""><div class="url-copy"><input class="url-name" data-screen-name="${esc(screen.id)}" value="${esc(screen.name)}" maxlength="120" aria-label="Rename file ${esc(screen.name)}"><div class="url-value">${url ? esc(url) : 'Stored in this project'}</div>${screenTagMarkup(screen)}${screenAssocControl(project, screen, 'list')}</div><div class="url-actions"><button type="button" class="button small" data-action="tag-photo" data-id="${esc(screen.id)}">Tag</button><button type="button" class="button small" data-action="copy-screen-url" data-url="${esc(url)}" ${url ? '' : 'disabled'}>Copy URL</button><span class="url-actions-sep" aria-hidden="true"></span><input class="url-check" type="checkbox" data-action="toggle-photo-select" data-id="${esc(screen.id)}" aria-label="Select ${esc(screen.name)} for bulk actions" ${picked ? 'checked' : ''}></div></div>`;
     }).join('')}</div>`;
 }
 
@@ -316,6 +316,42 @@ function transferPhotos(mode, fullPath) {
 
 function storiesContainingScreen(project, screenId) {
     return project.stories.filter(story => story.steps.some(step => step.screenId === screenId));
+}
+
+function screenAssocControl(project, screen, placement) {
+    const references = storyReferencesForScreen(project, screen.id);
+    if (!references.length) return '';
+    const open = assocDrawerId === screen.id;
+    const items = references.map(({story, steps}) => {
+        const links = steps.map(step => {
+            const number = story.steps.findIndex(item => item.id === step.id) + 1;
+            const title = String(step.title || '').trim();
+            const text = title ? `Step ${number} · ${title}` : `Step ${number}`;
+            return `<button type="button" class="assoc-step" data-action="open-assoc-story" data-story-id="${esc(story.id)}" data-step-id="${esc(step.id)}">${esc(text)}</button>`;
+        }).join('');
+        return `<div class="assoc-story"><div class="assoc-story-head"><span class="assoc-story-name">${esc(story.name)}</span>${storyStageBadge(story)}</div><div class="assoc-steps">${links}</div></div>`;
+    }).join('');
+    const panelClass = placement === 'card' ? 'assoc-drawer' : 'assoc-panel';
+    return `<div class="assoc-anchor assoc-${placement}${open ? ' is-open' : ''}"><button type="button" class="assoc-chip" data-action="toggle-assoc" data-id="${esc(screen.id)}" aria-expanded="${open ? 'true' : 'false'}" aria-controls="assoc-${esc(screen.id)}" title="Walkthrough connections">ASSOC</button><div class="${panelClass}" id="assoc-${esc(screen.id)}" role="region" aria-label="Walkthrough connections for ${esc(screen.name)}"><div class="assoc-drawer-title">Connections</div>${items}</div></div>`;
+}
+
+function placeAssocDrawer(anchor) {
+    const drawer = $('.assoc-drawer', anchor);
+    const chip = $('.assoc-chip', anchor);
+    if (!drawer || !chip) return;
+    drawer.classList.remove('flip');
+    const rect = chip.getBoundingClientRect();
+    const bounds = $('.library-scroll')?.getBoundingClientRect();
+    const limit = (bounds?.right ?? window.innerWidth) - 12;
+    if (rect.right + 250 > limit) drawer.classList.add('flip');
+}
+
+function bindAssocDrawers() {
+    $$('.assoc-card').forEach(anchor => {
+        placeAssocDrawer(anchor);
+        anchor.addEventListener('mouseenter', () => placeAssocDrawer(anchor));
+        anchor.addEventListener('focusin', () => placeAssocDrawer(anchor));
+    });
 }
 
 function libraryStoryFilterOptions(project) {
@@ -383,7 +419,7 @@ function renderLibrary() {
         const notes = screen.annotations?.length ? `<div class="annotation-layer">${annotationMarkup(screen.annotations)}</div>` : '';
         const kind = screen.annotated ? '<span class="tag">Annotated</span>' : `<span class="tag">${esc(screen.platform)}</span>`;
         const picked = selectedPhotoIds.has(screen.id);
-        return `<article class="screen-card ${project.activeScreenshotId === screen.id ? 'selected':''}${screen.annotated ? ' is-annotated' : ''}${picked ? ' picked' : ''}" data-screen-id="${esc(screen.id)}"><label class="screen-select" title="Select for bulk actions"><input class="url-check" type="checkbox" data-action="toggle-photo-select" data-id="${esc(screen.id)}" aria-label="Select ${esc(screen.name)} for bulk actions" ${picked ? 'checked' : ''}><span aria-hidden="true">${picked ? '✓' : ''}</span></label><div class="screen-preview"><div class="screen-preview-frame"><img src="${safeImage(screen.dataUrl)}" alt="${esc(screen.name)} preview">${notes}</div></div><div class="card-actions"><button class="card-action" data-action="tag-photo" data-id="${esc(screen.id)}" aria-label="Tag screen" data-tooltip="Tag">#</button><button class="card-action" data-action="edit-screen" data-id="${esc(screen.id)}" aria-label="Annotate screen" data-tooltip="Annotate">⌖</button><button class="card-action" data-action="add-to-story" data-id="${esc(screen.id)}" aria-label="Add to story" data-tooltip="Add to story">＋</button><button class="card-action" data-action="duplicate-screen" data-id="${esc(screen.id)}" aria-label="Duplicate screen" data-tooltip="Duplicate">⧉</button><button class="card-action" data-action="delete-screen" data-id="${esc(screen.id)}" aria-label="Delete screen" data-tooltip="Delete">×</button></div><div class="screen-card-meta"><input class="screen-card-title" data-screen-name="${esc(screen.id)}" value="${esc(screen.name)}" maxlength="120" aria-label="Rename file ${esc(screen.name)}"><div class="screen-card-sub">${kind}<span>${screen.width}×${screen.height}</span></div>${screenTagMarkup(screen)}</div></article>`;
+        return `<article class="screen-card ${project.activeScreenshotId === screen.id ? 'selected':''}${screen.annotated ? ' is-annotated' : ''}${picked ? ' picked' : ''}" data-screen-id="${esc(screen.id)}"><label class="screen-select" title="Select for bulk actions"><input class="url-check" type="checkbox" data-action="toggle-photo-select" data-id="${esc(screen.id)}" aria-label="Select ${esc(screen.name)} for bulk actions" ${picked ? 'checked' : ''}><span aria-hidden="true">${picked ? '✓' : ''}</span></label><div class="screen-preview"><div class="screen-preview-frame"><img src="${safeImage(screen.dataUrl)}" alt="${esc(screen.name)} preview">${notes}</div>${screenAssocControl(project, screen, 'card')}</div><div class="card-actions"><button class="card-action" data-action="tag-photo" data-id="${esc(screen.id)}" aria-label="Tag screen" data-tooltip="Tag">#</button><button class="card-action" data-action="edit-screen" data-id="${esc(screen.id)}" aria-label="Annotate screen" data-tooltip="Annotate">⌖</button><button class="card-action" data-action="add-to-story" data-id="${esc(screen.id)}" aria-label="Add to story" data-tooltip="Add to story">＋</button><button class="card-action" data-action="duplicate-screen" data-id="${esc(screen.id)}" aria-label="Duplicate screen" data-tooltip="Duplicate">⧉</button><button class="card-action" data-action="delete-screen" data-id="${esc(screen.id)}" aria-label="Delete screen" data-tooltip="Delete">×</button></div><div class="screen-card-meta"><input class="screen-card-title" data-screen-name="${esc(screen.id)}" value="${esc(screen.name)}" maxlength="120" aria-label="Rename file ${esc(screen.name)}"><div class="screen-card-sub">${kind}<span>${screen.width}×${screen.height}</span></div>${screenTagMarkup(screen)}</div></article>`;
     });
     const cardById = new Map(screens.map((screen, index) => [screen.id, cardItems[index]]));
     const renderScreenSet = items => libraryView === 'urls'

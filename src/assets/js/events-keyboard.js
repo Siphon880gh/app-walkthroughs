@@ -25,6 +25,13 @@ document.addEventListener('keydown', event => {
         $(opener)?.focus();
         return;
     }
+    if (event.key === 'Escape' && assocDrawerId && !['INPUT','TEXTAREA','SELECT'].includes(event.target.tagName)) {
+        const id = assocDrawerId;
+        assocDrawerId = null;
+        refreshLibraryView();
+        document.querySelector(`[data-action="toggle-assoc"][data-id="${CSS.escape(id)}"]`)?.focus();
+        return;
+    }
     if (event.key === 'Escape' && storyMenuOpen) {
         setStoryMenu(false);
         $('#storyMenuButton')?.focus();

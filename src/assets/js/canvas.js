@@ -9,6 +9,7 @@ function bindDynamicUI() {
     if (canvas) bindAnnotationCanvas(canvas);
     bindHotspotDrag();
     bindStoryStepReorder();
+    bindAssocDrawers();
 }
 
 function bindStoryStepReorder() {

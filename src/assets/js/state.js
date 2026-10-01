@@ -77,6 +77,7 @@ let storyMenuOpen = false;
 let copyPreviousOpen = false;
 const storedLibraryView = localStorage.getItem(APP.libraryViewKey);
 let libraryView = storedLibraryView === 'list' || storedLibraryView === 'urls' ? storedLibraryView : 'grid';
+let assocDrawerId = null;
 let librarySelectAnchor = null;
 let libraryPhotoGroup = 'none';
 let libraryStoryFilter = 'all';

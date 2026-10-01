@@ -61,13 +61,20 @@ document.addEventListener('click', event => {
     if (transferMenu && !event.target.closest('.transfer-menu')) setTransferMenu(null);
     if (folderMenuPath !== null && !event.target.closest('.folder-menu')) setFolderMenu(null);
     if (storyMenuOpen && !event.target.closest('.story-more-menu')) setStoryMenu(false);
+    if (assocDrawerId && !event.target.closest('.assoc-anchor')) {
+        assocDrawerId = null;
+        $$('.assoc-anchor.is-open').forEach(node => {
+            node.classList.remove('is-open');
+            $('.assoc-chip', node)?.setAttribute('aria-expanded', 'false');
+        });
+    }
     if (!event.target.closest('.title-with-info')) closeInfoNotes();
     if (storyPickerOpen && !event.target.closest('.scope-switcher')) {
         storyPickerOpen = false;
         if (!target) { renderApp(); return; }
     }
     const photoRow = event.target.closest('.photo-row');
-    if (photoRow && !event.target.closest('button, input, textarea, a, label, .screen-tag')) {
+    if (photoRow && !event.target.closest('button, input, textarea, a, label, .screen-tag, .assoc-anchor')) {
         const box = $('[data-action="toggle-photo-select"]', photoRow);
         if (box) {
             if (event.shiftKey) event.preventDefault();
@@ -108,6 +115,22 @@ document.addEventListener('click', event => {
     }
     else if (action === 'toggle-upload-menu') setUploadMenu(!uploadMenuOpen);
     else if (action === 'enter-url') { setUploadMenu(false); openUrlDialog(); }
+    else if (action === 'toggle-assoc') {
+        const id = target.dataset.id;
+        if (!screenById(id)) return;
+        assocDrawerId = assocDrawerId === id ? null : id;
+        refreshLibraryView();
+        document.querySelector(`[data-action="toggle-assoc"][data-id="${CSS.escape(id)}"]`)?.focus();
+    }
+    else if (action === 'open-assoc-story') {
+        const story = project.stories.find(item => item.id === target.dataset.storyId);
+        if (!story) return;
+        project.activeStoryId = story.id;
+        if (story.steps.some(step => step.id === target.dataset.stepId)) story.activeStepId = target.dataset.stepId;
+        assocDrawerId = null;
+        persist(true);
+        setView('stories');
+    }
     else if (action === 'set-library-view') {
         const view = target.dataset.libraryView;
         if (!['grid', 'list', 'urls'].includes(view) || view === libraryView) return;
