@@ -68,6 +68,7 @@ let pickerUploadBusy = false;
 let pendingPickerUpload = null;
 let pickerMenu = null;
 let pickerAssocId = null;
+let pickerScrollTop = 0;
 let storyPickerOpen = false;
 let playerStoryStageFilter = 'all';
 let exportStoryStageFilter = 'all';

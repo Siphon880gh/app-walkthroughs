@@ -385,9 +385,36 @@ function placePickerLayer(node, x, y) {
     node.style.top = `${top}px`;
 }
 
+let pickerScrollHold = 0;
+
+function holdPickerScroll() {
+    pickerScrollHold = 0;
+    const dialog = $('#photoDialog');
+    if (!dialog?.classList.contains('picker-scroll-locked')) return;
+    const body = $('#photoPickerBody');
+    if (body && body.scrollTop !== pickerScrollTop) body.scrollTop = pickerScrollTop;
+    pickerScrollHold = requestAnimationFrame(holdPickerScroll);
+}
+
+function syncPickerScrollLock() {
+    const dialog = $('#photoDialog');
+    const body = $('#photoPickerBody');
+    const lock = !!dialog?.open && !!(pickerMenu || pickerAssocId);
+    if (lock && body && !dialog.classList.contains('picker-scroll-locked')) pickerScrollTop = body.scrollTop;
+    dialog?.classList.toggle('picker-scroll-locked', lock);
+    if (lock && !pickerScrollHold) pickerScrollHold = requestAnimationFrame(holdPickerScroll);
+    if (!lock && pickerScrollHold) {
+        cancelAnimationFrame(pickerScrollHold);
+        pickerScrollHold = 0;
+    }
+}
+
 function renderPickerContext() {
     const host = $('#pickerContextHost');
-    if (!host) return;
+    if (!host) {
+        syncPickerScrollLock();
+        return;
+    }
     $$('#photoDialog .photo-pick.is-context').forEach(node => node.classList.remove('is-context'));
     const screenId = pickerAssocId || pickerMenu?.id || '';
     const screen = screenId ? screenById(screenId) : null;
@@ -395,6 +422,7 @@ function renderPickerContext() {
         pickerMenu = null;
         pickerAssocId = null;
         host.innerHTML = '';
+        syncPickerScrollLock();
         return;
     }
     $(`#photoDialog .photo-pick[data-id="${CSS.escape(screen.id)}"]`)?.classList.add('is-context');
@@ -417,6 +445,7 @@ function renderPickerContext() {
     }
     if (menuNode && !drawerNode) $('.sync-option', menuNode)?.focus();
     else $('.assoc-step', drawerNode)?.focus();
+    syncPickerScrollLock();
 }
 
 function openZoomedPhoto(screen) {

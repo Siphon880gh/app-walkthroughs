@@ -44,6 +44,7 @@
 .photo-date-group > h3 span { min-width: 19px; height: 19px; display: inline-grid; place-items: center; border-radius: 999px; background: #172033; color: var(--dim); font-size: 8px; }
 .photo-date-group .photo-picker-grid { max-height: none; overflow: visible; }
 #photoPickerBody { max-height: min(66vh, 590px); overflow-y: auto; }
+#photoDialog.picker-scroll-locked #photoPickerBody { overflow: hidden; overscroll-behavior: none; }
 .photo-pick { position: relative; display: grid; gap: 7px; border: 1px solid var(--border); border-radius: 8px; background: #080e19; color: var(--text); text-align: left; padding: 8px; transition: border-color .14s ease, background .14s ease, box-shadow .14s ease; }
 .photo-pick:hover, .photo-pick:focus-visible, .photo-pick.is-context { border-color: var(--blue); }
 .picker-menu.sync-menu-panel, .picker-assoc-drawer { position: fixed; top: auto; right: auto; bottom: auto; z-index: 40; }

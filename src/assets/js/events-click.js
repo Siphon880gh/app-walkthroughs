@@ -643,11 +643,23 @@ $('#photoDialog')?.addEventListener('cancel', event => {
 $('#photoDialog')?.addEventListener('close', () => {
     pickerMenu = null;
     pickerAssocId = null;
+    $('#photoDialog')?.classList.remove('picker-scroll-locked');
     const host = $('#pickerContextHost');
     if (host) host.innerHTML = '';
 });
 
-document.addEventListener('scroll', event => {
+function blockPickerScroll(event) {
     if (!(pickerMenu || pickerAssocId)) return;
-    if (event.target === document || event.target?.closest?.('#photoPickerBody')) closePickerContext();
+    if (event.target.closest('.picker-assoc-drawer')) return;
+    event.preventDefault();
+}
+
+document.addEventListener('wheel', blockPickerScroll, {capture: true, passive: false});
+document.addEventListener('touchmove', blockPickerScroll, {capture: true, passive: false});
+
+document.addEventListener('scroll', event => {
+    if (!$('#photoDialog')?.classList.contains('picker-scroll-locked')) return;
+    const body = event.target?.id === 'photoPickerBody' ? event.target : null;
+    if (!body || body.scrollTop === pickerScrollTop) return;
+    body.scrollTop = pickerScrollTop;
 }, true);
