@@ -39,5 +39,6 @@ function renderApp() {
     workspace.innerHTML = currentView === 'screenshots' ? renderLibrary() : currentView === 'editor' ? renderEditor() : currentView === 'stories' ? renderStories() : currentView === 'player' ? renderPlayer() : renderExport();
     bindDynamicUI();
     renderSessionTray();
+    renderLibraryContext();
 }
 

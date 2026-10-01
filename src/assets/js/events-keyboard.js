@@ -25,6 +25,15 @@ document.addEventListener('keydown', event => {
         $(opener)?.focus();
         return;
     }
+    if (event.key === 'Escape' && (libraryMenu || libraryAssocId)) {
+        event.preventDefault();
+        closeLibraryContext();
+        return;
+    }
+    if (event.key === 'Escape' && libraryFitId && currentView === 'screenshots' && !['INPUT','TEXTAREA','SELECT'].includes(event.target.tagName)) {
+        closeLibraryFit();
+        return;
+    }
     if (event.key === 'Escape' && assocDrawerId && !['INPUT','TEXTAREA','SELECT'].includes(event.target.tagName)) {
         const id = assocDrawerId;
         assocDrawerId = null;

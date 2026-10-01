@@ -20,7 +20,8 @@
     .topbar { position: sticky; top: 0; grid-template-columns: 1fr auto; gap: 8px; }
     .brand-build { display: none; }
     #workspace { min-height: calc(100dvh - 95px); overflow: visible; }
-    .workspace-grid { grid-template-columns: 1fr; height: auto; min-height: calc(100dvh - 95px); }
+    .workspace-grid, .workspace-grid.has-library-fit { grid-template-columns: 1fr; height: auto; min-height: calc(100dvh - 95px); }
+    .library-fit-panel { position: fixed; z-index: 45; top: 56px; right: 0; bottom: 56px; width: min(100vw, 420px); box-shadow: -18px 0 40px rgba(0,0,0,.45); }
     .sidebar { display: none; }
     .main-pane { min-height: calc(100dvh - 95px); overflow: visible; }
     .library-scroll { overflow: visible; }

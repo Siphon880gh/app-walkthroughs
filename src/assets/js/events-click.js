@@ -62,6 +62,7 @@ document.addEventListener('click', event => {
     if (folderMenuPath !== null && !event.target.closest('.folder-menu')) setFolderMenu(null);
     if (storyMenuOpen && !event.target.closest('.story-more-menu')) setStoryMenu(false);
     if ((pickerMenu || pickerAssocId) && !event.target.closest('.picker-menu, .picker-assoc-drawer')) closePickerContext();
+    if ((libraryMenu || libraryAssocId) && !event.target.closest('.library-menu, .library-assoc-drawer')) closeLibraryContext();
     if (assocDrawerId && !event.target.closest('.assoc-anchor')) {
         assocDrawerId = null;
         $$('.assoc-anchor.is-open').forEach(node => {
@@ -76,6 +77,7 @@ document.addEventListener('click', event => {
     }
     const photoRow = event.target.closest('.photo-row');
     if (photoRow && !event.target.closest('button, input, textarea, a, label, .screen-tag, .assoc-anchor')) {
+        if (event.detail > 1) return;
         const box = $('[data-action="toggle-photo-select"]', photoRow);
         if (box) {
             if (event.shiftKey) event.preventDefault();
@@ -131,6 +133,8 @@ document.addEventListener('click', event => {
         assocDrawerId = null;
         pickerMenu = null;
         pickerAssocId = null;
+        libraryMenu = null;
+        libraryAssocId = null;
         if ($('#photoDialog')?.open) $('#photoDialog').close();
         persist(true);
         setView('stories');
@@ -351,6 +355,28 @@ document.addEventListener('click', event => {
         if (!deleteLibraryScreen(screen)) return;
         renderPhotoPicker();
     }
+    else if (action === 'library-open-photo') {
+        openZoomedPhoto(screenById(target.dataset.id));
+        closeLibraryContext();
+    }
+    else if (action === 'library-show-assoc') {
+        const screen = screenById(target.dataset.id);
+        if (!screen || !assocConnectionsMarkup(project, screen)) return;
+        libraryAssocId = screen.id;
+        libraryMenu = null;
+        renderLibraryContext();
+    }
+    else if (action === 'library-fit-photo') {
+        const id = target.dataset.id;
+        closeLibraryContext();
+        openLibraryFit(id);
+    }
+    else if (action === 'library-delete-photo') {
+        const screen = screenById(target.dataset.id);
+        closeLibraryContext();
+        deleteLibraryScreen(screen);
+    }
+    else if (action === 'close-library-fit') closeLibraryFit();
     else if (action === 'toggle-picker-annotated') { pickerShowAnnotated = !pickerShowAnnotated; renderPhotoPicker(); }
     else if (action === 'pick-photo') {
         const id = target.dataset.id;
@@ -662,4 +688,71 @@ document.addEventListener('scroll', event => {
     const body = event.target?.id === 'photoPickerBody' ? event.target : null;
     if (!body || body.scrollTop === pickerScrollTop) return;
     body.scrollTop = pickerScrollTop;
+}, true);
+
+function libraryThumbTarget(target) {
+    return target?.closest?.('[data-library-thumb]') || null;
+}
+
+function openLibraryThumbMenu(thumb, x, y) {
+    const screen = screenById(thumb?.dataset.libraryThumb || '');
+    if (!screen || currentView !== 'screenshots') return;
+    libraryAssocId = null;
+    libraryMenu = {id: screen.id, x, y};
+    renderLibraryContext();
+}
+
+function previewLibraryThumb(event) {
+    if (!libraryFitId || currentView !== 'screenshots') return;
+    if (event.target.closest('button, input, textarea, a, label, .screen-tag, .assoc-anchor, .library-menu, .library-assoc-drawer, .library-fit-panel')) return;
+    const id = libraryThumbTarget(event.target)?.dataset.libraryThumb;
+    if (!id || id === libraryFitId) return;
+    openLibraryFit(id);
+}
+
+document.addEventListener('pointerover', previewLibraryThumb);
+document.addEventListener('click', previewLibraryThumb);
+
+document.addEventListener('contextmenu', event => {
+    if (currentView !== 'screenshots' || $('#photoDialog')?.open) return;
+    if (event.target.closest('.library-menu, .library-assoc-drawer')) {
+        event.preventDefault();
+        return;
+    }
+    const thumb = libraryThumbTarget(event.target);
+    if (!thumb || event.target.closest('input, textarea')) return;
+    event.preventDefault();
+    openLibraryThumbMenu(thumb, event.clientX, event.clientY);
+});
+
+document.addEventListener('dblclick', event => {
+    if (currentView !== 'screenshots' || $('#photoDialog')?.open) return;
+    const thumb = libraryThumbTarget(event.target);
+    if (!thumb || event.target.closest('button, input, textarea, a, label')) return;
+    event.preventDefault();
+    openLibraryThumbMenu(thumb, event.clientX, event.clientY);
+});
+
+let libraryLastTap = null;
+document.addEventListener('pointerup', event => {
+    if (event.pointerType === 'mouse' || currentView !== 'screenshots' || $('#photoDialog')?.open) return;
+    const thumb = libraryThumbTarget(event.target);
+    if (!thumb || event.target.closest('button, input, textarea, a, label')) {
+        libraryLastTap = null;
+        return;
+    }
+    const now = performance.now();
+    const id = thumb.dataset.libraryThumb;
+    const previous = libraryLastTap;
+    libraryLastTap = {id, x: event.clientX, y: event.clientY, at: now};
+    if (!previous || previous.id !== id || now - previous.at > 400) return;
+    if (Math.hypot(event.clientX - previous.x, event.clientY - previous.y) > 30) return;
+    libraryLastTap = null;
+    openLibraryThumbMenu(thumb, event.clientX, event.clientY);
+});
+
+document.addEventListener('scroll', event => {
+    if (!(libraryMenu || libraryAssocId)) return;
+    if (event.target?.closest?.('.library-assoc-drawer')) return;
+    closeLibraryContext();
 }, true);

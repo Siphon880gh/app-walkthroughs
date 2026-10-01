@@ -30,11 +30,27 @@
 .screen-card:hover .screen-select, .screen-select:focus-within, .screen-card.picked .screen-select { opacity: 1; }
 .screen-select input:focus-visible + span { outline: 2px solid var(--blue); outline-offset: 2px; }
 .screen-select input:checked + span { border-color: var(--blue); background: var(--blue-strong); color: #eff6ff; }
-.screen-preview { position: relative; height: 250px; display: grid; place-items: center; padding: 15px; background-color: #080e19; background-image: linear-gradient(#111a2a 1px, transparent 1px), linear-gradient(90deg,#111a2a 1px,transparent 1px); background-size: 24px 24px; overflow: hidden; border-radius: 8px 8px 0 0; }
+.screen-preview { position: relative; height: 250px; display: grid; place-items: center; padding: 15px; background-color: #080e19; background-image: linear-gradient(#111a2a 1px, transparent 1px), linear-gradient(90deg,#111a2a 1px,transparent 1px); background-size: 24px 24px; overflow: hidden; border-radius: 8px 8px 0 0; touch-action: manipulation; }
 .screen-card:hover .screen-preview, .screen-card:focus-within .screen-preview, .screen-card:has(.assoc-anchor.is-open) .screen-preview { overflow: visible; }
-.screen-preview-frame { position: relative; height: 100%; max-width: 100%; display: inline-block; }
-.screen-preview-frame img { width: auto; max-width: 100%; height: 100%; object-fit: contain; border-radius: 5px; box-shadow: 0 12px 30px rgba(0,0,0,.45); }
-.screen-preview-frame .annotation-layer { border-radius: 5px; pointer-events: none; }
+.screen-preview-frame { position: relative; width: 100%; height: 100%; min-width: 0; min-height: 0; overflow: hidden; display: grid; place-items: center; container-type: size; }
+.screen-preview-fit { position: relative; aspect-ratio: var(--screen-w) / var(--screen-h); width: min(100cqw, calc(100cqh * var(--screen-w) / var(--screen-h))); max-height: 100%; }
+.screen-preview-fit img { display: block; width: 100%; height: 100%; object-fit: contain; border-radius: 5px; box-shadow: 0 12px 30px rgba(0,0,0,.45); }
+.screen-preview-fit .annotation-layer { border-radius: 5px; pointer-events: none; }
+[data-library-thumb] { touch-action: manipulation; }
+[data-library-thumb].is-library-fit, [data-library-thumb].is-context { outline: 2px solid var(--blue); outline-offset: -2px; }
+.library-menu.sync-menu-panel, .library-assoc-drawer { position: fixed; top: auto; right: auto; bottom: auto; z-index: 80; }
+.library-assoc-drawer { width: 248px; max-height: min(320px, 70vh); overflow: auto; display: grid; gap: 6px; padding: 8px; border: 1px solid var(--border-strong); border-radius: 8px; background: #0b1220; box-shadow: 0 18px 40px rgba(0,0,0,.5); }
+.workspace-grid.has-library-fit { grid-template-columns: 238px minmax(0, 1fr) minmax(280px, 36vw); }
+.library-fit-panel { min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; background: #070d18; border-left: 1px solid var(--border); }
+.library-fit-head { display: flex; align-items: center; gap: 8px; min-height: 52px; padding: 8px 10px 8px 14px; border-bottom: 1px solid var(--border); }
+.library-fit-copy { min-width: 0; flex: 1; }
+.library-fit-title { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 4px; font-size: 12px; }
+.library-fit-stage { container-type: size; flex: 1; min-height: 0; display: grid; place-items: center; padding: 16px; background-color: #080e19; background-image: linear-gradient(#111a2a 1px, transparent 1px), linear-gradient(90deg,#111a2a 1px,transparent 1px); background-size: 24px 24px; }
+.library-fit-frame { position: relative; aspect-ratio: var(--screen-w) / var(--screen-h); width: min(100cqw, calc(100cqh * var(--screen-w) / var(--screen-h))); max-height: 100%; }
+.library-fit-frame img { display: block; width: 100%; height: 100%; object-fit: contain; border-radius: 6px; box-shadow: 0 16px 36px rgba(0,0,0,.45); }
+.library-fit-frame .annotation-layer { border-radius: 6px; pointer-events: none; }
+body.has-upload-tray .library-fit-stage { padding-bottom: 210px; }
+body.has-upload-icon .library-fit-stage { padding-bottom: 72px; }
 .count-pill { min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px; display: inline-grid; place-items: center; background: #10203a; color: #bfdbfe; font: 9px/1 var(--mono); }
 .button.active { color: #bfdbfe; border-color: rgba(59,130,246,.45); background: var(--blue-soft); }
 .screen-card-meta { padding: 11px 12px 12px; border-top: 1px solid var(--border); }

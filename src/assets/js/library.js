@@ -245,7 +245,7 @@ function renderPhotoList(screens, project) {
     return `<div class="photo-list">${screens.map(screen => {
         const picked = selectedPhotoIds.has(screen.id);
         const kind = screen.annotated ? '<span class="tag">Annotated</span>' : `<span class="tag">${esc(screen.platform)}</span>`;
-        return `<div class="photo-row ${project.activeScreenshotId === screen.id ? 'selected' : ''}${picked ? ' picked' : ''}" data-screen-id="${esc(screen.id)}"><label class="photo-row-check" title="Select for bulk actions. Shift-click to select a range."><input class="url-check" type="checkbox" data-action="toggle-photo-select" data-id="${esc(screen.id)}" aria-label="Select ${esc(screen.name)} for bulk actions" ${picked ? 'checked' : ''}></label><img class="photo-thumb" src="${safeImage(screen.dataUrl)}" alt=""><div class="photo-row-copy"><input class="photo-row-name" data-screen-name="${esc(screen.id)}" value="${esc(screen.name)}" maxlength="120" aria-label="Rename file ${esc(screen.name)}"><div class="photo-row-sub">${kind}<span>${screen.width}×${screen.height}</span></div>${screenTagMarkup(screen)}${screenAssocControl(project, screen, 'list')}</div><div class="photo-row-actions"><button type="button" class="card-action" data-action="tag-photo" data-id="${esc(screen.id)}" aria-label="Tag screen" data-tooltip="Tag">#</button><button type="button" class="card-action" data-action="edit-screen" data-id="${esc(screen.id)}" aria-label="Annotate screen" data-tooltip="Annotate">⌖</button><button type="button" class="card-action" data-action="add-to-story" data-id="${esc(screen.id)}" aria-label="Add to story" data-tooltip="Add to story">＋</button><button type="button" class="card-action" data-action="duplicate-screen" data-id="${esc(screen.id)}" aria-label="Duplicate screen" data-tooltip="Duplicate">⧉</button><button type="button" class="card-action" data-action="delete-screen" data-id="${esc(screen.id)}" aria-label="Delete screen" data-tooltip="Delete">×</button></div></div>`;
+        return `<div class="photo-row ${project.activeScreenshotId === screen.id ? 'selected' : ''}${picked ? ' picked' : ''}" data-screen-id="${esc(screen.id)}"><label class="photo-row-check" title="Select for bulk actions. Shift-click to select a range."><input class="url-check" type="checkbox" data-action="toggle-photo-select" data-id="${esc(screen.id)}" aria-label="Select ${esc(screen.name)} for bulk actions" ${picked ? 'checked' : ''}></label><img class="photo-thumb${libraryFitId === screen.id ? ' is-library-fit' : ''}" data-library-thumb="${esc(screen.id)}" src="${safeImage(screen.dataUrl)}" alt=""><div class="photo-row-copy"><input class="photo-row-name" data-screen-name="${esc(screen.id)}" value="${esc(screen.name)}" maxlength="120" aria-label="Rename file ${esc(screen.name)}"><div class="photo-row-sub">${kind}<span>${screen.width}×${screen.height}</span></div>${screenTagMarkup(screen)}${screenAssocControl(project, screen, 'list')}</div><div class="photo-row-actions"><button type="button" class="card-action" data-action="tag-photo" data-id="${esc(screen.id)}" aria-label="Tag screen" data-tooltip="Tag">#</button><button type="button" class="card-action" data-action="edit-screen" data-id="${esc(screen.id)}" aria-label="Annotate screen" data-tooltip="Annotate">⌖</button><button type="button" class="card-action" data-action="add-to-story" data-id="${esc(screen.id)}" aria-label="Add to story" data-tooltip="Add to story">＋</button><button type="button" class="card-action" data-action="duplicate-screen" data-id="${esc(screen.id)}" aria-label="Duplicate screen" data-tooltip="Duplicate">⧉</button><button type="button" class="card-action" data-action="delete-screen" data-id="${esc(screen.id)}" aria-label="Delete screen" data-tooltip="Delete">×</button></div></div>`;
     }).join('')}</div>`;
 }
 
@@ -253,7 +253,7 @@ function renderUrlList(screens, project) {
     return `<div class="url-list">${screens.map(screen => {
         const url = screenUrl(screen.dataUrl);
         const picked = selectedPhotoIds.has(screen.id);
-        return `<div class="url-row ${project.activeScreenshotId === screen.id ? 'selected' : ''}${picked ? ' picked' : ''}"><img class="url-thumb" src="${safeImage(screen.dataUrl)}" alt=""><div class="url-copy"><input class="url-name" data-screen-name="${esc(screen.id)}" value="${esc(screen.name)}" maxlength="120" aria-label="Rename file ${esc(screen.name)}"><div class="url-value">${url ? esc(url) : 'Stored in this project'}</div>${screenTagMarkup(screen)}${screenAssocControl(project, screen, 'list')}</div><div class="url-actions"><button type="button" class="button small" data-action="tag-photo" data-id="${esc(screen.id)}">Tag</button><button type="button" class="button small" data-action="copy-screen-url" data-url="${esc(url)}" ${url ? '' : 'disabled'}>Copy URL</button><span class="url-actions-sep" aria-hidden="true"></span><input class="url-check" type="checkbox" data-action="toggle-photo-select" data-id="${esc(screen.id)}" aria-label="Select ${esc(screen.name)} for bulk actions" ${picked ? 'checked' : ''}></div></div>`;
+        return `<div class="url-row ${project.activeScreenshotId === screen.id ? 'selected' : ''}${picked ? ' picked' : ''}"><img class="url-thumb${libraryFitId === screen.id ? ' is-library-fit' : ''}" data-library-thumb="${esc(screen.id)}" src="${safeImage(screen.dataUrl)}" alt=""><div class="url-copy"><input class="url-name" data-screen-name="${esc(screen.id)}" value="${esc(screen.name)}" maxlength="120" aria-label="Rename file ${esc(screen.name)}"><div class="url-value">${url ? esc(url) : 'Stored in this project'}</div>${screenTagMarkup(screen)}${screenAssocControl(project, screen, 'list')}</div><div class="url-actions"><button type="button" class="button small" data-action="tag-photo" data-id="${esc(screen.id)}">Tag</button><button type="button" class="button small" data-action="copy-screen-url" data-url="${esc(url)}" ${url ? '' : 'disabled'}>Copy URL</button><span class="url-actions-sep" aria-hidden="true"></span><input class="url-check" type="checkbox" data-action="toggle-photo-select" data-id="${esc(screen.id)}" aria-label="Select ${esc(screen.name)} for bulk actions" ${picked ? 'checked' : ''}></div></div>`;
     }).join('')}</div>`;
 }
 
@@ -347,6 +347,9 @@ function deleteLibraryScreen(screen) {
         if (!story.steps.some(step => step.id === story.activeStepId)) story.activeStepId = story.steps[0]?.id || '';
     });
     if (project.activeScreenshotId === screen.id) project.activeScreenshotId = project.screenshots[0]?.id || '';
+    if (libraryFitId === screen.id) libraryFitId = null;
+    if (libraryMenu?.id === screen.id) libraryMenu = null;
+    if (libraryAssocId === screen.id) libraryAssocId = null;
     selectedPhotoIds.delete(screen.id);
     selectedPickerScreenIds.delete(screen.id);
     forgetAnnotationHistory(screen.id);
@@ -416,8 +419,88 @@ function screenMatchesLibraryTagFilter(screen) {
     return libraryTagFilter.startsWith('tag:') && tags.includes(libraryTagFilter.slice(4));
 }
 
+function screenFitStyle(screen) {
+    const width = Math.max(Number(screen?.width) || 1, 1);
+    const height = Math.max(Number(screen?.height) || 1, 1);
+    return `--screen-w:${width};--screen-h:${height}`;
+}
+
+function libraryFitMarkup() {
+    const screen = libraryFitId ? screenById(libraryFitId) : null;
+    if (!screen) return '';
+    const notes = screen.annotations?.length ? `<div class="annotation-layer">${annotationMarkup(screen.annotations)}</div>` : '';
+    return `<aside class="library-fit-panel" id="libraryFitPanel" aria-label="Fitted thumbnail"><header class="library-fit-head"><div class="library-fit-copy"><div class="eyebrow">Fitted view</div><strong class="library-fit-title">${esc(screen.name)}</strong></div><button type="button" class="button ghost icon-only" data-action="close-library-fit" aria-label="Close fitted view">×</button></header><div class="library-fit-stage"><div class="library-fit-frame" style="${screenFitStyle(screen)}"><img class="library-fit-image" src="${safeImage(screen.dataUrl)}" alt="${esc(screen.name)}">${notes}</div></div></aside>`;
+}
+
+function paintLibraryFit(screen) {
+    const panel = $('#libraryFitPanel');
+    const frame = panel ? $('.library-fit-frame', panel) : null;
+    if (!panel || !frame || !screen) return false;
+    const title = $('.library-fit-title', panel);
+    if (title) title.textContent = screen.name;
+    const notes = screen.annotations?.length ? `<div class="annotation-layer">${annotationMarkup(screen.annotations)}</div>` : '';
+    frame.setAttribute('style', screenFitStyle(screen));
+    frame.innerHTML = `<img class="library-fit-image" src="${safeImage(screen.dataUrl)}" alt="${esc(screen.name)}">${notes}`;
+    $$('[data-library-thumb].is-library-fit').forEach(node => node.classList.remove('is-library-fit'));
+    $$(`[data-library-thumb="${CSS.escape(screen.id)}"]`).forEach(node => node.classList.add('is-library-fit'));
+    return true;
+}
+
+function openLibraryFit(screenId) {
+    const screen = screenById(screenId);
+    if (!screen) return;
+    libraryFitId = screen.id;
+    if (!paintLibraryFit(screen)) refreshLibraryView();
+}
+
+function closeLibraryFit() {
+    if (!libraryFitId) return;
+    libraryFitId = null;
+    refreshLibraryView();
+}
+
+function closeLibraryContext() {
+    libraryMenu = null;
+    libraryAssocId = null;
+    renderLibraryContext();
+}
+
+function renderLibraryContext() {
+    const host = $('#libraryContextHost');
+    if (!host) return;
+    $$('[data-library-thumb].is-context').forEach(node => node.classList.remove('is-context'));
+    const screenId = libraryAssocId || libraryMenu?.id || '';
+    const screen = screenId && currentView === 'screenshots' ? screenById(screenId) : null;
+    if (!screen) {
+        libraryMenu = null;
+        libraryAssocId = null;
+        host.innerHTML = '';
+        return;
+    }
+    $$(`[data-library-thumb="${CSS.escape(screen.id)}"]`).forEach(node => node.classList.add('is-context'));
+    const connections = assocConnectionsMarkup(activeProject(), screen);
+    const menu = libraryMenu ? `<div class="library-menu sync-menu-panel" role="menu" style="left:${libraryMenu.x}px;top:${libraryMenu.y}px"><button type="button" class="sync-option" role="menuitem" data-action="library-open-photo" data-id="${esc(screen.id)}">Open zoomed in new tab</button>${connections ? `<button type="button" class="sync-option" role="menuitem" data-action="library-show-assoc" data-id="${esc(screen.id)}">Associations</button>` : ''}<button type="button" class="sync-option" role="menuitem" data-action="library-fit-photo" data-id="${esc(screen.id)}">View fitted at side panel</button><button type="button" class="sync-option danger" role="menuitem" data-action="library-delete-photo" data-id="${esc(screen.id)}">Delete from library</button></div>` : '';
+    const drawer = libraryAssocId && connections ? `<div class="library-assoc-drawer" role="region" aria-label="Walkthrough connections for ${esc(screen.name)}"><div class="assoc-drawer-title">Connections</div>${connections}</div>` : '';
+    host.innerHTML = menu + drawer;
+    const menuNode = $('.library-menu', host);
+    if (menuNode && libraryMenu) placePickerLayer(menuNode, libraryMenu.x, libraryMenu.y);
+    const drawerNode = $('.library-assoc-drawer', host);
+    if (drawerNode) {
+        const card = $(`[data-library-thumb="${CSS.escape(screen.id)}"]`);
+        const cardRect = card?.getBoundingClientRect();
+        const width = drawerNode.offsetWidth || 248;
+        const openLeft = cardRect && cardRect.right + width + 16 > window.innerWidth;
+        const x = cardRect ? (openLeft ? cardRect.left - width - 8 : cardRect.right + 8) : (libraryMenu?.x || 24);
+        const y = cardRect ? cardRect.top : (libraryMenu?.y || 24);
+        placePickerLayer(drawerNode, x, y);
+    }
+    if (menuNode && !drawerNode) $('.sync-option', menuNode)?.focus();
+    else $('.assoc-step', drawerNode)?.focus();
+}
+
 function renderLibrary() {
     const project = activeProject();
+    if (libraryFitId && !screenById(libraryFitId)) libraryFitId = null;
     if (!selectedFolder) libraryStoryFilter = 'all';
     else if (libraryStoryFilter.startsWith('story:') && !project.stories.some(story => story.id === libraryStoryFilter.slice(6))) libraryStoryFilter = 'all';
     else if (libraryStoryFilter.startsWith('stage:') && !STORY_STAGES.includes(libraryStoryFilter.slice(6))) libraryStoryFilter = 'all';
@@ -439,7 +522,8 @@ function renderLibrary() {
         const notes = screen.annotations?.length ? `<div class="annotation-layer">${annotationMarkup(screen.annotations)}</div>` : '';
         const kind = screen.annotated ? '<span class="tag">Annotated</span>' : `<span class="tag">${esc(screen.platform)}</span>`;
         const picked = selectedPhotoIds.has(screen.id);
-        return `<article class="screen-card ${project.activeScreenshotId === screen.id ? 'selected':''}${screen.annotated ? ' is-annotated' : ''}${picked ? ' picked' : ''}" data-screen-id="${esc(screen.id)}"><label class="screen-select" title="Select for bulk actions"><input class="url-check" type="checkbox" data-action="toggle-photo-select" data-id="${esc(screen.id)}" aria-label="Select ${esc(screen.name)} for bulk actions" ${picked ? 'checked' : ''}><span aria-hidden="true">${picked ? '✓' : ''}</span></label><div class="screen-preview"><div class="screen-preview-frame"><img src="${safeImage(screen.dataUrl)}" alt="${esc(screen.name)} preview">${notes}</div>${screenAssocControl(project, screen, 'card')}</div><div class="card-actions"><button class="card-action" data-action="tag-photo" data-id="${esc(screen.id)}" aria-label="Tag screen" data-tooltip="Tag">#</button><button class="card-action" data-action="edit-screen" data-id="${esc(screen.id)}" aria-label="Annotate screen" data-tooltip="Annotate">⌖</button><button class="card-action" data-action="add-to-story" data-id="${esc(screen.id)}" aria-label="Add to story" data-tooltip="Add to story">＋</button><button class="card-action" data-action="duplicate-screen" data-id="${esc(screen.id)}" aria-label="Duplicate screen" data-tooltip="Duplicate">⧉</button><button class="card-action" data-action="delete-screen" data-id="${esc(screen.id)}" aria-label="Delete screen" data-tooltip="Delete">×</button></div><div class="screen-card-meta"><input class="screen-card-title" data-screen-name="${esc(screen.id)}" value="${esc(screen.name)}" maxlength="120" aria-label="Rename file ${esc(screen.name)}"><div class="screen-card-sub">${kind}<span>${screen.width}×${screen.height}</span></div>${screenTagMarkup(screen)}</div></article>`;
+        const fitting = libraryFitId === screen.id ? ' is-library-fit' : '';
+        return `<article class="screen-card ${project.activeScreenshotId === screen.id ? 'selected':''}${screen.annotated ? ' is-annotated' : ''}${picked ? ' picked' : ''}" data-screen-id="${esc(screen.id)}"><label class="screen-select" title="Select for bulk actions"><input class="url-check" type="checkbox" data-action="toggle-photo-select" data-id="${esc(screen.id)}" aria-label="Select ${esc(screen.name)} for bulk actions" ${picked ? 'checked' : ''}><span aria-hidden="true">${picked ? '✓' : ''}</span></label><div class="screen-preview${fitting}" data-library-thumb="${esc(screen.id)}"><div class="screen-preview-frame"><div class="screen-preview-fit" style="${screenFitStyle(screen)}"><img src="${safeImage(screen.dataUrl)}" alt="${esc(screen.name)} preview">${notes}</div></div>${screenAssocControl(project, screen, 'card')}</div><div class="card-actions"><button class="card-action" data-action="tag-photo" data-id="${esc(screen.id)}" aria-label="Tag screen" data-tooltip="Tag">#</button><button class="card-action" data-action="edit-screen" data-id="${esc(screen.id)}" aria-label="Annotate screen" data-tooltip="Annotate">⌖</button><button class="card-action" data-action="add-to-story" data-id="${esc(screen.id)}" aria-label="Add to story" data-tooltip="Add to story">＋</button><button class="card-action" data-action="duplicate-screen" data-id="${esc(screen.id)}" aria-label="Duplicate screen" data-tooltip="Duplicate">⧉</button><button class="card-action" data-action="delete-screen" data-id="${esc(screen.id)}" aria-label="Delete screen" data-tooltip="Delete">×</button></div><div class="screen-card-meta"><input class="screen-card-title" data-screen-name="${esc(screen.id)}" value="${esc(screen.name)}" maxlength="120" aria-label="Rename file ${esc(screen.name)}"><div class="screen-card-sub">${kind}<span>${screen.width}×${screen.height}</span></div>${screenTagMarkup(screen)}</div></article>`;
     });
     const cardById = new Map(screens.map((screen, index) => [screen.id, cardItems[index]]));
     const renderScreenSet = items => libraryView === 'urls'
@@ -483,7 +567,7 @@ function renderLibrary() {
     const relationshipFilter = selectedFolder ? `<label class="library-story-filter"><span>SHOW</span><select class="select" data-action="filter-library-stories" aria-label="Filter folder by story or collection">${libraryStoryFilterOptions(project)}</select></label>` : '';
     const tagFilter = `<label class="library-story-filter"><span>TAG</span><select class="select" data-action="filter-library-tags" aria-label="Filter library photos by tag">${libraryTagFilterOptions(availableTags)}</select></label>`;
     const groupingControl = `<label class="library-story-filter"><span>GROUP</span><select class="select" data-action="group-library-photos" aria-label="Group library photos"><option value="none" ${libraryPhotoGroup === 'none' ? 'selected' : ''}>No groups</option><option value="date" ${libraryPhotoGroup === 'date' ? 'selected' : ''}>Date</option><option value="hour" ${libraryPhotoGroup === 'hour' ? 'selected' : ''}>Date and hour</option><option value="tag" ${libraryPhotoGroup === 'tag' ? 'selected' : ''}>Tag</option></select></label>`;
-    return `<div class="workspace-grid">${folderSidebar()}<section class="main-pane"><header class="view-head library-head"><div><h1 class="view-title">Screenshot library</h1><p class="view-subtitle">Ingest, organize, and prepare product states for walkthroughs.</p></div><div class="view-actions"><input class="search" id="screenSearch" value="${esc(searchTerm)}" placeholder="Search screens or tags">${libraryViewSwitch()}${libraryView === 'urls' ? '<button class="button" data-action="paste-url" title="Paste an image URL from the clipboard">Paste</button>' : ''}<button class="button ${showAnnotatedScreens ? 'active' : ''}" data-action="toggle-annotated" aria-pressed="${showAnnotatedScreens ? 'true' : 'false'}" title="Show or hide annotated screens">Annotated <span class="count-pill">${annotatedCount}</span></button><div class="split-button upload-menu"><button class="button primary split-main" data-action="upload"><span>↑</span> Upload screens</button><span class="split-separator" aria-hidden="true"></span><button type="button" class="button primary split-toggle ${uploadMenuOpen ? 'active' : ''}" id="uploadMenuButton" data-action="toggle-upload-menu" aria-haspopup="menu" aria-expanded="${uploadMenuOpen ? 'true' : 'false'}" aria-controls="uploadMenu" aria-label="More upload options"><svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="sync-menu-panel upload-menu-panel" id="uploadMenu" role="menu" ${uploadMenuOpen ? '' : 'hidden'}><label class="upload-date-option"><input type="checkbox" data-action="use-photo-metadata-dates" ${usePhotoMetadataDates ? 'checked' : ''}><span><strong>Use photo date</strong><small>EXIF created → file modified → upload time</small></span></label><button type="button" class="sync-option" role="menuitem" data-action="enter-url">Enter URL</button></div></div></div></header><div class="library-scroll"><div class="library-meta"><span>${screens.length} OF ${project.screenshots.length} SCREENS</span><span class="library-meta-side">${relationshipFilter}${tagFilter}${groupingControl}${bulkTools}<span>${esc(selectedFolder || 'ALL FOLDERS')}</span></span></div><div class="drop-strip" id="dropZone"><span aria-hidden="true">⇣</span><span>Drop screenshots here, or paste an image or URL</span><span class="kbd">⌘ V</span></div>${screens.length ? libraryContent : renderEmpty('No screens in this view','Upload an image, paste from the clipboard, or clear the current filter.','upload','Upload screens')}</div></section></div>`;
+    return `<div class="workspace-grid${libraryFitId ? ' has-library-fit' : ''}">${folderSidebar()}<section class="main-pane"><header class="view-head library-head"><div><h1 class="view-title">Screenshot library</h1><p class="view-subtitle">Ingest, organize, and prepare product states for walkthroughs.</p></div><div class="view-actions"><input class="search" id="screenSearch" value="${esc(searchTerm)}" placeholder="Search screens or tags">${libraryViewSwitch()}${libraryView === 'urls' ? '<button class="button" data-action="paste-url" title="Paste an image URL from the clipboard">Paste</button>' : ''}<button class="button ${showAnnotatedScreens ? 'active' : ''}" data-action="toggle-annotated" aria-pressed="${showAnnotatedScreens ? 'true' : 'false'}" title="Show or hide annotated screens">Annotated <span class="count-pill">${annotatedCount}</span></button><div class="split-button upload-menu"><button class="button primary split-main" data-action="upload"><span>↑</span> Upload screens</button><span class="split-separator" aria-hidden="true"></span><button type="button" class="button primary split-toggle ${uploadMenuOpen ? 'active' : ''}" id="uploadMenuButton" data-action="toggle-upload-menu" aria-haspopup="menu" aria-expanded="${uploadMenuOpen ? 'true' : 'false'}" aria-controls="uploadMenu" aria-label="More upload options"><svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="sync-menu-panel upload-menu-panel" id="uploadMenu" role="menu" ${uploadMenuOpen ? '' : 'hidden'}><label class="upload-date-option"><input type="checkbox" data-action="use-photo-metadata-dates" ${usePhotoMetadataDates ? 'checked' : ''}><span><strong>Use photo date</strong><small>EXIF created → file modified → upload time</small></span></label><button type="button" class="sync-option" role="menuitem" data-action="enter-url">Enter URL</button></div></div></div></header><div class="library-scroll"><div class="library-meta"><span>${screens.length} OF ${project.screenshots.length} SCREENS</span><span class="library-meta-side">${relationshipFilter}${tagFilter}${groupingControl}${bulkTools}<span>${esc(selectedFolder || 'ALL FOLDERS')}</span></span></div><div class="drop-strip" id="dropZone"><span aria-hidden="true">⇣</span><span>Drop screenshots here, or paste an image or URL</span><span class="kbd">⌘ V</span></div>${screens.length ? libraryContent : renderEmpty('No screens in this view','Upload an image, paste from the clipboard, or clear the current filter.','upload','Upload screens')}</div></section>${libraryFitMarkup()}</div>`;
 }
 
 function renderEmpty(title, copy, action, label) {

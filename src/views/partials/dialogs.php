@@ -152,3 +152,4 @@ require dirname(__DIR__, 2) . '/guard.php';
         </div>
     </form>
 </dialog>
+<div id="libraryContextHost"></div>

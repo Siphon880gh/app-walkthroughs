@@ -112,6 +112,10 @@ function setView(view, historyMode = 'push') {
     if (!VIEW_SLUG[view]) view = 'screenshots';
     stopPlayback();
     if (view !== 'stories') storyMenuOpen = false;
+    if (view !== 'screenshots') {
+        libraryMenu = null;
+        libraryAssocId = null;
+    }
     if (view !== 'export') storyPickerOpen = false;
     if (view === 'player') {
         const story = activeStory();
