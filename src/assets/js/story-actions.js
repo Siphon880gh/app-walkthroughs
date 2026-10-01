@@ -7,7 +7,7 @@ function storyStepFromScreen(screen) {
         narrateBefore:'', narrateAfter:'', comment:'',
         annotations:structuredClone(screen.annotations || []),
         transition:{type:'slide-left',duration:.6,easing:'ease-in-out',scrollDistancePx:300},
-        interaction:{enabled:true,type:'tap',xPercent:50,yPercent:50,label:'Continue'}, dwellSeconds:3.5
+        interaction:{enabled:false,type:'tap',xPercent:50,yPercent:50,label:'Continue'}, dwellSeconds:3.5
     };
 }
 

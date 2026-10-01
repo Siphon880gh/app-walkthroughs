@@ -19,6 +19,8 @@
 .story-more-button { width: 31px; min-height: 31px; padding: 0; font: 700 16px/1 var(--mono); letter-spacing: .04em; }
 .story-more-button.active { border-color: #475569; background: #22304a; color: #fff; }
 .story-more-panel { top: calc(100% + 6px); right: 0; width: 196px; }
+.story-more-panel .sync-option { display: flex; align-items: center; gap: 8px; }
+.story-menu-icon { width: 14px; height: 14px; flex: 0 0 14px; }
 .story-more-panel .sync-option[disabled] { cursor: not-allowed; opacity: .42; }
 .story-more-divider { height: 1px; margin: 1px 2px; background: var(--border); }
 .story-category-badge { display: inline-flex; align-items: center; width: fit-content; min-height: 19px; padding: 0 6px; border: 1px solid var(--border-strong); border-radius: 999px; color: var(--muted); background: #0a1120; font: 700 7px/1 var(--mono); letter-spacing: .035em; white-space: nowrap; }
