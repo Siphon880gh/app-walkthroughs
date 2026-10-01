@@ -62,7 +62,7 @@ document.addEventListener('click', event => {
     if (folderMenuPath !== null && !event.target.closest('.folder-menu')) setFolderMenu(null);
     if (storyMenuOpen && !event.target.closest('.story-more-menu')) setStoryMenu(false);
     if ((pickerMenu || pickerAssocId) && !event.target.closest('.picker-menu, .picker-assoc-drawer')) closePickerContext();
-    if ((libraryMenu || libraryAssocId) && !event.target.closest('.library-menu, .library-assoc-drawer')) closeLibraryContext();
+    if ((libraryMenu || libraryAssocId) && !event.target.closest('.library-menu, .library-assoc-drawer') && !libraryThumbClickContinues(event)) closeLibraryContext();
     if (assocDrawerId && !event.target.closest('.assoc-anchor')) {
         assocDrawerId = null;
         $$('.assoc-anchor.is-open').forEach(node => {
@@ -75,6 +75,7 @@ document.addEventListener('click', event => {
         storyPickerOpen = false;
         if (!target) { renderApp(); return; }
     }
+    if (handleLibraryThumbClick(event)) return;
     const photoRow = event.target.closest('.photo-row');
     if (photoRow && !event.target.closest('button, input, textarea, a, label, .screen-tag, .assoc-anchor')) {
         if (event.detail > 1) return;
@@ -717,16 +718,94 @@ function openLibraryThumbMenu(thumb, x, y) {
     renderLibraryContext();
 }
 
-function previewLibraryThumb(event) {
-    if (!libraryFitId || currentView !== 'screenshots') return;
-    if (event.target.closest('button, input, textarea, a, label, .screen-tag, .assoc-anchor, .library-menu, .library-assoc-drawer, .library-fit-panel')) return;
-    const id = libraryThumbTarget(event.target)?.dataset.libraryThumb;
-    if (!id || id === libraryFitId) return;
-    openLibraryFit(id);
+const LIBRARY_THUMB_GESTURE_MS = 400;
+let libraryThumbGesture = null;
+
+function libraryThumbWithinGesture(id, x, y, now) {
+    const gesture = libraryThumbGesture;
+    if (!gesture || gesture.done || gesture.id !== id) return false;
+    if (now - gesture.at > LIBRARY_THUMB_GESTURE_MS) return false;
+    return Math.hypot(x - gesture.x, y - gesture.y) <= 30;
 }
 
-document.addEventListener('pointerover', previewLibraryThumb);
-document.addEventListener('click', previewLibraryThumb);
+function libraryThumbClickContinues(event) {
+    const thumb = libraryThumbTarget(event.target);
+    if (!thumb || event.target.closest('button, input, textarea, a, label, .screen-tag, .assoc-anchor')) return false;
+    return libraryThumbWithinGesture(thumb.dataset.libraryThumb, event.clientX, event.clientY, performance.now());
+}
+
+function checkLibraryThumb(gesture) {
+    const box = $(`.library-scroll [data-action="toggle-photo-select"][data-id="${CSS.escape(gesture.id)}"]`);
+    const ids = gesture.shiftKey && box ? photoIdsInSelectionRange(box) : [gesture.id];
+    applyLibraryPhotoSelection(ids, !gesture.wasChecked, gesture.shiftKey ? '' : gesture.id);
+}
+
+function finishLibraryThumbGesture(gesture) {
+    gesture.timer = null;
+    if (gesture.done || libraryThumbGesture !== gesture || currentView !== 'screenshots') return;
+    gesture.done = true;
+    if (gesture.sidebarOpen && gesture.count === 2) checkLibraryThumb(gesture);
+}
+
+function openLibraryThumbGestureMenu(gesture) {
+    openLibraryThumbMenu({dataset: {libraryThumb: gesture.id}}, gesture.x, gesture.y);
+    gesture.timer = setTimeout(() => {
+        gesture.timer = null;
+        if (libraryThumbGesture === gesture) gesture.done = true;
+    }, LIBRARY_THUMB_GESTURE_MS);
+}
+
+function handleLibraryThumbClick(event) {
+    if (currentView !== 'screenshots' || $('#photoDialog')?.open) return false;
+    const thumb = libraryThumbTarget(event.target);
+    if (!thumb || event.target.closest('button, input, textarea, a, label, .screen-tag, .assoc-anchor, .library-fit-panel')) return false;
+    const id = thumb.dataset.libraryThumb;
+    if (!id || !screenById(id)) return false;
+    const now = performance.now();
+    const x = event.clientX;
+    const y = event.clientY;
+    const previous = libraryThumbGesture;
+    const same = libraryThumbWithinGesture(id, x, y, now);
+    if (previous?.timer) {
+        clearTimeout(previous.timer);
+        previous.timer = null;
+    }
+    if (!same && previous?.sidebarOpen && previous.count === 2 && !previous.done) {
+        previous.done = true;
+        checkLibraryThumb(previous);
+    }
+    const gesture = same ? previous : {
+        id, x, y, at: now, count: 0,
+        shiftKey: false,
+        sidebarOpen: Boolean(libraryFitId),
+        wasChecked: selectedPhotoIds.has(id),
+        done: false,
+        timer: null
+    };
+    gesture.count += 1;
+    gesture.x = x;
+    gesture.y = y;
+    gesture.at = now;
+    gesture.shiftKey = event.shiftKey;
+    libraryThumbGesture = gesture;
+    if (gesture.count > 1) event.preventDefault();
+    if (gesture.sidebarOpen) {
+        if (gesture.count === 1) {
+            if (id !== libraryFitId) openLibraryFit(id);
+        } else if (gesture.count === 2) {
+            gesture.timer = setTimeout(() => finishLibraryThumbGesture(gesture), LIBRARY_THUMB_GESTURE_MS);
+        } else if (gesture.count === 3) openLibraryThumbGestureMenu(gesture);
+        return true;
+    }
+    if (gesture.count === 1) {
+        checkLibraryThumb(gesture);
+        gesture.timer = setTimeout(() => {
+            gesture.timer = null;
+            if (libraryThumbGesture === gesture) gesture.done = true;
+        }, LIBRARY_THUMB_GESTURE_MS);
+    } else if (gesture.count === 2) openLibraryThumbGestureMenu(gesture);
+    return true;
+}
 
 document.addEventListener('contextmenu', event => {
     if (currentView !== 'screenshots' || $('#photoDialog')?.open) return;
@@ -737,32 +816,6 @@ document.addEventListener('contextmenu', event => {
     const thumb = libraryThumbTarget(event.target);
     if (!thumb || event.target.closest('input, textarea')) return;
     event.preventDefault();
-    openLibraryThumbMenu(thumb, event.clientX, event.clientY);
-});
-
-document.addEventListener('dblclick', event => {
-    if (currentView !== 'screenshots' || $('#photoDialog')?.open) return;
-    const thumb = libraryThumbTarget(event.target);
-    if (!thumb || event.target.closest('button, input, textarea, a, label')) return;
-    event.preventDefault();
-    openLibraryThumbMenu(thumb, event.clientX, event.clientY);
-});
-
-let libraryLastTap = null;
-document.addEventListener('pointerup', event => {
-    if (event.pointerType === 'mouse' || currentView !== 'screenshots' || $('#photoDialog')?.open) return;
-    const thumb = libraryThumbTarget(event.target);
-    if (!thumb || event.target.closest('button, input, textarea, a, label')) {
-        libraryLastTap = null;
-        return;
-    }
-    const now = performance.now();
-    const id = thumb.dataset.libraryThumb;
-    const previous = libraryLastTap;
-    libraryLastTap = {id, x: event.clientX, y: event.clientY, at: now};
-    if (!previous || previous.id !== id || now - previous.at > 400) return;
-    if (Math.hypot(event.clientX - previous.x, event.clientY - previous.y) > 30) return;
-    libraryLastTap = null;
     openLibraryThumbMenu(thumb, event.clientX, event.clientY);
 });
 

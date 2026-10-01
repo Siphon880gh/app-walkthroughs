@@ -36,7 +36,7 @@
 .screen-preview-fit { position: relative; aspect-ratio: var(--screen-w) / var(--screen-h); width: min(100cqw, calc(100cqh * var(--screen-w) / var(--screen-h))); max-height: 100%; }
 .screen-preview-fit img { display: block; width: 100%; height: 100%; object-fit: contain; border-radius: 5px; box-shadow: 0 12px 30px rgba(0,0,0,.45); }
 .screen-preview-fit .annotation-layer { border-radius: 5px; pointer-events: none; }
-[data-library-thumb] { touch-action: manipulation; }
+[data-library-thumb], [data-library-thumb] img { touch-action: manipulation; user-select: none; -webkit-user-drag: none; }
 [data-library-thumb].is-library-fit, [data-library-thumb].is-context { outline: 2px solid var(--blue); outline-offset: -2px; }
 .library-menu.sync-menu-panel, .library-assoc-drawer { position: fixed; top: auto; right: auto; bottom: auto; z-index: 80; }
 .library-assoc-drawer { width: 248px; max-height: min(320px, 70vh); overflow: auto; display: grid; gap: 6px; padding: 8px; border: 1px solid var(--border-strong); border-radius: 8px; background: #0b1220; box-shadow: 0 18px 40px rgba(0,0,0,.5); }
