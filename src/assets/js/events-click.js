@@ -379,6 +379,19 @@ document.addEventListener('click', event => {
         const story = newStory(name.trim()); project.stories.push(story); project.activeStoryId = story.id; selectedStoryStepIds.clear(); persist(true);
     }
     else if (action === 'toggle-story-menu') setStoryMenu(!storyMenuOpen);
+    else if (action === 'select-all-story-steps') {
+        const story = activeStory();
+        if (!story?.steps.length) return;
+        const scrollTop = $('.step-list')?.scrollTop || 0;
+        const allSelected = story.steps.every(step => selectedStoryStepIds.has(step.id));
+        if (allSelected) selectedStoryStepIds.clear();
+        else story.steps.forEach(step => selectedStoryStepIds.add(step.id));
+        setStoryMenu(false);
+        renderApp();
+        const list = $('.step-list');
+        if (list) list.scrollTop = scrollTop;
+        $('#storyMenuButton')?.focus();
+    }
     else if (action === 'reverse-selected-story-steps') {
         setStoryMenu(false);
         const count = reverseSelectedStorySteps();

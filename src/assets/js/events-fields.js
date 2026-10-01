@@ -176,7 +176,7 @@ document.addEventListener('change', event => {
         photoPickerSort = ['recent','oldest','library'].includes(target.value) ? target.value : 'recent';
         renderPhotoPicker();
     } else if (target.dataset.action === 'photo-picker-group') {
-        photoPickerGroup = ['date','hour','none'].includes(target.value) ? target.value : 'date';
+        photoPickerGroup = ['date','hour','tag','none'].includes(target.value) ? target.value : 'date';
         renderPhotoPicker();
     } else if (target.dataset.action === 'change-story') {
         if (!activeProject().stories.some(story => story.id === target.value)) return;

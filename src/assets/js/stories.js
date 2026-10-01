@@ -89,7 +89,9 @@ function storyStageBadge(story) {
 
 function storyChooser(storyOptions, story) {
     const selectedCount = story.steps.filter(step => selectedStoryStepIds.has(step.id)).length;
-    return `<div class="story-chooser"><label class="story-select-field primary"><span>WALKTHROUGH</span><select class="select" data-action="change-story">${storyOptions}</select></label><label class="story-select-field secondary"><span>SET STAGE</span><select class="select story-category-select ${storyStageTone(story)}" data-action="change-story-stage">${storyStageOptions(story.stage)}</select></label><div class="story-chooser-actions"><button class="button" data-action="new-story" title="New walkthrough">＋ New</button><button class="button" data-action="open-photo-picker">＋ Add photos</button><div class="story-more-menu"><button type="button" class="button story-more-button${storyMenuOpen ? ' active' : ''}" id="storyMenuButton" data-action="toggle-story-menu" aria-haspopup="menu" aria-expanded="${storyMenuOpen ? 'true' : 'false'}" aria-controls="storyMenu" aria-label="More walkthrough options">⋯</button><div class="sync-menu-panel story-more-panel" id="storyMenu" role="menu" ${storyMenuOpen ? '' : 'hidden'}><button type="button" class="sync-option" role="menuitem" data-action="reverse-selected-story-steps" ${selectedCount > 1 ? '' : 'disabled'}>Reverse selected order${selectedCount ? ` (${selectedCount})` : ''}</button><span class="story-more-divider" aria-hidden="true"></span><button type="button" class="sync-option" role="menuitem" data-action="rename-story">Rename walkthrough</button><button type="button" class="sync-option" role="menuitem" data-action="copy-story-photo-urls">Copy photo URLs</button><span class="story-more-divider" aria-hidden="true"></span><button type="button" class="sync-option danger" role="menuitem" data-action="delete-story">Delete walkthrough</button></div></div></div></div>`;
+    const allSelected = story.steps.length > 0 && selectedCount === story.steps.length;
+    const selectAllLabel = allSelected ? 'Clear selection' : 'Select all';
+    return `<div class="story-chooser"><label class="story-select-field primary"><span>WALKTHROUGH</span><select class="select" data-action="change-story">${storyOptions}</select></label><label class="story-select-field secondary"><span>SET STAGE</span><select class="select story-category-select ${storyStageTone(story)}" data-action="change-story-stage">${storyStageOptions(story.stage)}</select></label><div class="story-chooser-actions"><button class="button" data-action="new-story" title="New walkthrough">＋ New</button><button class="button" data-action="open-photo-picker">＋ Add photos</button><div class="story-more-menu"><button type="button" class="button story-more-button${storyMenuOpen ? ' active' : ''}" id="storyMenuButton" data-action="toggle-story-menu" aria-haspopup="menu" aria-expanded="${storyMenuOpen ? 'true' : 'false'}" aria-controls="storyMenu" aria-label="More walkthrough options">⋯</button><div class="sync-menu-panel story-more-panel" id="storyMenu" role="menu" ${storyMenuOpen ? '' : 'hidden'}><button type="button" class="sync-option" role="menuitem" data-action="select-all-story-steps" ${story.steps.length ? '' : 'disabled'}>${selectAllLabel}</button><button type="button" class="sync-option" role="menuitem" data-action="reverse-selected-story-steps" ${selectedCount > 1 ? '' : 'disabled'}>Reverse selected order${selectedCount ? ` (${selectedCount})` : ''}</button><span class="story-more-divider" aria-hidden="true"></span><button type="button" class="sync-option" role="menuitem" data-action="rename-story">Rename walkthrough</button><button type="button" class="sync-option" role="menuitem" data-action="copy-story-photo-urls">Copy photo URLs</button><span class="story-more-divider" aria-hidden="true"></span><button type="button" class="sync-option danger" role="menuitem" data-action="delete-story">Delete walkthrough</button></div></div></div></div>`;
 }
 
 function photoTimestamp(screen) {
@@ -127,8 +129,33 @@ function sortedPickerScreens(includeAnnotated = pickerShowAnnotated) {
     return [...screens].sort((a, b) => direction * (photoTimestamp(a) - photoTimestamp(b)));
 }
 
+function pickerTagGroups(screens) {
+    const groups = new Map();
+    screens.forEach(screen => {
+        const tags = customScreenTags(screen);
+        (tags.length ? tags : ['']).forEach(tag => {
+            if (!groups.has(tag)) groups.set(tag, []);
+            groups.get(tag).push(screen);
+        });
+    });
+    return [...groups].sort(([a], [b]) => {
+        if (!a) return 1;
+        if (!b) return -1;
+        return a.localeCompare(b);
+    });
+}
+
 function selectedPickerIdsInDisplayOrder() {
-    return sortedPickerScreens(true).filter(screen => selectedPickerScreenIds.has(screen.id)).map(screen => screen.id);
+    const screens = sortedPickerScreens(true);
+    const ordered = photoPickerGroup === 'tag'
+        ? pickerTagGroups(screens).flatMap(([, items]) => items)
+        : screens;
+    const seen = new Set();
+    return ordered.filter(screen => {
+        if (!selectedPickerScreenIds.has(screen.id) || seen.has(screen.id)) return false;
+        seen.add(screen.id);
+        return true;
+    }).map(screen => screen.id);
 }
 
 function renderPhotoPicker() {
@@ -145,6 +172,10 @@ function renderPhotoPicker() {
     let cards = '';
     if (photoPickerGroup === 'none') {
         cards = `<div class="photo-picker-grid">${screens.map(card).join('')}</div>`;
+    } else if (photoPickerGroup === 'tag') {
+        cards = pickerTagGroups(screens).map(([tag, items]) =>
+            `<section class="photo-date-group"><h3>${tag ? `#${esc(tag)}` : 'Untagged'} <span>${items.length}</span></h3><div class="photo-picker-grid">${items.map(card).join('')}</div></section>`
+        ).join('');
     } else {
         const groups = new Map();
         screens.forEach(screen => {
@@ -165,7 +196,7 @@ function renderPhotoPicker() {
     const selectedCount = selectedPickerScreenIds.size;
     const allVisiblePicked = screens.length > 0 && screens.every(screen => selectedPickerScreenIds.has(screen.id));
     const zone = photoTimeZone();
-    body.innerHTML = `<div class="photo-picker-controls"><div class="photo-picker-fields"><label><span>SORT</span><select class="select" data-action="photo-picker-sort"><option value="recent" ${photoPickerSort === 'recent' ? 'selected' : ''}>Most recent</option><option value="oldest" ${photoPickerSort === 'oldest' ? 'selected' : ''}>Oldest first</option><option value="library" ${photoPickerSort === 'library' ? 'selected' : ''}>Library order</option></select></label><label><span>GROUP</span><select class="select" data-action="photo-picker-group"><option value="date" ${photoPickerGroup === 'date' ? 'selected' : ''}>Date</option><option value="hour" ${photoPickerGroup === 'hour' ? 'selected' : ''}>Date and hour</option><option value="none" ${photoPickerGroup === 'none' ? 'selected' : ''}>No groups</option></select></label></div><button type="button" class="button primary" data-action="add-all-recent-photos" ${project?.screenshots?.length ? '' : 'disabled'}>＋ Add all recent</button></div><div class="photo-picker-zone">Times shown in ${esc(zone.label)} (UTC${esc(zone.utcOffset.slice(0, 3))}:${esc(zone.utcOffset.slice(3))}).</div><div class="photo-picker-bar"><span>${screens.length} photo${screens.length === 1 ? '' : 's'} · added in displayed order</span><span class="photo-picker-tools"><button type="button" class="button ghost small" data-action="toggle-all-picker-photos" data-ids="${esc(screens.map(screen => screen.id).join(' '))}">${allVisiblePicked ? 'Clear visible' : 'Select visible'}</button><button type="button" class="button small ${pickerShowAnnotated ? 'active' : ''}" data-action="toggle-picker-annotated" aria-pressed="${pickerShowAnnotated ? 'true' : 'false'}" title="Show or hide annotated pictures">Annotated <span class="count-pill">${annotated.length}</span></button></span></div>${cards || '<p class="photo-picker-empty">No photos match this filter.</p>'}`;
+    body.innerHTML = `<div class="photo-picker-controls"><div class="photo-picker-fields"><label><span>SORT</span><select class="select" data-action="photo-picker-sort"><option value="recent" ${photoPickerSort === 'recent' ? 'selected' : ''}>Most recent</option><option value="oldest" ${photoPickerSort === 'oldest' ? 'selected' : ''}>Oldest first</option><option value="library" ${photoPickerSort === 'library' ? 'selected' : ''}>Library order</option></select></label><label><span>GROUP</span><select class="select" data-action="photo-picker-group"><option value="date" ${photoPickerGroup === 'date' ? 'selected' : ''}>Date</option><option value="hour" ${photoPickerGroup === 'hour' ? 'selected' : ''}>Date and hour</option><option value="tag" ${photoPickerGroup === 'tag' ? 'selected' : ''}>Tag</option><option value="none" ${photoPickerGroup === 'none' ? 'selected' : ''}>No groups</option></select></label></div><button type="button" class="button primary" data-action="add-all-recent-photos" ${project?.screenshots?.length ? '' : 'disabled'}>＋ Add all recent</button></div><div class="photo-picker-zone">Times shown in ${esc(zone.label)} (UTC${esc(zone.utcOffset.slice(0, 3))}:${esc(zone.utcOffset.slice(3))}).</div><div class="photo-picker-bar"><span>${screens.length} photo${screens.length === 1 ? '' : 's'} · added in displayed order</span><span class="photo-picker-tools"><button type="button" class="button ghost small" data-action="toggle-all-picker-photos" data-ids="${esc(screens.map(screen => screen.id).join(' '))}">${allVisiblePicked ? 'Clear visible' : 'Select visible'}</button><button type="button" class="button small ${pickerShowAnnotated ? 'active' : ''}" data-action="toggle-picker-annotated" aria-pressed="${pickerShowAnnotated ? 'true' : 'false'}" title="Show or hide annotated pictures">Annotated <span class="count-pill">${annotated.length}</span></button></span></div>${cards || '<p class="photo-picker-empty">No photos match this filter.</p>'}`;
     const count = $('#photoPickerSelection');
     const add = $('#addSelectedPhotos');
     if (count) count.textContent = selectedCount ? `${selectedCount} selected` : 'Choose one or more photos';
