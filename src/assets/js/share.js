@@ -304,11 +304,53 @@ function applySharedDemo(payload) {
     return true;
 }
 
+let demoSyncedAt = 0;
+
+function formatDemoSyncedAt(timestamp) {
+    return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+    }).format(new Date(timestamp));
+}
+
+function payloadSyncedAt(payload) {
+    const top = Number(payload?.syncedAt || 0);
+    if (Number.isFinite(top) && top > 0) return top;
+    const sources = Array.isArray(payload?.projects) ? payload.projects : [];
+    return Math.max(0, ...sources.map(project => Number(project?.syncedAt || 0)));
+}
+
+function renderDemoSyncedAt(timestamp) {
+    const value = Number(timestamp);
+    demoSyncedAt = Number.isFinite(value) && value > 0 ? value : 0;
+    const node = $('#syncDemoTime');
+    const button = $('#syncDemoButton');
+    if (!node) return;
+    const label = demoSyncedAt ? formatDemoSyncedAt(demoSyncedAt) : '';
+    node.textContent = label;
+    if (demoSyncedAt) {
+        node.dateTime = new Date(demoSyncedAt).toISOString();
+        node.setAttribute('aria-label', `Last synced ${label}`);
+    } else {
+        node.removeAttribute('datetime');
+        node.removeAttribute('aria-label');
+    }
+    if (button) button.removeAttribute('aria-label');
+}
+
 async function pullSharedDemo() {
     try {
         const response = await fetch('?action=sync-demo', {cache: 'no-store'});
-        if (response.status === 204 || !response.ok) return false;
-        return applySharedDemo(await response.json());
+        if (response.status === 204 || !response.ok) {
+            if (response.status === 204) renderDemoSyncedAt(0);
+            return false;
+        }
+        const payload = await response.json();
+        renderDemoSyncedAt(payloadSyncedAt(payload));
+        return applySharedDemo(payload);
     } catch (error) {
         console.warn('Unable to load the shared demo', error);
         return false;
@@ -380,6 +422,7 @@ async function confirmSyncDemo() {
             throw failure;
         }
         if (input) input.value = '';
+        renderDemoSyncedAt(result.syncedAt);
         await pullSharedDemo();
         dialog?.close();
         const count = Number(result.projectCount || syncedProjects.length);

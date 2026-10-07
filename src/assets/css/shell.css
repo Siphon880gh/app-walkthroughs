@@ -17,6 +17,16 @@
 .top-actions { justify-content: flex-end; gap: 8px; min-width: 0; }
 .sync-menu { position: relative; }
 .sync-menu-panel { position: absolute; top: calc(100% + 8px); right: 0; z-index: 80; width: 232px; display: grid; gap: 6px; padding: 8px; border: 1px solid var(--border-strong); border-radius: 8px; background: #0b1220; box-shadow: 0 18px 40px rgba(0,0,0,.5); }
+.sync-menu > .sync-menu-panel { width: min(360px, calc(100vw - 24px)); gap: 20px; padding: 18px 20px; background: var(--panel); }
+.sync-action { display: grid; gap: 6px; }
+.sync-action-line { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; }
+#syncMenu .sync-option { width: auto; min-height: 28px; padding: 0; border: 0; border-radius: 0; background: transparent; font-size: 13px; font-weight: 650; color: var(--text); }
+#syncMenu .sync-option:hover { border: 0; background: transparent; color: #fff; }
+#syncMenu .sync-option.danger { color: var(--muted); }
+#syncMenu .sync-option.danger:hover { border: 0; background: transparent; color: #fecaca; }
+.sync-note { margin: 0; color: var(--dim); font-size: 12px; line-height: 1.5; font-weight: 450; }
+.sync-demo-time { color: var(--dim); font-size: 12px; line-height: 1.4; white-space: nowrap; }
+.sync-demo-time:empty { display: none; }
 .sync-menu-panel[hidden] { display: none; }
 .sync-option { width: 100%; min-height: 31px; border: 1px solid var(--border); border-radius: 6px; background: #080e19; color: var(--text); text-align: left; padding: 0 10px; font-size: 11px; font-weight: 700; }
 .sync-option:hover { border-color: #475569; background: var(--raised); }
