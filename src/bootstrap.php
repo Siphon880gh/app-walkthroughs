@@ -195,7 +195,7 @@ if (($_GET['action'] ?? '') === 'upload-screenshot') {
     if ($site !== 'same-origin' && $site !== 'none') {
         storyflow_image_fail(403, 'Images can only be uploaded from StoryFlow itself.');
     }
-    $maxBytes = 10 * 1048576;
+    $maxBytes = 15 * 1048576;
     $file = $_FILES['file'] ?? null;
     if (!is_array($file)) {
         storyflow_image_fail(422, 'Choose an image to upload.');
@@ -209,7 +209,7 @@ if (($_GET['action'] ?? '') === 'upload-screenshot') {
     }
     $size = (int) ($file['size'] ?? 0);
     if ($size <= 0 || $size > $maxBytes) {
-        storyflow_image_fail($size > $maxBytes ? 413 : 422, $size > $maxBytes ? 'That image is larger than 10 MB.' : 'Choose an image to upload.');
+        storyflow_image_fail($size > $maxBytes ? 413 : 422, $size > $maxBytes ? 'That image is larger than 15 MB.' : 'Choose an image to upload.');
     }
     $temporary = (string) ($file['tmp_name'] ?? '');
     if ($temporary === '' || !is_uploaded_file($temporary)) {
@@ -220,7 +220,7 @@ if (($_GET['action'] ?? '') === 'upload-screenshot') {
         storyflow_image_fail(422, 'Choose an image to upload.');
     }
     if (strlen($body) > $maxBytes) {
-        storyflow_image_fail(413, 'That image is larger than 10 MB.');
+        storyflow_image_fail(413, 'That image is larger than 15 MB.');
     }
     $mime = storyflow_image_mime($body);
     if ($mime === '') {
