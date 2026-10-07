@@ -101,6 +101,8 @@ const selectedStoryStepIds = new Set();
 let sessionUploadOpen = true;
 const sessionUploads = [];
 let pendingUploadFiles = [];
+let pendingSliceChoices = [];
+let pendingUploadDestination = null;
 
 const defaultAudio = {
     enabled: true,

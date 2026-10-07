@@ -105,7 +105,9 @@ async function uploadScreenshot(file) {
 
 async function fileToScreen(file, folder) {
     const [path, capture] = await Promise.all([uploadScreenshot(file), photoCaptureDate(file)]);
-    return screenRecord(file.name || `Pasted screen ${new Date().toLocaleTimeString()}`, path, folder, await imageDimensions(path), capture.timestamp, capture.source);
+    const screen = screenRecord(file.name || `Pasted screen ${new Date().toLocaleTimeString()}`, path, folder, await imageDimensions(path), capture.timestamp, capture.source);
+    if (file.storyflowFrame === 'iphone' || file.storyflowFrame === 'desktop') screen.deviceFrame = file.storyflowFrame;
+    return screen;
 }
 
 function uploadFolder() {
@@ -160,10 +162,144 @@ function uploadTagsFromInput(value) {
     return [...new Set(String(value || '').split(',').map(tag => tag.trim()).filter(Boolean).map(tag => slug(tag.slice(0, 40))))];
 }
 
-function stageFilesForUpload(files) {
-    const images = files.filter(file => file.type.startsWith('image/'));
-    if (!images.length) { toast('Choose PNG, JPEG, WebP, GIF, or SVG images.', 'warn'); return; }
+const SLICE_VIEWPORTS = [
+    {id:'iphone-se', family:'Phone', name:'iPhone SE', width:375, height:667, dprs:[1, 2]},
+    {id:'iphone-14', family:'Phone', name:'iPhone 14 / 16e', width:390, height:844, dprs:[1, 2, 3]},
+    {id:'iphone-16', family:'Phone', name:'iPhone 15 / 16', width:393, height:852, dprs:[1, 2, 3]},
+    {id:'iphone-17', family:'Phone', name:'iPhone 17 / 16 Pro', width:402, height:874, dprs:[1, 2, 3]},
+    {id:'iphone-16-plus', family:'Phone', name:'iPhone 16 Plus', width:430, height:932, dprs:[1, 2, 3]},
+    {id:'iphone-16-pro-max', family:'Phone', name:'iPhone 16 / 17 Pro Max', width:440, height:956, dprs:[1, 2, 3]},
+    {id:'galaxy-s24', family:'Phone', name:'Galaxy S24', width:360, height:780, dprs:[1, 2, 3]},
+    {id:'pixel-8', family:'Phone', name:'Pixel 8', width:412, height:915, dprs:[1, 2, 2.625, 3]},
+    {id:'pixel-9', family:'Phone', name:'Pixel 9', width:412, height:924, dprs:[1, 2, 2.625, 3]},
+    {id:'pixel-9-pro-xl', family:'Phone', name:'Pixel 9 Pro XL', width:448, height:997, dprs:[1, 2, 3]},
+    {id:'desktop-1280-720', family:'Desktop', name:'Desktop 1280 × 720', width:1280, height:720, dprs:[1, 1.5, 2]},
+    {id:'desktop-1280-800', family:'Desktop', name:'Desktop 1280 × 800', width:1280, height:800, dprs:[1, 1.5, 2]},
+    {id:'desktop-1366', family:'Desktop', name:'Desktop 1366 × 768', width:1366, height:768, dprs:[1, 1.5, 2]},
+    {id:'desktop-1440', family:'Desktop', name:'Desktop 1440 × 900', width:1440, height:900, dprs:[1, 2]},
+    {id:'desktop-1512', family:'Desktop', name:'Desktop 1512 × 900', width:1512, height:900, dprs:[1, 2]},
+    {id:'desktop-1536', family:'Desktop', name:'Desktop 1536 × 864', width:1536, height:864, dprs:[1, 2]},
+    {id:'desktop-1920', family:'Desktop', name:'Desktop 1920 × 1080', width:1920, height:1080, dprs:[1, 2]}
+];
+const SLICE_LONG_RATIO = 1.2;
+
+function fileImageSize(file) {
+    return new Promise(resolve => {
+        const url = URL.createObjectURL(file);
+        const image = new Image();
+        image.onload = () => {
+            const size = {width:image.naturalWidth || 0, height:image.naturalHeight || 0};
+            URL.revokeObjectURL(url);
+            resolve(size.width > 0 && size.height > 0 ? size : null);
+        };
+        image.onerror = () => {
+            URL.revokeObjectURL(url);
+            resolve(null);
+        };
+        image.src = url;
+    });
+}
+
+function slicePixelHeight(imageWidth, viewport) {
+    return Math.max(1, Math.round(imageWidth * viewport.height / viewport.width));
+}
+
+function sliceCount(imageHeight, sliceHeight) {
+    return Math.max(1, Math.ceil(imageHeight / Math.max(1, sliceHeight)));
+}
+
+function viewportFit(imageWidth, viewport) {
+    return viewport.dprs.reduce((best, dpr) => {
+        const error = Math.abs(viewport.width * dpr - imageWidth) / Math.max(imageWidth, 1);
+        return error < best ? error : best;
+    }, Infinity);
+}
+
+function rankSliceViewports(width, height) {
+    const scored = SLICE_VIEWPORTS.map(viewport => {
+        const sliceHeight = slicePixelHeight(width, viewport);
+        const remainder = height % sliceHeight;
+        const tail = Math.min(remainder, Math.abs(sliceHeight - remainder));
+        return {...viewport, error:viewportFit(width, viewport), sliceHeight, screens:sliceCount(height, sliceHeight), tail:tail / sliceHeight};
+    }).sort((a, b) => a.error - b.error || a.tail - b.tail || a.name.localeCompare(b.name));
+    const best = scored[0];
+    const options = ['Phone', 'Desktop'].flatMap(family => scored.filter(viewport => viewport.family === family).slice(0, family === 'Phone' ? 4 : 3));
+    return {long:height > best.sliceHeight * SLICE_LONG_RATIO, bestId:best.id, viewportId:best.id, options};
+}
+
+async function measureSliceChoice(file) {
+    const size = await fileImageSize(file);
+    if (!size) return null;
+    return {width:size.width, height:size.height, ...rankSliceViewports(size.width, size.height)};
+}
+
+function plannedPieceCount(choice) {
+    if (!choice?.long || choice.viewportId === 'keep') return 1;
+    return choice.options.find(option => option.id === choice.viewportId)?.screens || 1;
+}
+
+function plannedUploadCount() {
+    return pendingUploadFiles.reduce((sum, file, index) => sum + plannedPieceCount(pendingSliceChoices[index]), 0);
+}
+
+function sliceChoiceButton(index, option, selectedId, bestId) {
+    const selected = option.id === selectedId;
+    const badge = option.id === bestId ? '<span class="slice-badge">Recommended</span>' : '';
+    const screens = `${option.screens} screen${option.screens === 1 ? '' : 's'}`;
+    return `<button type="button" class="slice-choice${selected ? ' selected' : ''}" data-action="choose-slice" data-index="${index}" data-viewport="${esc(option.id)}" role="radio" aria-checked="${selected ? 'true' : 'false'}"><span><strong>${esc(option.name)}</strong><small>${option.sliceHeight.toLocaleString('en-US')}px tall · ${screens}</small></span>${badge}</button>`;
+}
+
+function renderSliceOffer() {
+    const offer = $('#sliceOffer');
+    const dialog = $('#uploadDialog');
+    if (!offer || !dialog) return;
+    const longs = pendingSliceChoices.flatMap((choice, index) => choice?.long ? [{choice, index}] : []);
+    dialog.classList.toggle('slicing', longs.length > 0);
+    if (!longs.length) {
+        offer.hidden = true;
+        offer.innerHTML = '';
+    } else {
+        offer.hidden = false;
+        offer.innerHTML = longs.map(({choice, index}) => {
+            const file = pendingUploadFiles[index];
+            const groups = ['Phone', 'Desktop'].flatMap(family => {
+                const items = choice.options.filter(option => option.family === family);
+                if (!items.length) return [];
+                return [`<div class="slice-family">${family.toUpperCase()}</div>`, ...items.map(option => sliceChoiceButton(index, option, choice.viewportId, choice.bestId))];
+            }).join('');
+            const keepSelected = choice.viewportId === 'keep';
+            const keep = `<div class="slice-family">ONE IMAGE</div><button type="button" class="slice-choice${keepSelected ? ' selected' : ''}" data-action="choose-slice" data-index="${index}" data-viewport="keep" role="radio" aria-checked="${keepSelected ? 'true' : 'false'}"><span><strong>Keep as one image</strong><small>${choice.width.toLocaleString('en-US')} × ${choice.height.toLocaleString('en-US')}</small></span></button>`;
+            const heading = longs.length > 1 ? `<div class="slice-file">${esc(file?.name || 'Screenshot')}</div>` : '';
+            return `<section class="slice-group"><div class="field-label">CUT INTO SCREENS</div>${heading}<p class="slice-note">This capture is taller than one viewport. Slice height follows its width, and the closest device is selected.</p><div class="slice-choices" role="radiogroup" aria-label="Viewport for ${esc(file?.name || 'screenshot')}">${groups}${keep}</div></section>`;
+        }).join('');
+    }
+    const description = $('#uploadDialogDescription');
+    const button = $('#confirmUploadButton');
+    if (description && longs.length) {
+        description.textContent = longs.length === 1
+            ? 'Choose a device viewport for the long screenshot, or keep it as one image.'
+            : `${longs.length} long screenshots can be cut into viewport-sized screens.`;
+    }
+    if (button && !button.hasAttribute('aria-busy')) {
+        const count = plannedUploadCount();
+        const noun = longs.length ? 'screen' : 'photo';
+        button.textContent = `Upload ${count} ${noun}${count === 1 ? '' : 's'}`;
+    }
+}
+
+function chooseSliceViewport(index, viewportId) {
+    const choice = pendingSliceChoices[index];
+    if (!choice?.long || !viewportId) return;
+    if (viewportId !== 'keep' && !choice.options.some(option => option.id === viewportId)) return;
+    choice.viewportId = viewportId;
+    renderSliceOffer();
+    $(`#sliceOffer [data-action="choose-slice"][data-index="${index}"][data-viewport="${CSS.escape(viewportId)}"]`)?.focus();
+}
+
+function presentUploadDialog(images, choices, destination) {
     pendingUploadFiles = images;
+    pendingSliceChoices = choices;
+    pendingUploadDestination = destination;
     const dialog = $('#uploadDialog');
     const description = $('#uploadDialogDescription');
     const list = $('#uploadDialogFiles');
@@ -173,7 +309,11 @@ function stageFilesForUpload(files) {
     const button = $('#confirmUploadButton');
     if (!dialog || !list || !input) return;
     description.textContent = `${images.length} photo${images.length === 1 ? '' : 's'} selected. Optional tags will be applied to the entire batch.`;
-    list.innerHTML = images.map(file => `<div class="upload-dialog-file"><span aria-hidden="true">▧</span><strong title="${esc(file.name)}">${esc(file.name || 'Untitled image')}</strong><small>${formatBytes(file.size)}</small></div>`).join('');
+    list.innerHTML = images.map((file, index) => {
+        const choice = choices[index];
+        const detail = choice ? `${choice.width.toLocaleString('en-US')} × ${choice.height.toLocaleString('en-US')}` : formatBytes(file.size);
+        return `<div class="upload-dialog-file"><span aria-hidden="true">▧</span><strong title="${esc(file.name)}">${esc(file.name || 'Untitled image')}</strong><small>${detail}</small></div>`;
+    }).join('');
     input.value = '';
     const tags = projectCustomTags(activeProject());
     suggestions.innerHTML = tags.length
@@ -186,36 +326,148 @@ function stageFilesForUpload(files) {
     if (button) {
         button.disabled = false;
         button.removeAttribute('aria-busy');
-        button.textContent = `Upload ${images.length} photo${images.length === 1 ? '' : 's'}`;
     }
-    dialog.showModal();
-    requestAnimationFrame(() => input.focus());
+    renderSliceOffer();
+    if (!dialog.open) dialog.showModal();
+    requestAnimationFrame(() => ($('.slice-choice.selected', dialog) || input).focus());
+}
+
+async function stageFilesForUpload(files) {
+    const images = files.filter(file => file.type.startsWith('image/'));
+    if (!images.length) { toast('Choose PNG, JPEG, WebP, GIF, or SVG images.', 'warn'); return; }
+    presentUploadDialog(images, await Promise.all(images.map(measureSliceChoice)), null);
 }
 
 function closeUploadDialog() {
     const dialog = $('#uploadDialog');
     if (dialog?.open) dialog.close();
-    else pendingUploadFiles = [];
+    else {
+        pendingUploadFiles = [];
+        pendingSliceChoices = [];
+        pendingUploadDestination = null;
+    }
+}
+
+function sliceOutputType(file) {
+    if (/image\/jpe?g/i.test(file.type) || /\.jpe?g$/i.test(file.name || '')) return {mime:'image/jpeg', ext:'jpg'};
+    if (/image\/webp/i.test(file.type) || /\.webp$/i.test(file.name || '')) return {mime:'image/webp', ext:'webp'};
+    return {mime:'image/png', ext:'png'};
+}
+
+async function canvasBlob(canvas, mime) {
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, mime, 0.92));
+    if (blob || mime === 'image/png') return blob;
+    return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+}
+
+async function sliceScreenshot(file, sliceHeight, frame) {
+    const url = URL.createObjectURL(file);
+    try {
+        const image = await new Promise((resolve, reject) => {
+            const element = new Image();
+            element.onload = () => resolve(element);
+            element.onerror = () => reject(new Error(`Could not read ${file.name || 'that image'}.`));
+            element.src = url;
+        });
+        const output = sliceOutputType(file);
+        const base = (file.name || 'screen').replace(/\.[^.]+$/, '') || 'screen';
+        const width = image.naturalWidth;
+        const height = image.naturalHeight;
+        const parts = [];
+        for (let y = 0, part = 1; y < height; y += sliceHeight, part += 1) {
+            const band = Math.min(sliceHeight, height - y);
+            if (band < 1) break;
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = band;
+            const context = canvas.getContext('2d');
+            if (!context) throw new Error('Could not cut that screenshot.');
+            context.drawImage(image, 0, y, width, band, 0, 0, width, band);
+            const blob = await canvasBlob(canvas, output.mime);
+            if (!blob) throw new Error('Could not cut that screenshot.');
+            const ext = blob.type === 'image/png' && output.mime !== 'image/png' ? 'png' : output.ext;
+            const slice = new File([blob], `${base}-${part}.${ext}`, {type:blob.type || output.mime, lastModified:Number(file.lastModified) || Date.now()});
+            slice.storyflowFrame = frame;
+            parts.push(slice);
+        }
+        if (parts.length < 2) throw new Error('Could not cut that screenshot.');
+        return parts;
+    } finally {
+        URL.revokeObjectURL(url);
+    }
+}
+
+async function expandUploadFiles(files, choices) {
+    const prepared = [];
+    for (let index = 0; index < files.length; index += 1) {
+        const file = files[index];
+        const choice = choices[index];
+        const option = choice?.long && choice.viewportId !== 'keep' ? choice.options.find(item => item.id === choice.viewportId) : null;
+        if (!option || option.screens < 2 || option.sliceHeight >= choice.height) {
+            prepared.push(file);
+            continue;
+        }
+        const frame = option.family === 'Phone' ? 'iphone' : 'desktop';
+        prepared.push(...await sliceScreenshot(file, option.sliceHeight, frame));
+    }
+    return prepared;
+}
+
+function ensureUploadFolder(destination) {
+    if (!destination?.create) return;
+    const project = activeProject();
+    if (project.folders.some(folder => folder.fullPath === destination.fullPath)) return;
+    project.folders.push({id:uid('folder'), app:destination.app, platform:destination.platform, fullPath:destination.fullPath});
 }
 
 async function confirmFileUpload() {
     const files = [...pendingUploadFiles];
+    const choices = pendingSliceChoices.map(choice => choice ? {...choice, options:choice.options} : null);
+    const destination = pendingUploadDestination;
     if (!files.length) {
         closeUploadDialog();
         return;
     }
     const button = $('#confirmUploadButton');
+    const cutting = choices.some(choice => plannedPieceCount(choice) > 1);
     if (button) {
         button.disabled = true;
         button.setAttribute('aria-busy', 'true');
-        button.textContent = `Uploading ${files.length}…`;
+        button.textContent = cutting ? 'Cutting…' : `Uploading ${files.length}…`;
     }
-    const added = await handleFiles(files, uploadTagsFromInput($('#uploadTagInput')?.value));
-    if (added.length) closeUploadDialog();
-    else if (button) {
+    const error = $('#uploadDialogError');
+    if (error) {
+        error.hidden = true;
+        error.textContent = '';
+    }
+    let prepared = files;
+    try {
+        prepared = await expandUploadFiles(files, choices);
+    } catch (problem) {
+        if (button) {
+            button.disabled = false;
+            button.removeAttribute('aria-busy');
+        }
+        if (error) {
+            error.hidden = false;
+            error.textContent = problem.message || 'Could not cut that screenshot.';
+        }
+        renderSliceOffer();
+        return;
+    }
+    ensureUploadFolder(destination);
+    const added = await handleFiles(prepared, uploadTagsFromInput($('#uploadTagInput')?.value), destination?.fullPath || uploadFolder());
+    if (added.length) {
+        if (destination) added.forEach(screen => selectedPickerScreenIds.add(screen.id));
+        closeUploadDialog();
+        if (destination && $('#photoDialog')?.open) {
+            renderPhotoPicker();
+            $(`[data-action="pick-photo"][data-id="${CSS.escape(added[0].id)}"]`)?.focus();
+        }
+    } else if (button) {
         button.disabled = false;
         button.removeAttribute('aria-busy');
-        button.textContent = `Try uploading ${files.length} again`;
+        button.textContent = `Try uploading ${prepared.length} again`;
     }
 }
 
@@ -270,10 +522,12 @@ async function uploadPickerFiles(files) {
         if (destination && !images.length) toast('Choose PNG, JPEG, WebP, GIF, or SVG images.', 'warn');
         return;
     }
-    const project = activeProject();
-    if (destination.create && !project.folders.some(folder => folder.fullPath === destination.fullPath)) {
-        project.folders.push({id:uid('folder'), app:destination.app, platform:destination.platform, fullPath:destination.fullPath});
+    const choices = await Promise.all(images.map(measureSliceChoice));
+    if (choices.some(choice => choice?.long)) {
+        presentUploadDialog(images, choices, destination);
+        return;
     }
+    ensureUploadFolder(destination);
     pickerUploadBusy = true;
     pickerUploadFolder = destination.fullPath;
     renderPhotoPicker();
@@ -383,6 +637,14 @@ $('#uploadForm').addEventListener('submit', event => {
 
 $('#uploadDialog').addEventListener('close', () => {
     pendingUploadFiles = [];
+    pendingSliceChoices = [];
+    pendingUploadDestination = null;
+    $('#uploadDialog')?.classList.remove('slicing');
+    const offer = $('#sliceOffer');
+    if (offer) {
+        offer.hidden = true;
+        offer.innerHTML = '';
+    }
     $('#uploadForm').reset();
     const error = $('#uploadDialogError');
     if (error) {

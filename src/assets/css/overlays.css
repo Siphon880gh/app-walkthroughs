@@ -26,6 +26,24 @@ dialog::backdrop { background: rgba(2,6,23,.78); backdrop-filter: blur(3px); }
 .upload-dialog-file > span:first-child { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 5px; background: var(--blue-soft); color: #93c5fd; font: 10px/1 var(--mono); }
 .upload-dialog-file strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; }
 .upload-dialog-file small { color: var(--dim); font: 9px/1 var(--mono); }
+#uploadDialog.slicing { width: min(520px, calc(100% - 28px)); max-height: min(760px, calc(100vh - 28px)); overflow: auto; }
+#uploadDialog.slicing .dialog-head, #uploadDialog.slicing .dialog-foot { position: sticky; background: var(--surface); z-index: 1; }
+#uploadDialog.slicing .dialog-head { top: 0; }
+#uploadDialog.slicing .dialog-foot { bottom: 0; }
+.slice-offer { margin: -2px 0 16px; }
+.slice-offer[hidden] { display: none; }
+.slice-group + .slice-group { margin-top: 14px; }
+.slice-file { margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+.slice-note { margin: 6px 0 8px; color: var(--muted); font-size: 10px; line-height: 1.45; }
+.slice-family { margin: 8px 0 4px; color: var(--dim); font: 9px/1 var(--mono); letter-spacing: .08em; }
+.slice-choices { display: grid; gap: 6px; }
+.slice-choice { width: 100%; min-height: 46px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: #080e19; color: var(--text); text-align: left; }
+.slice-choice > span:first-child { min-width: 0; display: grid; gap: 4px; }
+.slice-choice strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+.slice-choice small { color: var(--dim); font: 9px/1 var(--mono); }
+.slice-choice:hover, .slice-choice:focus-visible { border-color: rgba(59,130,246,.55); background: var(--blue-soft); }
+.slice-choice.selected { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(59,130,246,.14); }
+.slice-badge { flex: none; color: #93c5fd; font: 9px/1 var(--mono); }
 .annotation-story-choices { display: grid; gap: 8px; }
 .annotation-story-choice { width: 100%; min-height: 54px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: #080e19; color: var(--text); text-align: left; transition: border-color .14s ease, background .14s ease; }
 .annotation-story-choice:hover, .annotation-story-choice:focus-visible { border-color: rgba(59,130,246,.55); background: var(--blue-soft); }

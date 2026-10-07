@@ -49,6 +49,7 @@ require dirname(__DIR__, 2) . '/guard.php';
         </div>
         <div class="dialog-body">
             <div class="upload-dialog-files" id="uploadDialogFiles"></div>
+            <div id="sliceOffer" hidden></div>
             <label class="field">
                 <span class="field-label">TAGS <span>OPTIONAL</span></span>
                 <span class="tag-dialog-input"><span aria-hidden="true">#</span><input class="input" id="uploadTagInput" name="tags" autocomplete="off" maxlength="160" placeholder="checkout, approved, mobile"></span>

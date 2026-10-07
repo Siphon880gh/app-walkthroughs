@@ -109,6 +109,7 @@ document.addEventListener('click', event => {
     else if (action === 'close-audio') $('#audioDialog').close();
     else if (action === 'upload') $('#fileInput').click();
     else if (action === 'close-upload-dialog') closeUploadDialog();
+    else if (action === 'choose-slice') chooseSliceViewport(Number(target.dataset.index), target.dataset.viewport);
     else if (action === 'choose-upload-tag') {
         const input = $('#uploadTagInput');
         if (!input) return;
